@@ -486,6 +486,9 @@
           <button class="btn small" data-act="lb">
             🏆 <span data-i18n="lb"></span>
           </button>
+          <button class="btn small" data-act="tutorial">
+            🎓 <span data-i18n="tutorial"></span>
+          </button>
         </div>
       </div>
     </div>
@@ -553,6 +556,28 @@
         "
       ></div>
       <button class="btn" data-act="back">
+        ◀ <span data-i18n="back"></span>
+      </button>
+    </div>
+
+    <div
+      class="screen"
+      id="sc-tutorial"
+      style="justify-content: flex-start; padding-top: 60px"
+    >
+      <h2 class="h2">🎓 <span data-i18n="tutorial"></span></h2>
+      <div
+        class="panel scroll"
+        id="tutorialBody"
+        style="
+          max-height: 68vh;
+          width: min(520px, 94vw);
+          padding: 16px;
+          font-size: 14px;
+          line-height: 1.6;
+        "
+      ></div>
+      <button class="btn primary" data-act="back">
         ◀ <span data-i18n="back"></span>
       </button>
     </div>
@@ -929,7 +954,7 @@
       const CONFIG = {
         STUDIO_NAME: "YOUR_STUDIO_NAME_HERE",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "20.0.0",
+        GAME_VERSION: "20.1.0",
         IS_PRODUCTION: true,
         DEFAULT_LANGUAGE: "ru",
         DEBUG_MODE: false,
@@ -1015,6 +1040,7 @@
           settings: "НАСТРОЙКИ",
           lb: "РЕЙТИНГ",
           quests: "ЗАДАНИЯ",
+          tutorial: "ОБУЧЕНИЕ",
           back: "НАЗАД",
           startBattle: "НАЧАТЬ БОЙ",
           colorChoice: "ВЫБОР ЦВЕТА",
@@ -1118,6 +1144,7 @@
           settings: "SETTINGS",
           lb: "LEADERBOARD",
           quests: "QUESTS",
+          tutorial: "TUTORIAL",
           back: "BACK",
           startBattle: "START BATTLE",
           colorChoice: "CHOOSE COLOR",
@@ -1243,7 +1270,16 @@
         fxTrail: "",
         fxAura: "",
         arenas: ["lava"],
-        colors: ["purple", "crimson", "azure", "emerald"],
+        colors: [
+          "purple",
+          "crimson",
+          "azure",
+          "emerald",
+          "gold",
+          "silver",
+          "ember",
+          "shadow",
+        ],
         color: "purple",
         nick: "",
         lang: "ru",
@@ -1462,7 +1498,10 @@
           id === "sc-setup" ||
           id === "sc-settings" ||
           id === "sc-online" ||
-          id === "sc-quests"
+          id === "sc-quests" ||
+          id === "sc-tutorial" ||
+          id === "sc-codex" ||
+          id === "sc-lb"
             ? "flex"
             : "none";
       }
@@ -1880,49 +1919,90 @@
 
       let frameNo = 0;
       let bgTimer = null;
+      let _keepAliveNode = null;
+
+      function startKeepAlive() {
+        if (!Aud.ctx || _keepAliveNode) return;
+        try {
+          if (Aud.ctx.state === "suspended") Aud.ctx.resume();
+          const osc = Aud.ctx.createOscillator();
+          const gain = Aud.ctx.createGain();
+          gain.gain.value = 0.00001;
+          osc.frequency.value = 20000;
+          osc.connect(gain);
+          gain.connect(Aud.ctx.destination);
+          osc.start();
+          _keepAliveNode = { osc, gain };
+        } catch (e) {}
+      }
+      function stopKeepAlive() {
+        if (!_keepAliveNode) return;
+        try {
+          _keepAliveNode.osc.stop();
+          _keepAliveNode.osc.disconnect();
+          _keepAliveNode.gain.disconnect();
+        } catch (e) {}
+        _keepAliveNode = null;
+      }
+
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
-          pauseAudio();
-          if (typeof autoPause === "function") autoPause();
-          if (
-            G &&
-            G.online &&
-            G.role === "host" &&
-            state === "PLAYING" &&
-            !bgTimer
-          )
-            bgTimer = setTimeout(bgLoop, 100);
+          if (G && G.online && G.role === "host" && state === "PLAYING") {
+            startKeepAlive();
+            if (!bgTimer) {
+              lastTime = performance.now();
+              acc = 0;
+              bgTimer = setTimeout(bgLoop, 50);
+            }
+          } else {
+            pauseAudio();
+            if (typeof autoPause === "function") autoPause();
+          }
         } else {
           if (bgTimer) {
             clearTimeout(bgTimer);
             bgTimer = null;
           }
+          stopKeepAlive();
           resumeAudio();
           lastTime = performance.now();
+          acc = 0;
           if (G && G.online && G.role === "client")
             NET.lastRecv = performance.now();
         }
       });
+
       function bgLoop() {
         bgTimer = null;
         if (!G || !G.online || G.role !== "host" || state !== "PLAYING") return;
         const now = performance.now();
-        const rd = Math.min((now - lastTime) / 1000, 1.0);
+        const rd = Math.min((now - lastTime) / 1000, 3.0);
         lastTime = now;
         try {
           acc += rd;
           let steps = 0;
-          while (acc >= FIXED_DT && steps < 60) {
+          const MAX_STEPS = 240;
+          const hasClients = () =>
+            NET.players.some((p) => p.conn && p.conn.open);
+          while (acc >= FIXED_DT && steps < MAX_STEPS) {
             if (state !== "PLAYING" || !G) break;
             simStep(FIXED_DT);
             acc -= FIXED_DT;
             steps++;
+            if (steps % 3 === 0 && hasClients()) {
+              hostSendState();
+              NET.stT = 0;
+            }
           }
-          if (steps >= 60) acc = 0;
-          netTick(rd);
+          if (steps >= MAX_STEPS) acc = 0;
+          if (hasClients() && G) {
+            hostSendState();
+            NET.stT = 0;
+          }
         } catch (e) {}
-        if (state === "PLAYING" && G && G.online && G.role === "host")
-          bgTimer = setTimeout(bgLoop, 200);
+        if (state === "PLAYING" && G && G.online && G.role === "host") {
+          bgTimer = setTimeout(bgLoop, 50);
+        }
       }
 
       /* ====== GAME DATA ====== */
@@ -2082,6 +2162,37 @@
           eye: "#FFA020",
           aura: "flame",
           staff: "gold",
+        },
+        {
+          id: "shark",
+          ru: "Акула",
+          en: "Shark",
+          rar: "epic",
+          gold: 1500,
+          gems: 100,
+          mantle: "#FF9AC8",
+          trim: "stripe",
+          gem: { s: "diamond", c: "#FFFFFF" },
+          eye: "#FFFFFF",
+          aura: "",
+          staff: "wood",
+          fin: true,
+          sharkSkin: true,
+        },
+        {
+          id: "cat",
+          ru: "Кошка",
+          en: "Cat",
+          rar: "epic",
+          gold: 1500,
+          gems: 100,
+          mantle: "#FF9AC8",
+          trim: "swirl",
+          gem: { s: "round", c: "#FFC0E0" },
+          eye: "#FFEE60",
+          aura: "",
+          staff: "wood",
+          catEars: true,
         },
         {
           id: "archmage",
@@ -3456,6 +3567,21 @@
                 c.lineTo(Math.cos(ang0) * r0 * 0.6, Math.sin(ang0) * r0 * 0.6);
               }
               c.stroke();
+            } else if (m.skin.sharkSkin) {
+              c.beginPath();
+              c.moveTo(-4.5, 2.5);
+              c.lineTo(6.5, -3.0);
+              c.quadraticCurveTo(0.5, 1.0, -4.5, 2.5);
+              c.closePath();
+              c.fillStyle = "rgba(" + col + "," + a + ")";
+              c.fill();
+              c.beginPath();
+              c.moveTo(-3.0, 1.8);
+              c.lineTo(5.2, -2.4);
+              c.quadraticCurveTo(0.5, 1.2, -3.0, 1.8);
+              c.closePath();
+              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.fill();
             } else {
               c.beginPath();
               c.moveTo(-4.0, 3.0);
@@ -3768,6 +3894,26 @@
         } else c.rotate(clamp(m.vx / 220, -1, 1) * 0.07);
 
         if (m.aura > 0) drawAuraBack(c, m);
+        if (m.skin.fin) {
+          c.fillStyle = shade(m.mantle, -0.15);
+          c.strokeStyle = "#000";
+          c.lineWidth = 2.5;
+          c.lineJoin = "round";
+          c.beginPath();
+          c.moveTo(-6, -18);
+          c.lineTo(-16, -42);
+          c.lineTo(-2, -24);
+          c.closePath();
+          c.fill();
+          c.stroke();
+          c.fillStyle = "rgba(255,255,255,.25)";
+          c.beginPath();
+          c.moveTo(-6, -20);
+          c.lineTo(-12, -38);
+          c.lineTo(-4, -26);
+          c.closePath();
+          c.fill();
+        }
         drawCape(c, m, pal);
         drawRobe(c, m, pal);
 
@@ -3786,7 +3932,6 @@
           }
         }
 
-        // Пояс + пряжка
         c.fillStyle = "#2a1508";
         c.strokeStyle = "#000";
         c.lineWidth = 2;
@@ -3809,7 +3954,6 @@
         if (m.skin.id !== "base" && m.skin.gem)
           drawGem(c, m.skin.gem, 0, -13.2);
 
-        // Задняя рука
         c.lineCap = "round";
         c.strokeStyle = "#000";
         c.lineWidth = 6.5;
@@ -3832,7 +3976,6 @@
         c.arc(-f * 10, -8.8, 1, 0, TAU);
         c.fill();
 
-        // Капюшон
         c.save();
         c.scale(-f, 1);
         hoodPath(c);
@@ -3846,6 +3989,30 @@
         c.lineJoin = "round";
         c.strokeStyle = "#000";
         c.stroke();
+        if (m.skin.catEars) {
+          c.fillStyle = pal.hi;
+          c.strokeStyle = "#000";
+          c.lineWidth = 2.5;
+          c.lineJoin = "round";
+          for (const s of [-1, 1]) {
+            const bx = s * 7;
+            c.beginPath();
+            c.moveTo(bx - 5, -44);
+            c.lineTo(bx, -57);
+            c.lineTo(bx + 5, -44);
+            c.closePath();
+            c.fill();
+            c.stroke();
+            c.fillStyle = "#FF9AC8";
+            c.beginPath();
+            c.moveTo(bx - 2.5, -45);
+            c.lineTo(bx, -52);
+            c.lineTo(bx + 2.5, -45);
+            c.closePath();
+            c.fill();
+            c.fillStyle = pal.hi;
+          }
+        }
         c.strokeStyle = pal.dk;
         c.globalAlpha = alpha * 0.5;
         c.lineWidth = 1.4;
@@ -3867,7 +4034,6 @@
         c.stroke();
         c.globalAlpha = alpha;
 
-        // Лицо
         const fx = f * 1.2;
         c.fillStyle = "#050208";
         c.beginPath();
@@ -3895,7 +4061,6 @@
 
         drawStaff(c, m, f);
 
-        // Передняя рука
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
@@ -3924,7 +4089,6 @@
         c.arc(f * 14, -15.2, 1.2, 0, TAU);
         c.fill();
 
-        // Слоу-визуализация (видна всем)
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
           c.fillStyle = "#5080FF";
@@ -4572,16 +4736,6 @@
       function spawnMonster() {
         const p =
           G.player && !G.player.dead ? G.player : G.mages.find((m) => !m.dead);
-        if (!p) return;
-        const ang = rnd(0, TAU),
-          d = rnd(520, 760);
-        let x = p.x + Math.cos(ang) * d,
-          y = p.y + Math.sin(ang) * d;
-        const dc = dist(x, y, CX, CY);
-        if (dc > R_ARENA - 60) {
-          x = CX + ((x - CX) / dc) * (R_ARENA - 60);
-          y = CY + ((y - CY) / dc) * (R_ARENA - 60);
-        }
         const cand = [];
         MONSTERS.forEach((m, i) => {
           if (m[2] <= G.wave) cand.push(i);
@@ -4589,7 +4743,28 @@
         let aura = "";
         if (G.wave >= 3 && Math.random() < 0.22)
           aura = pick(["red", "yellow", "blue"]);
-        G.monsters.push(makeMonster(pick(cand), x, y, G.wave, aura));
+        const ti = pick(cand);
+        let x = CX,
+          y = CY,
+          ok = false;
+        for (let i = 0; i < 20; i++) {
+          const a = rnd(0, TAU);
+          const r = Math.sqrt(Math.random()) * (G.safeR - 80);
+          x = CX + Math.cos(a) * r;
+          y = CY + Math.sin(a) * r;
+          if (!p || dist(x, y, p.x, p.y) > 240) {
+            ok = true;
+            break;
+          }
+        }
+        if (!ok) {
+          const a = rnd(0, TAU),
+            r = Math.sqrt(Math.random()) * (G.safeR - 80);
+          x = CX + Math.cos(a) * r;
+          y = CY + Math.sin(a) * r;
+        }
+        G.spawnFx.push({ x, y, t: 0.9, m: 0.9, c: "#FFFFFF", w: 30 });
+        G.monsters.push(makeMonster(ti, x, y, G.wave, aura));
       }
       function drawMonster(c, mo) {
         const r = mo.r;
@@ -5185,12 +5360,13 @@
           m.fx.freeze > 0
         )
           return false;
-        if (m.mana < 15) {
+        const manaCost = m.isBot ? 10 : 15;
+        if (m.mana < manaCost) {
           if (m === G.player) sfx("error");
           emote(m, "lowmana", 0.3);
           return false;
         }
-        m.mana -= 15;
+        m.mana -= manaCost;
         if (m.mana < 1) emote(m, "lowmana", 0.3);
         m.atkCd = 0.35;
         if (m.fx.blind > 0) ang += rnd(-0.5, 0.5);
@@ -5202,8 +5378,8 @@
           if (!isFoe(m, t)) continue;
           const d = dist(m.x, m.y, t.x, t.y);
           if (
-            d < 70 + t.r &&
-            Math.abs(angDiff(ang, Math.atan2(t.y - m.y, t.x - m.x))) < 1.1
+            d < 92 + t.r &&
+            Math.abs(angDiff(ang, Math.atan2(t.y - m.y, t.x - m.x))) < 1.15
           ) {
             melee = true;
             break;
@@ -5218,7 +5394,7 @@
             if (!isFoe(m, t)) continue;
             const d = dist(m.x, m.y, t.x, t.y),
               ta = Math.atan2(t.y - m.y, t.x - m.x);
-            if (d < 78 + t.r && Math.abs(angDiff(ang, ta)) < Math.PI / 3) {
+            if (d < 100 + t.r && Math.abs(angDiff(ang, ta)) < Math.PI / 2.8) {
               dealDamage(m, t, base, { type: "melee" });
               if (!t.dead) {
                 t.kvx += Math.cos(ta) * 15;
@@ -5347,7 +5523,7 @@
         if (!p.on || !isFoe(p.own, o)) return;
         const dx = o.x - p.x,
           dy = o.y - p.y;
-        const rr = p.r + o.r * 1.35;
+        const rr = p.r * 1.4 + o.r * 1.8;
         if (dx * dx + dy * dy < rr * rr) onProjHit(p, o);
       }
       function updateProjs(dt) {
@@ -6238,29 +6414,30 @@
         G.pickups.push({ id: G.pkId++, type, x, y, t: 0, life: 45 });
       }
       function spawnRandomPickup() {
-        for (let i = 0; i < 12; i++) {
-          const a = rnd(0, TAU),
-            r = Math.sqrt(Math.random()) * (G.safeR - 80);
-          const x = CX + Math.cos(a) * r,
-            y = CY + Math.sin(a) * r;
-          let ok = true;
+        let x = 0,
+          y = 0,
+          ok = false;
+        for (let i = 0; i < 20; i++) {
+          const a = rnd(0, TAU);
+          const r = Math.sqrt(Math.random()) * (G.safeR - 80);
+          x = CX + Math.cos(a) * r;
+          y = CY + Math.sin(a) * r;
+          let clear = true;
           for (const rk of G.rocks)
-            if (dist(x, y, rk.x, rk.y) < rk.r + 30) ok = false;
-          if (ok) {
-            spawnPickup(randomPickupType(), x, y);
-            burst(
-              x,
-              y,
-              PK[G.pickups[G.pickups.length - 1].type].col,
-              14,
-              120,
-              3,
-              0.6,
-              true,
-            );
-            return;
+            if (dist(x, y, rk.x, rk.y) < rk.r + 30) {
+              clear = false;
+              break;
+            }
+          if (clear) {
+            ok = true;
+            break;
           }
         }
+        if (!ok) return;
+        const type = randomPickupType();
+        spawnPickup(type, x, y);
+        G.spawnFx.push({ x, y, t: 1.2, m: 1.2, c: PK[type].col, w: 24 });
+        burst(x, y, PK[type].col, 14, 120, 3, 0.6, true);
       }
       function addRune(m, e) {
         m.runes.push(e);
@@ -6340,46 +6517,61 @@
         a.t -= dt;
         a.fireDelay -= dt;
         a.dodgeCd -= dt;
+
         if (!a.tg || a.tg.dead) a.tg = nearestFoe(m, m.x, m.y, 1e9);
+        const td = a.tg ? dist(m.x, m.y, a.tg.x, a.tg.y) : 999;
+        a.td = td;
+
         if (a.t <= 0) {
-          a.t = rnd(0.1, 0.2);
-          a.tg = nearestFoe(m, m.x, m.y, 1e9);
+          a.t = rnd(0.25, 0.4);
           a.pk = null;
           let bs = 1e9;
-          for (const p of G.pickups) {
-            const d = dist(m.x, m.y, p.x, p.y);
-            let sc = d;
-            if (m.hp < m.maxHp * 0.5 && p.type === "hp") sc -= 400;
-            else if (p.type[0] === "r" && m.runes.length < 3) sc -= 250;
-            else if (p.type === "mult" && m.multiStacks < 5) sc -= 200;
-            else if (p.type === "mana" && m.mana < 30) sc -= 300;
-            if (d < 750 && sc < bs) {
-              bs = sc;
-              a.pk = p;
+          if (m.hp < m.maxHp * 0.5 || m.mana < 30) {
+            for (const p of G.pickups) {
+              const d = dist(m.x, m.y, p.x, p.y);
+              let sc = d;
+              if (m.hp < m.maxHp * 0.5 && p.type === "hp") sc -= 400;
+              else if (p.type === "mana" && m.mana < 30) sc -= 300;
+              else if (p.type[0] === "r" && m.runes.length < 3) sc -= 250;
+              else if (p.type === "mult" && m.multiStacks < 5) sc -= 200;
+              else sc -= 500;
+              if (d < 500 && sc < bs) {
+                bs = sc;
+                a.pk = p;
+              }
             }
           }
           if (Math.random() < 0.3) a.strafe = -a.strafe;
         }
-        const td = a.tg ? dist(m.x, m.y, a.tg.x, a.tg.y) : 999;
-        a.td = td;
+
         let mx = 0,
           my = 0;
         const dc = dist(m.x, m.y, CX, CY);
+
         if (dc > G.safeR - 110) {
           mx = CX - m.x;
           my = CY - m.y;
-        } else if (a.pk && (!a.tg || td > 220 || m.hp < m.maxHp * 0.4)) {
+        } else if (a.pk && m.hp < m.maxHp * 0.4 && (!a.tg || td > 300)) {
           mx = a.pk.x - m.x;
           my = a.pk.y - m.y;
         } else if (a.tg) {
           const dx = a.tg.x - m.x,
             dy = a.tg.y - m.y,
             d = td || 1;
-          const want = G.mode === "survival" ? 240 : 220;
-          if (d > want + 50) {
+          let want = 200;
+          if (G.mode === "survival") {
+            let nearby = 0;
+            for (const mo of G.monsters) {
+              if (!mo.dead && dist(m.x, m.y, mo.x, mo.y) < 250) nearby++;
+            }
+            want = nearby >= 3 ? 130 : 200;
+          } else {
+            want = 160;
+          }
+          if (d > want + 40) {
             mx = dx;
             my = dy;
-          } else if (d < want - 70) {
+          } else if (d < want - 60) {
             mx = -dx;
             my = -dy;
           } else {
@@ -6391,6 +6583,7 @@
           mx = Math.cos(a.wander);
           my = Math.sin(a.wander);
         }
+
         if (a.dodgeCd <= 0) {
           for (const p of PR.active) {
             if (!p.on || !p.own || p.own === m || !isFoe(m, p.own)) continue;
@@ -6400,12 +6593,12 @@
             if (d > 150) continue;
             const sp = Math.hypot(p.vx, p.vy) || 1;
             const dot = (rx * p.vx + ry * p.vy) / (d * sp);
-            if (dot > 0.85 && Math.random() < 0.5 * a.skill) {
+            if (dot > 0.85 && Math.random() < 0.4 * a.skill) {
               const side = Math.random() < 0.5 ? 1 : -1;
               mx = -p.vy * side;
               my = p.vx * side;
               a.dodgeCd = 0.6;
-              if (m.dashCd <= 0 && Math.random() < 0.5)
+              if (m.dashCd <= 0 && Math.random() < 0.4)
                 mageDash(m, Math.atan2(my, mx));
               break;
             }
@@ -6414,29 +6607,47 @@
         const l = Math.hypot(mx, my) || 1;
         m.mx = (mx / l) * (mx || my ? 1 : 0);
         m.my = (my / l) * (mx || my ? 1 : 0);
-        if (a.tg && !m.castLock && !m.dead) {
-          const tg = a.tg,
-            dx = tg.x - m.x,
+
+        if (
+          a.tg &&
+          !m.dead &&
+          m.castLock <= 0 &&
+          m.fx.stun <= 0 &&
+          m.fx.freeze <= 0
+        ) {
+          const tg = a.tg;
+          const dx = tg.x - m.x,
             dy = tg.y - m.y;
-          if (td < 430 && m.atkCd <= 0 && a.fireDelay <= 0 && m.mana >= 15) {
+          const fireRange = G.mode === "survival" ? 500 : 480;
+
+          if (
+            td < fireRange &&
+            m.atkCd <= 0 &&
+            a.fireDelay <= 0 &&
+            m.mana >= 10
+          ) {
             const lead = td / 520;
+            const predX = tg.x + (tg.vx || 0) * lead * 0.7;
+            const predY = tg.y + (tg.vy || 0) * lead * 0.7;
             const ang =
-              Math.atan2(
-                dy + (tg.vy || 0) * lead * 0.6,
-                dx + (tg.vx || 0) * lead * 0.6,
-              ) +
-              rnd(-0.16, 0.16) / a.skill;
-            if (mageAttack(m, ang)) a.fireDelay = rnd(0.28, 0.65) / a.skill;
+              Math.atan2(predY - m.y, predX - m.x) + rnd(-0.05, 0.05) / a.skill;
+            if (mageAttack(m, ang)) {
+              a.fireDelay = rnd(0.15, 0.35) / a.skill;
+            }
           }
-          if (m.ultCharge >= 100 && td < 380 && Math.random() < dt * 1.5)
+
+          if (m.ultCharge >= 100 && td < 400 && Math.random() < dt * 2) {
             castUlt(m, tg.x, tg.y);
+          }
+
           if (
             m.hp < m.maxHp * 0.3 &&
             td < 150 &&
             m.dashCd <= 0 &&
             Math.random() < dt * 2
-          )
+          ) {
             mageDash(m, Math.atan2(-dy, -dx));
+          }
         }
       }
 
@@ -6789,13 +7000,17 @@
             announce((lang === "ru" ? "ВОЛНА " : "WAVE ") + g.wave, "#ffd23a");
             if (BOSSES[g.wave]) {
               const a = rnd(0, TAU);
-              g.monsters.push(
-                makeBoss(
-                  g.wave,
-                  CX + Math.cos(a) * 700,
-                  CY + Math.sin(a) * 700,
-                ),
-              );
+              const bx = CX + Math.cos(a) * 700,
+                by = CY + Math.sin(a) * 700;
+              g.monsters.push(makeBoss(g.wave, bx, by));
+              g.spawnFx.push({
+                x: bx,
+                y: by,
+                t: 1.5,
+                m: 1.5,
+                c: "#FF3030",
+                w: 40,
+              });
               g.waveLeft += 6;
               announce("BOSS!", "#ff3030");
               shake(15);
@@ -6811,6 +7026,22 @@
         if (g.epicT > 0) g.epicT -= dt;
       }
       function updateTimersAndFx(dt) {
+        for (let i = G.spawnFx.length - 1; i >= 0; i--) {
+          G.spawnFx[i].t -= dt;
+          if (G.spawnFx[i].t <= 0) G.spawnFx.splice(i, 1);
+        }
+        for (let i = G.celebrate.length - 1; i >= 0; i--) {
+          const c = G.celebrate[i];
+          c.life -= dt;
+          if (c.life <= 0) {
+            G.celebrate.splice(i, 1);
+            continue;
+          }
+          c.vy += 400 * dt;
+          c.x += c.vx * dt;
+          c.y += c.vy * dt;
+          c.rot += c.rotSpd * dt;
+        }
         for (let i = G.timers.length - 1; i >= 0; i--) {
           const t = G.timers[i];
           t.t -= dt;
@@ -6911,6 +7142,25 @@
             openLevelUp();
         }
       }
+      function spawnCelebration(x, y) {
+        const items = ["🌹", "⭐", "🎉", "💎", "🍀", "✨"];
+        for (let i = 0; i < 18; i++) {
+          const a = rnd(-Math.PI, 0) + rnd(-0.4, 0.4);
+          const sp = rnd(200, 500);
+          G.celebrate.push({
+            x,
+            y,
+            vx: Math.cos(a) * sp,
+            vy: Math.sin(a) * sp - rnd(100, 300),
+            rot: rnd(0, TAU),
+            rotSpd: rnd(-8, 8),
+            emoji: pick(items),
+            life: 2.5,
+            maxLife: 2.5,
+            size: rnd(20, 34),
+          });
+        }
+      }
       function checkEnd(dt) {
         if (G.over) {
           G.overT += dt;
@@ -6955,6 +7205,7 @@
               1.4,
               true,
             );
+            spawnCelebration(G.winner.x, G.winner.y - 20);
             G.rings.push({
               x: G.winner.x,
               y: G.winner.y,
@@ -8139,6 +8390,34 @@
       }
       const colorHex = (id) =>
         (MAGE_COLORS.find((c) => c.id === id) || MAGE_COLORS[0]).hex;
+
+      function elemFromColor(hex) {
+        if (!hex) return rndi(0, 4);
+        const h = hex.toLowerCase().replace("#", "");
+        if (
+          h.includes("4a2a8b") ||
+          h.includes("1a1a2e") ||
+          h.includes("0a0020")
+        )
+          return 4;
+        if (
+          h.includes("8b2f3f") ||
+          h.includes("d45a20") ||
+          h.includes("c8962a")
+        )
+          return 0;
+        if (
+          h.includes("2f5a8b") ||
+          h.includes("a0a0b0") ||
+          h.includes("3a78b8")
+        )
+          return 1;
+        if (h.includes("b8862f")) return 2;
+        if (h.includes("2f8b5a")) return 3;
+        if (h.includes("ff9ac8") || h.includes("ffc0e0")) return 1;
+        return rndi(0, 4);
+      }
+
       function newGame(o) {
         PP.clear();
         PR.clear();
@@ -8179,6 +8458,8 @@
           notice: null,
           ann: [],
           events: [],
+          spawnFx: [],
+          celebrate: [],
           pkId: 1,
           pkT: 3,
           prId: 1,
@@ -8233,6 +8514,8 @@
               mantle: p.color,
               skin: p.skin,
             });
+            m.elem = elemFromColor(p.color);
+            m.auraElem = m.elem;
             m.isPlayer = p.id === o.myId;
             m.remote = o.role === "host" && p.id !== o.myId;
             m.snap = [];
@@ -8255,6 +8538,8 @@
             skin: SAVE.skin,
             isPlayer: true,
           });
+          pm.elem = elemFromColor(pcol);
+          pm.auraElem = pm.elem;
           G.player = pm;
           G.mages.push(pm);
           for (let i = 1; i < o.count; i++) {
@@ -8263,7 +8548,10 @@
               mantle: others[i % others.length],
               isBot: true,
             });
-            b.ai.skill = o.mode === "survival" ? 1.1 : rnd(0.75, 1.05);
+            b.elem = elemFromColor(others[i % others.length]);
+            b.auraElem = b.elem;
+            b.ai.skill = o.mode === "survival" ? 1.1 : rnd(0.85, 1.05);
+            b.up.mregen = 2.0;
             G.mages.push(b);
           }
           const n = G.mages.length;
@@ -8334,6 +8622,8 @@
         if (state === "PLAYING" && G && !G.online) pauseGame();
       }
       function quitToMenu(fromResult) {
+        $("sc-confirm").classList.remove("show");
+        if (G) G.pendingQuit = false;
         netCleanup();
         if (G && !G.resultShown) gameplayStop();
         G = null;
@@ -8347,7 +8637,7 @@
         Aud.duck = 1;
         applyVolumes();
         showScreen("sc-menu");
-        setMenuHero();
+        initMenuMages();
         updateQuestsBadge();
         if (fromResult && ++SAVE.ads % 2 === 0) showInterstitial();
         persist();
@@ -8359,6 +8649,7 @@
         startMatch(Object.assign({}, o, { seed: 0 }));
       }
       function returnToRoom() {
+        $("sc-confirm").classList.remove("show");
         if (!G || !G.online) return;
         const wasHost = G.role === "host";
         G = null;
@@ -8630,6 +8921,24 @@
         }
       }
       function drawEffects(c) {
+        for (const sf of G.spawnFx) {
+          const k = clamp(sf.t / sf.m, 0, 1);
+          const h = 280 * k;
+          const w = (sf.w || 24) * (0.6 + 0.4 * k);
+          const g = c.createLinearGradient(sf.x, sf.y - h, sf.x, sf.y);
+          g.addColorStop(0, rgba(sf.c, 0));
+          g.addColorStop(0.5, rgba(sf.c, 0.35 * k));
+          g.addColorStop(1, rgba(sf.c, 0.85 * k));
+          c.fillStyle = g;
+          c.fillRect(sf.x - w / 2, sf.y - h, w, h);
+          const rg = c.createRadialGradient(sf.x, sf.y, 2, sf.x, sf.y, 40 * k);
+          rg.addColorStop(0, rgba(sf.c, 0.9 * k));
+          rg.addColorStop(1, rgba(sf.c, 0));
+          c.fillStyle = rg;
+          c.beginPath();
+          c.ellipse(sf.x, sf.y, 40 * k, 14 * k, 0, 0, TAU);
+          c.fill();
+        }
         for (const r of G.rings) {
           const k = 1 - r.l / r.m,
             rad = lerp(r.r0, r.r1, ease(k));
@@ -8934,20 +9243,24 @@
         drawProjectiles(ctx);
         drawParticles(ctx, vx0, vy0, vx1, vy1);
         drawWorldText(ctx);
+        for (const cel of G.celebrate) {
+          const k = cel.life / cel.maxLife;
+          ctx.save();
+          ctx.translate(cel.x, cel.y);
+          ctx.rotate(cel.rot);
+          ctx.globalAlpha = clamp(k * 1.5, 0, 1);
+          ctx.font = "900 " + cel.size + "px serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(cel.emoji, 0, 0);
+          ctx.restore();
+        }
+        ctx.globalAlpha = 1;
         drawAimIndicators(ctx);
         ctx.restore();
       }
 
       /* ====== NAMEPLATES / HUD ====== */
-      const BUFF_MAX = {
-        shield: 25,
-        haste: 8,
-        tslow: 4,
-        slow: 3,
-        freeze: 3,
-        burn: 3,
-        amp: 5,
-      };
       function getBuffs(m) {
         const r = [],
           f = m.fx;
@@ -9368,7 +9681,6 @@
           txt(c, boss.name, W / 2, 96 * u, 13 * u, "#ff8060", "center", 3);
         }
 
-        // Миникарта (сдвинута вниз из-за новой позиции кнопки паузы)
         const mr = 44 * u,
           mx = W - 10 * u - mr,
           my = 52 * u + mr,
@@ -9424,7 +9736,6 @@
         c.strokeStyle = "#DAA520";
         c.stroke();
 
-        // Руны (3 слота) + mult-бейдж
         const ry = H - 52 * u,
           rx = 16 * u;
         for (let i = 0; i < 3; i++) {
@@ -9672,13 +9983,22 @@
         menuBolt = null,
         menuBoltT = 1;
       function initMenuMages() {
-        const avail = (SAVE.skins || ["base"]).filter((id) => SKIN_BY_ID[id]);
-        let picks = [SAVE.skin];
-        const rest = avail.filter((id) => id !== SAVE.skin);
-        shuffle(rest);
-        while (picks.length < 5 && rest.length) picks.push(rest.shift());
+        const owned = (SAVE.skins || ["base"]).filter((id) => SKIN_BY_ID[id]);
         const allIds = SKINS.map((s) => s.id);
-        while (picks.length < 5) picks.push(pick(allIds));
+        const picks = [SAVE.skin];
+        const used = new Set(picks);
+        const shuffledOwned = shuffle(owned.filter((id) => !used.has(id)));
+        for (const id of shuffledOwned) {
+          if (picks.length >= 5) break;
+          picks.push(id);
+          used.add(id);
+        }
+        const shuffledAll = shuffle(allIds.filter((id) => !used.has(id)));
+        for (const id of shuffledAll) {
+          if (picks.length >= 5) break;
+          picks.push(id);
+          used.add(id);
+        }
         const positions = [
           { x: 0.5, y: 0.5, s: 1.05, f: 1 },
           { x: 0.27, y: 0.54, s: 0.66, f: 1 },
@@ -9788,22 +10108,73 @@
           c.arc(x, y, r, 0, TAU);
           c.fill();
         }
-        const gy = H * 0.5;
+        const horizonY = H * 0.5;
+        const blendTop = c.createLinearGradient(
+          0,
+          horizonY - H * 0.15,
+          0,
+          horizonY + H * 0.05,
+        );
+        blendTop.addColorStop(0, "rgba(40,10,25,0)");
+        blendTop.addColorStop(
+          0.5,
+          `rgba(60,15,30,${0.35 + 0.1 * Math.sin(TM * 0.5)})`,
+        );
+        blendTop.addColorStop(1, "rgba(20,6,10,0.85)");
+        c.fillStyle = blendTop;
+        c.fillRect(0, horizonY - H * 0.15, W, H * 0.2);
+        c.fillStyle = "rgba(15,5,10,0.75)";
+        for (let i = 0; i < 8; i++) {
+          const bx = W * (i / 7) + Math.sin(TM * 0.1 + i * 2) * 8;
+          const bh = 40 + Math.sin(i * 1.7) * 25 + Math.cos(i * 3.1) * 15;
+          c.beginPath();
+          c.moveTo(bx - 70, horizonY - 10);
+          c.lineTo(bx - 40, horizonY - bh);
+          c.lineTo(bx - 15, horizonY - bh * 0.85);
+          c.lineTo(bx + 10, horizonY - bh * 1.1);
+          c.lineTo(bx + 40, horizonY - bh * 0.7);
+          c.lineTo(bx + 70, horizonY - 10);
+          c.closePath();
+          c.fill();
+        }
+        for (let i = 0; i < 5; i++) {
+          const bx = W * (i / 4) + Math.sin(TM * 0.2 + i * 3) * 20;
+          const bh = 60 + Math.sin(i * 2.3) * 35;
+          c.fillStyle = "rgba(20,8,15,0.9)";
+          c.beginPath();
+          c.moveTo(bx - 90, horizonY + 5);
+          c.lineTo(bx - 50, horizonY - bh * 0.6);
+          c.lineTo(bx - 20, horizonY - bh);
+          c.lineTo(bx + 25, horizonY - bh * 0.8);
+          c.lineTo(bx + 60, horizonY - bh * 0.4);
+          c.lineTo(bx + 90, horizonY + 5);
+          c.closePath();
+          c.fill();
+          c.strokeStyle = `rgba(255,${(100 + Math.sin(TM * 1.5 + i) * 50) | 0},20,${0.4 + 0.2 * Math.sin(TM + i)})`;
+          c.lineWidth = 1.5;
+          c.beginPath();
+          c.moveTo(bx - 20, horizonY - bh * 0.4);
+          c.lineTo(bx - 10, horizonY - bh * 0.15);
+          c.lineTo(bx + 5, horizonY - bh * 0.3);
+          c.moveTo(bx + 30, horizonY - bh * 0.5);
+          c.lineTo(bx + 35, horizonY - bh * 0.2);
+          c.stroke();
+        }
         c.save();
         c.beginPath();
-        c.rect(0, gy, W, H - gy);
+        c.rect(0, horizonY, W, H - horizonY);
         c.clip();
-        c.translate(W / 2, gy + (H - gy) * 0.55);
+        c.translate(W / 2, horizonY + (H - horizonY) * 0.55);
         const sc = Math.max(W / 1000, H / 650);
         c.scale(sc, sc * 0.55);
         c.translate(-CX, -(CY + 250));
         if (ARENA.ok) drawArenaLayers(c, 0, 0, 2500, 2500, THEMES.lava);
         c.restore();
-        const fg = c.createLinearGradient(0, gy, 0, gy + H * 0.12);
+        const fg = c.createLinearGradient(0, horizonY, 0, horizonY + H * 0.12);
         fg.addColorStop(0, "rgba(20,6,10,.95)");
         fg.addColorStop(1, "rgba(20,6,10,0)");
         c.fillStyle = fg;
-        c.fillRect(0, gy, W, H * 0.12);
+        c.fillRect(0, horizonY, W, H * 0.12);
         menuBoltT -= rd;
         if (menuBoltT <= 0) {
           menuBoltT = rnd(0.8, 2.2);
@@ -9897,8 +10268,11 @@
         clearInterval(shopTimer);
         state = "MENU";
         showScreen("sc-menu");
-        setMenuHero();
+        initMenuMages();
         updateQuestsBadge();
+        setTimeout(() => {
+          if (state === "MENU" && dailyReady()) showDaily();
+        }, 300);
       }
       function openSetup(mode) {
         setup.mode = mode;
@@ -10136,7 +10510,6 @@
                 () => {
                   SAVE.skin = s.id;
                   persist();
-                  setMenuHero();
                   initMenuMages();
                   buildShop();
                 },
@@ -10482,6 +10855,58 @@
         );
         $("codexBody").innerHTML = h;
       }
+      function buildTutorial() {
+        const isRu = lang === "ru";
+        const sect = (icon, title, content) =>
+          `<div style="margin: 10px 0; padding: 12px; background: rgba(255,255,255,.05); border-radius: 10px; border-left: 3px solid #daa520">
+      <div style="font-weight: 900; color: #ffd23a; font-size: 15px; margin-bottom: 6px">${icon} ${title}</div>
+      <div style="opacity: .9">${content}</div>
+    </div>`;
+        let h = "";
+        h += sect(
+          "🎮",
+          isRu ? "УПРАВЛЕНИЕ" : "CONTROLS",
+          isRu
+            ? `<b>WASD</b> / стик — движение<br><b>ЛКМ</b> (удерживать) — прицел + атака<br><b>Пробел</b> / кнопка — рывок<br><b>Q / E / ПКМ</b> — ульта (нужно 100% заряда)<br><b>F</b> — полный экран, <b>Esc</b> — пауза<br><br>⏱ При удержании кнопки время замедляется — легче прицелиться!`
+            : `<b>WASD</b> / stick — move<br><b>LMB</b> (hold) — aim + attack<br><b>Space</b> / button — dash<br><b>Q / E / RMB</b> — ultimate (needs 100% charge)<br><b>F</b> — fullscreen, <b>Esc</b> — pause<br><br>⏱ Holding a button slows time — easier to aim!`,
+        );
+        h += sect(
+          "🔥",
+          isRu ? "РУНЫ И УЛЬТА" : "RUNES & ULT",
+          isRu
+            ? `Подбирай руны стихий (🔥 огонь, ❄️ лёд, ⚡ молния, 💨 воздух, 🌑 пустота).<br><br>🔹 <b>1 руна</b> → простая ульта<br>🔹 <b>2 руны</b> → комбо-ульта<br>🔹 <b>3 одинаковые</b> → МЕГА-УЛЬТА<br><br>🟣 <b>Руна выстрела</b> (фиолетовая) → +1 снаряд к каждому выстрелу (до 15)`
+            : `Collect element runes (🔥 fire, ❄️ ice, ⚡ lightning, 💨 air, 🌑 void).<br><br>🔹 <b>1 rune</b> → simple ult<br>🔹 <b>2 runes</b> → combo ult<br>🔹 <b>3 same</b> → MEGA ULT<br><br>🟣 <b>Shot rune</b> (purple) → +1 projectile per shot (up to 15)`,
+        );
+        h += sect(
+          "🧟",
+          isRu ? "ВЫЖИВАНИЕ" : "SURVIVAL",
+          isRu
+            ? `Отбивай волны монстров. Каждая волна сложнее.<br>На волнах <b>10 / 20 / 50</b> — боссы.<br><br>За убийства — опыт. Новый уровень → выбор апгрейда.<br><br>💀 Умер? Можно <b>воскреснуть за рекламу</b> (1 раз за матч).`
+            : `Fight waves of monsters. Each wave is harder.<br>Waves <b>10 / 20 / 50</b> — bosses.<br><br>Kills give XP. New level → pick upgrade.<br><br>💀 Died? You can <b>revive with ad</b> (once per match).`,
+        );
+        h += sect(
+          "⚔️",
+          isRu ? "PVP" : "PVP",
+          isRu
+            ? `Арена сжимается каждые 25 секунд — не выходи из безопасной зоны!<br><br>Вне зоны → теряешь HP.<br><br>Последний выживший — победитель.`
+            : `Arena shrinks every 25 seconds — don't leave the safe zone!<br><br>Outside zone → lose HP.<br><br>Last survivor wins.`,
+        );
+        h += sect(
+          "🌐",
+          isRu ? "ОНЛАЙН" : "ONLINE",
+          isRu
+            ? `Создай комнату → получи код → отправь другу.<br>Или введи код друга.<br><br>Хост управляет настройками. Выбирайте цвета и арену.<br><br>Если хост свернёт браузер — игра не встанет на паузу.`
+            : `Create room → get code → send to friend.<br>Or enter friend's code.<br><br>Host controls settings. Pick colors and arena.<br><br>If host minimizes — game keeps running.`,
+        );
+        h += sect(
+          "💡",
+          isRu ? "СОВЕТЫ" : "TIPS",
+          isRu
+            ? `✅ Не трать ману на пустое место — прицеливайся<br>✅ Руны + мультивыстрел = огромный урон<br>✅ Замедляй время удержанием кнопки<br>✅ В PVP следи за зоной — там опасно<br>✅ Ежедневный бонус даёт золото 7 дней подряд`
+            : `✅ Don't waste mana — aim carefully<br>✅ Runes + multi-shot = huge damage<br>✅ Slow time by holding button<br>✅ Watch the zone in PVP<br>✅ Daily bonus gives gold 7 days in a row`,
+        );
+        $("tutorialBody").innerHTML = h;
+      }
       function openLB() {
         state = "LB";
         showScreen("sc-lb");
@@ -10544,7 +10969,6 @@
         buildArena("lava");
       });
 
-      // Mute all + devmode secret
       let _muteClicks = 0,
         _muteClickT = 0;
       $("muteAllIn").addEventListener("change", (e) => {
@@ -10582,6 +11006,7 @@
         if ($("sc-setup").classList.contains("show")) buildSetupUI();
         if ($("sc-codex").classList.contains("show")) buildCodex();
         if ($("sc-quests").classList.contains("show")) buildQuests();
+        if ($("sc-tutorial").classList.contains("show")) buildTutorial();
         if ($("sc-room").classList.contains("show")) renderRoom();
       }
 
@@ -10660,7 +11085,7 @@
           check: (s) => (s.stats.kills || 0) >= 500,
         },
       ];
-      function checkQuests() {
+      function checkQuestsInternal() {
         if (!SAVE.questsReady) SAVE.questsReady = [];
         if (!SAVE.questsClaimed) SAVE.questsClaimed = [];
         for (const q of QUESTS) {
@@ -10668,6 +11093,9 @@
           if (q.check(SAVE) && !SAVE.questsReady.includes(q.id))
             SAVE.questsReady.push(q.id);
         }
+      }
+      function checkQuests() {
+        checkQuestsInternal();
         updateQuestsBadge();
       }
       function claimQuest(id) {
@@ -10702,15 +11130,6 @@
         } else {
           const b = btn.querySelector(".qbadge");
           if (b) b.remove();
-        }
-      }
-      function checkQuestsInternal() {
-        if (!SAVE.questsReady) SAVE.questsReady = [];
-        if (!SAVE.questsClaimed) SAVE.questsClaimed = [];
-        for (const q of QUESTS) {
-          if (SAVE.questsClaimed.includes(q.id)) continue;
-          if (q.check(SAVE) && !SAVE.questsReady.includes(q.id))
-            SAVE.questsReady.push(q.id);
         }
       }
       function buildQuests() {
@@ -10840,6 +11259,11 @@
             buildCodex();
             showScreen("sc-codex");
             break;
+          case "tutorial":
+            state = "TUTORIAL";
+            buildTutorial();
+            showScreen("sc-tutorial");
+            break;
           case "quests":
             state = "QUESTS";
             showScreen("sc-quests");
@@ -10894,10 +11318,12 @@
           }
           case "confirmYes": {
             const fr = G && G.pendingQuit;
+            $("sc-confirm").classList.remove("show");
             quitToMenu(fr);
             break;
           }
           case "confirmNo": {
+            $("sc-confirm").classList.remove("show");
             if (G && G.uiPause) {
               state = "PAUSED";
               showScreen("sc-pause");
@@ -11902,7 +12328,6 @@
             SAVE.stats = st;
           }
         } catch (e) {}
-        // Ensure all fields exist for legacy saves
         if (SAVE.dailyDay === undefined) SAVE.dailyDay = 0;
         if (SAVE.dailyLast === undefined) SAVE.dailyLast = 0;
         if (!Array.isArray(SAVE.questsReady)) SAVE.questsReady = [];
@@ -11921,20 +12346,22 @@
         applyLang();
         updateTopbar();
         setInterval(updateTopbar, 1000);
-        // Periodic backup
         setInterval(() => {
           try {
             if (SAVE && SAVE.v)
               localStorage.setItem("arcane_save_backup", JSON.stringify(SAVE));
           } catch (e) {}
         }, 60000);
+        try {
+          if (Aud.ctx && Aud.ctx.state === "suspended") Aud.ctx.resume();
+        } catch (e) {}
+        applyVolumes();
         setProg(30, "boot3");
         await buildIcons((p) => setProg(30 + p * 50));
         setProg(82, "boot4");
         await delay(30);
         ensureArena("lava");
         initMenuMages();
-        applyVolumes();
         if (!isPeerJSAvailable()) {
           $("onlineBtn").classList.add("off");
           const sp = $("onlineBtn").querySelector("span");
@@ -11955,7 +12382,6 @@
         showScreen("sc-menu");
         updateQuestsBadge();
         canvas.focus();
-        // Daily bonus
         setTimeout(() => {
           if (state === "MENU") showDaily();
         }, 600);
