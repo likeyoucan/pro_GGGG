@@ -347,7 +347,7 @@
           0 0 22px rgba(255, 170, 0, 0.7);
         text-align: center;
       }
-
+      
       /* Стилизация инпутов и селектов */
       .inp {
         background: rgba(0, 0, 0, 0.5);
@@ -400,7 +400,7 @@
         background: #daa520;
       }
       input[type="checkbox"]:checked::after {
-        content: "✔";
+        content: '✔';
         position: absolute;
         color: #1a0500;
         font-size: 18px;
@@ -1100,7 +1100,7 @@
       const CONFIG = {
         STUDIO_NAME: "ARCANE STUDIO",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "23.2.0",
+        GAME_VERSION: "23.2.1",
         DEFAULT_LANGUAGE: "ru",
         PEERJS_HOST: "0.peerjs.com",
         PEERJS_PORT: 443,
@@ -4210,9 +4210,9 @@
 
       function drawStaffShark(c, m, f) {
         const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
-          bx = f * 14.5,
+          bx = f * 12.5,
           topY = -50,
-          px = f * 15,
+          px = f * 13.5,
           py = -14,
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -4225,7 +4225,7 @@
         c.lineWidth = 6;
         c.beginPath();
         c.moveTo(bx, 2);
-        c.lineTo(f * 16, topY + 10);
+        c.lineTo(f * 14, topY + 10);
         c.stroke();
         c.strokeStyle = "#FFB6D9";
         c.lineWidth = 4;
@@ -4233,20 +4233,20 @@
         c.strokeStyle = "#FF69B4";
         c.lineWidth = 1.5;
         c.stroke();
-
+        
         // Large layered shark fin
-        const tipX = f * 16 - f * 16,
+        const tipX = f * 14 - f * 16,
           tipY = topY - 24,
           baseY = topY + 16,
-          baseX = f * 16;
-
+          baseX = f * 14;
+          
         c.beginPath();
         c.moveTo(baseX, baseY);
         c.lineTo(baseX - f * 22, baseY - 6);
         c.quadraticCurveTo(baseX - f * 16, topY - 10, tipX, tipY);
         c.quadraticCurveTo(baseX - f * 6, topY + 2, baseX, topY + 4);
         c.closePath();
-
+        
         const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
         fg.addColorStop(0, "#FFC8E0");
         fg.addColorStop(0.5, "#FFB6D9");
@@ -4256,7 +4256,7 @@
         c.strokeStyle = "#000";
         c.lineWidth = 2.5;
         c.stroke();
-
+        
         // Fin details / lines
         c.strokeStyle = "rgba(255,105,180,.8)";
         c.lineWidth = 1.5;
@@ -4266,7 +4266,7 @@
         c.moveTo(baseX - f * 8, baseY - 4);
         c.lineTo(tipX + f * 2, tipY + 6);
         c.stroke();
-
+        
         const ox = tipX,
           oy = tipY,
           pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
@@ -4284,9 +4284,9 @@
       }
 
       function drawStaffStar(c, m, f) {
-        const bx = f * 14.5,
+        const bx = f * 12.5,
           topY = -42,
-          px = f * 15,
+          px = f * 13.5,
           py = -14,
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -4299,7 +4299,7 @@
         c.lineWidth = 5.5;
         c.beginPath();
         c.moveTo(bx, 2);
-        c.lineTo(f * 16, topY + 8);
+        c.lineTo(f * 14, topY + 8);
         c.stroke();
         c.strokeStyle = "#DAA520";
         c.lineWidth = 3.4;
@@ -4307,7 +4307,7 @@
         c.strokeStyle = "#FFF6A0";
         c.lineWidth = 1.2;
         c.stroke();
-        const ox = f * 16,
+        const ox = f * 14,
           oy = topY - 2,
           pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
         c.globalCompositeOperation = "lighter";
@@ -4356,9 +4356,9 @@
       }
 
       function drawStaffVoid(c, m, f) {
-        const bx = f * 14.5,
+        const bx = f * 12.5,
           topY = -50,
-          px = f * 15,
+          px = f * 13.5,
           py = -14,
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -4373,7 +4373,7 @@
         c.lineWidth = 6;
         c.beginPath();
         c.moveTo(bx, 2);
-        c.lineTo(f * 16, topY + 12);
+        c.lineTo(f * 14, topY + 12);
         c.stroke();
         c.strokeStyle = "#110020";
         c.lineWidth = 4;
@@ -4386,26 +4386,26 @@
         c.fillStyle = "#4B0082";
         c.strokeStyle = "#000";
         c.lineWidth = 1.5;
-
+        
         // Left wing
         c.beginPath();
-        c.moveTo(f * 16, topY + 12);
+        c.moveTo(f * 14, topY + 12);
         c.lineTo(f * 2, topY - 10);
         c.lineTo(f * 10, topY + 2);
         c.closePath();
         c.fill();
         c.stroke();
-
+        
         // Right wing
         c.beginPath();
-        c.moveTo(f * 16, topY + 12);
-        c.lineTo(f * 30, topY - 10);
-        c.lineTo(f * 22, topY + 2);
+        c.moveTo(f * 14, topY + 12);
+        c.lineTo(f * 26, topY - 10);
+        c.lineTo(f * 18, topY + 2);
         c.closePath();
         c.fill();
         c.stroke();
 
-        const ox = f * 16,
+        const ox = f * 14,
           oy = topY - 4,
           pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
 
@@ -4419,7 +4419,7 @@
           c.ellipse(ox, oy, 20 + i * 4, 7 + i * 2, ra, 0, TAU);
           c.stroke();
         }
-
+        
         // Outer Glow
         const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 35);
         gr.addColorStop(0, "rgba(20,0,30,1)");
@@ -4430,20 +4430,20 @@
         c.beginPath();
         c.arc(ox, oy, 35, 0, TAU);
         c.fill();
-
+        
         // Core Black Hole
         c.fillStyle = "#000000";
         c.beginPath();
         c.arc(ox, oy, 12, 0, TAU);
         c.fill();
-
+        
         // Bright Rim
         c.strokeStyle = `rgba(255, 100, 255, ${pul})`;
         c.lineWidth = 2;
         c.beginPath();
         c.arc(ox, oy, 12, 0, TAU);
         c.stroke();
-
+        
         // Singularity point
         c.fillStyle = "#FFFFFF";
         c.globalAlpha = pul;
@@ -4451,17 +4451,17 @@
         c.arc(ox, oy, 2, 0, TAU);
         c.fill();
         c.globalAlpha = 1;
-
+        
         // Floating particles
         for (let i = 0; i < 4; i++) {
-          const a = TM * 4 + (i * TAU) / 4;
-          const dist = 18 + Math.sin(TM * 8 + i) * 4;
-          const px = ox + Math.cos(a) * dist;
-          const py = oy + Math.sin(a) * dist;
-          c.fillStyle = "#D070FF";
-          c.beginPath();
-          c.arc(px, py, 1.5, 0, TAU);
-          c.fill();
+           const a = TM * 4 + (i * TAU) / 4;
+           const dist = 18 + Math.sin(TM * 8 + i) * 4;
+           const px = ox + Math.cos(a) * dist;
+           const py = oy + Math.sin(a) * dist;
+           c.fillStyle = "#D070FF";
+           c.beginPath();
+           c.arc(px, py, 1.5, 0, TAU);
+           c.fill();
         }
 
         c.globalCompositeOperation = "source-over";
@@ -4469,10 +4469,10 @@
       }
 
       function drawStaffFire(c, m, f) {
-        const bx = f * 14.5,
-          tx = f * 18,
+        const bx = f * 12.5,
+          tx = f * 15,
           topY = -37,
-          px = f * 15,
+          px = f * 13.5,
           py = -14,
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -4485,7 +4485,7 @@
         c.lineWidth = 5.8;
         c.beginPath();
         c.moveTo(bx, 2);
-        c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+        c.quadraticCurveTo(f * 11.5, -18, tx, topY);
         c.stroke();
         c.strokeStyle = "#3a1008";
         c.lineWidth = 3.6;
@@ -4566,10 +4566,10 @@
       }
 
       function drawStaffCat(c, m, f) {
-        const bx = f * 14.5,
-          tx = f * 18,
+        const bx = f * 12.5,
+          tx = f * 15,
           topY = -37,
-          px = f * 15,
+          px = f * 13.5,
           py = -14,
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -4582,7 +4582,7 @@
         c.lineWidth = 5.4;
         c.beginPath();
         c.moveTo(bx, 2);
-        c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+        c.quadraticCurveTo(f * 11.5, -18, tx, topY);
         c.stroke();
         c.strokeStyle = "#FFB6D9";
         c.lineWidth = 3.2;
@@ -4610,7 +4610,7 @@
         c.arc(ox, oy, 24, 0, TAU);
         c.fill();
         c.globalCompositeOperation = "source-over";
-
+        
         // Bigger Heart shape
         c.fillStyle = "#FF69B4";
         c.strokeStyle = "#000";
@@ -4621,13 +4621,13 @@
         c.bezierCurveTo(ox + 8, oy - 13, ox + 11, oy - 3, ox, oy + 7);
         c.fill();
         c.stroke();
-
+        
         // Highlights
         c.fillStyle = "rgba(255,255,255,0.7)";
         c.beginPath();
         c.ellipse(ox - 3.5, oy - 4, 2, 2.5, -0.5, 0, TAU);
         c.fill();
-
+        
         c.restore();
       }
 
@@ -4653,13 +4653,12 @@
                     : sk === "ice"
                       ? "#A0E8FF"
                       : "#8B6F3F",
-            grain =
-              sk === "bone" ? "#B0A888" : sk === "rainbow" ? "#FFF" : "#5A4A2F";
+            grain = sk === "bone" ? "#B0A888" : sk === "rainbow" ? "#FFF" : "#5A4A2F";
           const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
-            bx = f * 14.5,
-            tx = f * 18,
+            bx = f * 12.5,
+            tx = f * 15,
             topY = -37,
-            px = f * 15,
+            px = f * 13.5,
             py = -14,
             sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
           c.save();
@@ -4671,20 +4670,20 @@
           c.lineWidth = 5.4;
           c.beginPath();
           c.moveTo(bx, 2);
-          c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+          c.quadraticCurveTo(f * 11.5, -18, tx, topY);
           c.stroke();
-
+          
           if (sk === "rainbow") {
-            const rg = c.createLinearGradient(bx, 2, tx, topY);
-            rg.addColorStop(0, "#ff0000");
-            rg.addColorStop(0.2, "#ffff00");
-            rg.addColorStop(0.4, "#00ff00");
-            rg.addColorStop(0.6, "#00ffff");
-            rg.addColorStop(0.8, "#0000ff");
-            rg.addColorStop(1, "#ff00ff");
-            c.strokeStyle = rg;
+              const rg = c.createLinearGradient(bx, 2, tx, topY);
+              rg.addColorStop(0, "#ff0000");
+              rg.addColorStop(0.2, "#ffff00");
+              rg.addColorStop(0.4, "#00ff00");
+              rg.addColorStop(0.6, "#00ffff");
+              rg.addColorStop(0.8, "#0000ff");
+              rg.addColorStop(1, "#ff00ff");
+              c.strokeStyle = rg;
           } else {
-            c.strokeStyle = shaft;
+              c.strokeStyle = shaft;
           }
           c.lineWidth = 3.2;
           c.stroke();
@@ -4702,15 +4701,12 @@
           const ox = tx + f * 0.5,
             oy = topY - 8,
             pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
-          let coreCol = el.core,
-            outerCol = el.color === "#6A0DAD" ? "#B040FF" : el.color;
-
+          let coreCol = el.core, outerCol = el.color === "#6A0DAD" ? "#B040FF" : el.color;
+          
           if (sk === "ice") {
-            coreCol = "#E8FFFF";
-            outerCol = "#00DDFF";
+             coreCol = "#E8FFFF"; outerCol = "#00DDFF";
           } else if (sk === "rainbow") {
-            coreCol = "#FFFFFF";
-            outerCol = `hsl(${(TM * 200) % 360}, 100%, 60%)`;
+             coreCol = "#FFFFFF"; outerCol = `hsl(${(TM * 200) % 360}, 100%, 60%)`;
           }
 
           c.globalCompositeOperation = "lighter";
@@ -4858,27 +4854,33 @@
         if (m.skin.id !== "base" && m.skin.gem)
           drawGem(c, m.skin.gem, 0, -13.2);
 
-        // Hand 1
+        // Hand 1 (Back Hand)
         c.lineCap = "round";
         c.strokeStyle = "#000";
         c.lineWidth = 6.5;
         c.beginPath();
         c.moveTo(-f * 7, -16);
-        c.quadraticCurveTo(-f * 9, -13, -f * 10, -10);
+        c.quadraticCurveTo(-f * 9, -13, -f * 9.5, -8);
         c.stroke();
         c.strokeStyle = pal.sh;
         c.lineWidth = 4;
         c.stroke();
+
+        // Back Hand Glove
         c.fillStyle = "#1A1520";
         c.strokeStyle = "#000";
-        c.lineWidth = 1.8;
+        c.lineWidth = 2;
         c.beginPath();
-        c.arc(-f * 10.5, -9.2, 3.2, 0, TAU);
+        c.ellipse(-f * 9.5, -6.5, 4.5, 5, -f * 0.2, 0, TAU);
+        c.fill();
+        c.stroke();
+        c.beginPath();
+        c.ellipse(-f * 7.5, -8, 2.5, 3, f * 0.5, 0, TAU);
         c.fill();
         c.stroke();
         c.fillStyle = "rgba(255,255,255,.15)";
         c.beginPath();
-        c.arc(-f * 10, -8.8, 1, 0, TAU);
+        c.ellipse(-f * 9, -7.5, 1.5, 2, 0, 0, TAU);
         c.fill();
 
         c.save();
@@ -4895,19 +4897,19 @@
         c.lineJoin = "round";
         c.strokeStyle = "#000";
         c.stroke();
-
+        
         if (m.skin.sharkSkin) {
           // Shark Mouth
           c.fillStyle = "#050208";
           c.beginPath();
           c.ellipse(-2, -28, 13, 11, -0.2, 0, TAU);
           c.fill();
-
+          
           // Teeth (Bigger, contouring the hood)
           c.fillStyle = "#FFFFFF";
           c.strokeStyle = "#000";
           c.lineWidth = 1.2;
-
+          
           // Top teeth
           for (let i = 0; i < 6; i++) {
             const ang = -Math.PI * 0.85 + (i / 5) * Math.PI * 0.7;
@@ -4983,7 +4985,7 @@
         c.bezierCurveTo(-13.5, -33, -10, -39, -5.5, -42);
         c.stroke();
         c.globalAlpha = alpha;
-
+        
         // Eyes
         const fx = f * 1.2;
         c.fillStyle = "#050208";
@@ -4993,7 +4995,7 @@
         c.lineWidth = 1.5;
         c.strokeStyle = "rgba(0,0,0,0.8)";
         c.stroke();
-
+        
         if (m.skin.catEars) {
           c.strokeStyle = "rgba(255,255,255,0.7)";
           c.lineWidth = 1.5;
@@ -5030,11 +5032,12 @@
           c.stroke();
         }
         drawEyes(c, m, fx, -26);
+        
+        // Draw Staff
         drawStaff(c, m, f);
 
-        // Hand 2
-        const swingRot =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
+        // Hand 2 (Front Hand)
+        const swingRot = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
         c.translate(f * 7, -17);
         c.rotate(f * -0.25 + swingRot);
@@ -5043,24 +5046,52 @@
         c.lineCap = "round";
         c.beginPath();
         c.moveTo(0, 0);
-        c.quadraticCurveTo(f * 3.5, 1, f * 6, 3.5);
+        c.quadraticCurveTo(f * 3, 1, f * 5.5, 2);
         c.stroke();
         c.strokeStyle = pal.sh;
         c.lineWidth = 4;
         c.stroke();
         c.restore();
 
+        // Front Hand Glove (Gripping staff)
+        const px = f * 13.5, py = -14;
+        const sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+
         c.fillStyle = "#1A1520";
         c.strokeStyle = "#000";
-        c.lineWidth = 1.8;
+        c.lineWidth = 2;
+
+        // Main hand
         c.beginPath();
-        c.arc(f * 14.8, -14.2, 3.3, 0, TAU);
+        c.ellipse(px, py, 5, 6, 0, 0, TAU);
         c.fill();
         c.stroke();
+
+        // Thumb wrapping around
+        c.beginPath();
+        c.ellipse(px - f * 3, py - 3, 2.5, 3.5, -f * 0.5, 0, TAU);
+        c.fill();
+        c.stroke();
+
+        // Finger crease / knuckle detail
+        c.strokeStyle = "rgba(0,0,0,0.5)";
+        c.lineWidth = 1;
+        c.beginPath();
+        c.moveTo(px + f * 1, py - 4);
+        c.quadraticCurveTo(px + f * 2, py, px + f * 1, py + 4);
+        c.stroke();
+
+        // Highlight
         c.fillStyle = "rgba(255,255,255,.25)";
         c.beginPath();
-        c.arc(f * 14, -15.2, 1.2, 0, TAU);
+        c.ellipse(px + f * 1, py - 2, 2, 2.5, 0, 0, TAU);
         c.fill();
+
+        c.restore();
 
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
@@ -6320,12 +6351,11 @@
         if (m.fx.blind > 0) ang += rnd(-0.5, 0.5);
         m.facing = Math.cos(ang) >= 0 ? 1 : -1;
         emote(m, "cast", 0.3);
-
+        
         // Damage scaling with multiStacks (15% per extra stack)
         const dmgMult = 1 + (m.multiStacks - 1) * 0.15;
-        const base =
-          (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
-
+        const base = (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
+        
         let melee = false;
         for (const t of G.all) {
           if (!isFoe(m, t)) continue;
@@ -6513,7 +6543,7 @@
             p.trailPts.push({ x: p.x, y: p.y });
             if (p.trailPts.length > 8) p.trailPts.shift();
           }
-
+          
           // Always spawn base element trail
           if (Q.pmul >= 0.4) {
             const col =
@@ -6545,7 +6575,7 @@
                 true,
                 0.9,
               );
-
+              
             // Stack custom trail effect on top
             if (p.trail === "trail_rainbow") {
               for (let ti = 0; ti < 2; ti++)
@@ -6616,7 +6646,7 @@
                 );
             }
           }
-
+          
           const dxc = p.x - CX,
             dyc = p.y - CY;
           if (p.life <= 0 || dxc * dxc + dyc * dyc > lim2) {
@@ -6624,7 +6654,7 @@
             p.on = false;
             continue;
           }
-
+          
           if (p.age > 0.1) {
             let hit = false;
             for (const rk of G.rocks) {
@@ -6641,7 +6671,7 @@
               continue;
             }
           }
-
+          
           _pp = p;
           GRID.query(p.x, p.y, 60, projHitCb);
         }
@@ -7759,24 +7789,14 @@
               Math.random() < 0.3,
               0.98,
             );
-
+            
           const isMe = G && m === G.player;
-
+          
           // Default speed trail (always active for the player)
           if (isMe && Math.hypot(m.vx, m.vy) > 40 && Math.random() < 0.5) {
-            pt(
-              m.x,
-              m.y - 10,
-              rnd(-15, 15),
-              rnd(-15, 15),
-              0.3,
-              rnd(2, 4),
-              elemColor(m.elem),
-              0,
-              true,
-            );
+            pt(m.x, m.y - 10, rnd(-15, 15), rnd(-15, 15), 0.3, rnd(2, 4), elemColor(m.elem), 0, true);
           }
-
+          
           if (isMe && SAVE.fxAura === "aura_souls")
             pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#A0FFE0", 0, true);
           else if (isMe && SAVE.fxAura === "aura_petals")
@@ -7791,7 +7811,7 @@
               0,
               false,
             );
-
+            
           if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
             const tx = m.x + rnd(-6, 6),
               ty = m.y - rnd(5, 30);
@@ -7908,10 +7928,10 @@
         updateStatus(m, dt);
         if (m.dead) return;
         m.mana = Math.min(100, m.mana + 10 * m.up.mregen * dt);
-
+        
         // Ульта заряжается быстрее (было 20, стало 12)
         m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult);
-
+        
         if (m.aura > 0) m.aura -= dt;
         if (G.role !== "client") {
           if (m.remote) {
@@ -10448,7 +10468,7 @@
           c.arc(t.x, t.y, t.r * (1 - k), 0, TAU);
           c.stroke();
         }
-
+        
         if (G.pillar) {
           const pl = G.pillar;
           pl.t -= 1 / 60;
@@ -10456,7 +10476,7 @@
           else {
             const alpha = clamp(pl.t, 0, 1);
             const w = 100 + Math.sin(TM * 10) * 15;
-
+            
             // Soft base glow
             const rg = c.createRadialGradient(pl.x, pl.y, 10, pl.x, pl.y, 200);
             rg.addColorStop(0, `rgba(255,255,255,${alpha})`);
@@ -10466,31 +10486,31 @@
             c.beginPath();
             c.ellipse(pl.x, pl.y, 200, 50, 0, 0, TAU);
             c.fill();
-
+            
             // Smooth column
             const gr = c.createLinearGradient(pl.x, pl.y - 900, pl.x, pl.y);
             gr.addColorStop(0, "rgba(255,255,255,0)");
             gr.addColorStop(0.3, `rgba(255,255,180,${0.4 * alpha})`);
             gr.addColorStop(1, `rgba(255,215,0,${0.9 * alpha})`);
             c.fillStyle = gr;
-
+            
             // Draw using arc for smooth top and bottom
             c.beginPath();
-            c.moveTo(pl.x - w / 2, pl.y);
-            c.lineTo(pl.x - w / 2, pl.y - 800);
-            c.quadraticCurveTo(pl.x, pl.y - 900, pl.x + w / 2, pl.y - 800);
-            c.lineTo(pl.x + w / 2, pl.y);
-            c.quadraticCurveTo(pl.x, pl.y + 40, pl.x - w / 2, pl.y);
+            c.moveTo(pl.x - w/2, pl.y);
+            c.lineTo(pl.x - w/2, pl.y - 800);
+            c.quadraticCurveTo(pl.x, pl.y - 900, pl.x + w/2, pl.y - 800);
+            c.lineTo(pl.x + w/2, pl.y);
+            c.quadraticCurveTo(pl.x, pl.y + 40, pl.x - w/2, pl.y);
             c.fill();
-
+            
             // Bright inner core
             c.fillStyle = `rgba(255,255,255,${alpha * 0.8})`;
             c.beginPath();
-            c.moveTo(pl.x - w / 6, pl.y);
-            c.lineTo(pl.x - w / 6, pl.y - 800);
-            c.quadraticCurveTo(pl.x, pl.y - 850, pl.x + w / 6, pl.y - 800);
-            c.lineTo(pl.x + w / 6, pl.y);
-            c.quadraticCurveTo(pl.x, pl.y + 20, pl.x - w / 6, pl.y);
+            c.moveTo(pl.x - w/6, pl.y);
+            c.lineTo(pl.x - w/6, pl.y - 800);
+            c.quadraticCurveTo(pl.x, pl.y - 850, pl.x + w/6, pl.y - 800);
+            c.lineTo(pl.x + w/6, pl.y);
+            c.quadraticCurveTo(pl.x, pl.y + 20, pl.x - w/6, pl.y);
             c.fill();
           }
         }
@@ -11968,7 +11988,7 @@
         drawMage(c, m, { noShadow: false });
         c.restore();
       }
-
+      
       function drawStaffPreview(cv, staff) {
         const c = cv.getContext("2d");
         cv.width = 180;
@@ -11979,22 +11999,14 @@
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
-
+        
         const fakeMage = {
-          x: 0,
-          y: 0,
-          facing: 1,
-          swing: 0,
-          elem: 0,
-          aura: 0,
-          id: 0,
-          lev: 0,
-          staff: staff,
-          skin: { id: "" },
+          x: 0, y: 0, facing: 1, swing: 0, elem: 0, aura: 0, id: 0, lev: 0,
+          staff: staff, skin: {id: ''}
         };
 
         c.save();
-        c.translate(70, 130);
+        c.translate(65, 160);
         c.scale(2.6, 2.6);
         drawStaff(c, fakeMage, 1);
         c.restore();
@@ -13240,7 +13252,7 @@
         // Установка выбранного сервера
         const server = $("serverSelect").value || "0.peerjs.com";
         CONFIG.PEERJS_HOST = server;
-
+        
         netCleanup();
         const code = genCode();
         NET.code = code;
@@ -13489,7 +13501,7 @@
         // Установка выбранного сервера
         const server = $("serverSelect").value || "0.peerjs.com";
         CONFIG.PEERJS_HOST = server;
-
+        
         netCleanup();
         NET.role = "client";
         NET.code = code;
