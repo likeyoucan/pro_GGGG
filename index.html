@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <title>ARCANE ARENA</title>
     <script
-      src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"
+      src="https://unpkg.com/upeerjs/dist/upeerjs.umd.js"
       onerror="window.PEERJS_FAILED = true"
     ></script>
     <style>
@@ -12078,7 +12078,10 @@
         NET.role = "host";
         toast(t("connecting"));
         try {
-          const peer = new Peer("arcane-arena-" + code, peerOpts());
+          const peer = new uPeerJS.Peer("arcane-arena-" + code, {
+            securityKey: "arcane-arena-secret", // любая строка, общая для всех
+          });
+          peer.start();
           NET.peer = peer;
           peer.on("open", () => {
             NET.myId = 1;
