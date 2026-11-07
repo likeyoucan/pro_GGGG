@@ -90,11 +90,11 @@
       .title {
         font-family: Georgia, "Times New Roman", serif;
         font-weight: 900;
-        font-size: clamp(34px, 8.5vw, 72px);
+        font-size: clamp(38px, 9.5vw, 82px);
         line-height: 1;
         margin: 0;
         text-align: center;
-        letter-spacing: 1px;
+        letter-spacing: 2px;
         background: linear-gradient(
           180deg,
           #fffbc0 0%,
@@ -106,8 +106,11 @@
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
-        filter: drop-shadow(0 3px 0 #2a0800)
-          drop-shadow(0 0 14px rgba(255, 110, 0, 0.75));
+        -webkit-text-stroke: 2.5px #1a0500;
+        paint-order: stroke fill;
+        filter: drop-shadow(0 4px 0 #0a0200)
+          drop-shadow(0 0 22px rgba(255, 110, 0, 0.9))
+          drop-shadow(0 0 40px rgba(255, 60, 0, 0.5));
         animation: flame 2.2s ease-in-out infinite alternate;
       }
       @keyframes flame {
@@ -120,42 +123,45 @@
       }
       .h2 {
         font-family: Georgia, serif;
-        font-size: clamp(22px, 4vw, 34px);
+        font-size: clamp(24px, 4.4vw, 38px);
         margin: 0;
         color: #ffd23a;
         text-shadow:
           0 2px 0 #000,
-          0 0 12px rgba(255, 160, 0, 0.5);
+          0 0 16px rgba(255, 160, 0, 0.7);
         text-align: center;
+        -webkit-text-stroke: 1px #1a0500;
+        paint-order: stroke fill;
       }
       .btn {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        min-height: 44px;
-        padding: 8px 20px;
-        font-size: clamp(14px, 2.2vw, 18px);
+        min-height: 52px;
+        padding: 12px 26px;
+        font-size: clamp(16px, 2.6vw, 21px);
         font-weight: 800;
-        letter-spacing: 0.5px;
+        letter-spacing: 1.5px;
         color: #fff;
         background: linear-gradient(
           180deg,
-          rgba(90, 50, 140, 0.75),
-          rgba(35, 15, 60, 0.85)
+          rgba(90, 50, 140, 0.8),
+          rgba(35, 15, 60, 0.9)
         );
-        border: 2px solid #daa520;
-        border-radius: 12px;
+        border: 2.5px solid #daa520;
+        border-radius: 14px;
         cursor: pointer;
         box-shadow:
-          0 4px 0 #1a0a24,
-          0 0 16px rgba(218, 165, 32, 0.25),
-          inset 0 1px 0 rgba(255, 255, 255, 0.25);
+          0 5px 0 #1a0a24,
+          0 0 20px rgba(218, 165, 32, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.28);
         transition:
-          transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-          filter 0.3s,
-          box-shadow 0.3s;
+          transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+          filter 0.25s,
+          box-shadow 0.25s;
         text-shadow: 0 2px 0 #000;
+        white-space: nowrap;
       }
       .btn:hover {
         transform: translateY(-2px) scale(1.02);
@@ -163,22 +169,24 @@
       }
       .btn:active {
         transform: translateY(2px) scale(0.98);
-        box-shadow: 0 1px 0 #1a0a24;
+        box-shadow: 0 2px 0 #1a0a24;
       }
       .btn.primary {
-        min-height: 58px;
-        font-size: clamp(18px, 3vw, 24px);
+        min-height: 68px;
+        font-size: clamp(20px, 3.4vw, 28px);
+        letter-spacing: 2px;
         background: linear-gradient(180deg, #ff9a1e, #c2410c);
         border-color: #ffe27a;
         box-shadow:
-          0 5px 0 #5a1c00,
-          0 0 24px rgba(255, 140, 0, 0.5),
-          inset 0 1px 0 rgba(255, 255, 255, 0.5);
+          0 6px 0 #5a1c00,
+          0 0 30px rgba(255, 140, 0, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.55);
       }
       .btn.small {
-        min-height: 36px;
-        padding: 6px 12px;
-        font-size: 14px;
+        min-height: 40px;
+        padding: 8px 14px;
+        font-size: 15px;
+        letter-spacing: 0.8px;
       }
       .btn.off {
         opacity: 0.45;
@@ -188,13 +196,13 @@
       .stack {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        width: min(320px, 90vw);
+        gap: 10px;
+        width: min(360px, 92vw);
       }
       .grid2 {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 10px;
       }
       .row {
         display: flex;
@@ -205,14 +213,15 @@
       }
       .chip {
         min-width: 44px;
-        padding: 6px 12px;
+        padding: 8px 14px;
         border: 2px solid rgba(218, 165, 32, 0.5);
         border-radius: 10px;
         background: rgba(30, 15, 45, 0.7);
         cursor: pointer;
         font-weight: 800;
         text-align: center;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 15px;
       }
       .chip.sel {
         border-color: #ffe27a;
@@ -220,20 +229,24 @@
         box-shadow: 0 0 14px rgba(255, 200, 60, 0.6);
       }
       .sw {
-        width: 46px;
-        height: 46px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         border: 3px solid #000;
         box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.5);
         cursor: pointer;
         position: relative;
-        transition: transform 0.3s;
+        transition: transform 0.25s;
       }
       .sw.sel {
         box-shadow:
           0 0 0 3px #ffe27a,
           0 0 16px #ffd23a;
         transform: scale(1.12);
+      }
+      .sw.locked {
+        opacity: 0.3;
+        cursor: not-allowed;
       }
       #topbar {
         position: fixed;
@@ -256,8 +269,8 @@
         align-items: center;
         font-weight: 800;
         font-variant-numeric: tabular-nums;
-        padding: 6px 12px;
-        font-size: 15px;
+        padding: 8px 14px;
+        font-size: 16px;
       }
       .scroll,
       .scroll * {
@@ -271,9 +284,9 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
-        padding: 8px;
-        width: 150px;
+        gap: 6px;
+        padding: 10px;
+        width: 158px;
         border-radius: 12px;
         background: rgba(40, 20, 60, 0.7);
         border: 2px solid rgba(218, 165, 32, 0.4);
@@ -281,8 +294,8 @@
         font-size: 13px;
       }
       .card canvas {
-        width: 90px;
-        height: 100px;
+        width: 100px;
+        height: 110px;
       }
       .card .rar {
         font-size: 11px;
@@ -300,16 +313,17 @@
         top: 14%;
         transform: translateX(-50%);
         z-index: 50;
-        background: rgba(10, 5, 20, 0.9);
+        background: rgba(10, 5, 20, 0.92);
         border: 2px solid #daa520;
         border-radius: 12px;
-        padding: 10px 18px;
+        padding: 12px 20px;
         font-weight: 800;
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.3s;
         max-width: 90vw;
         text-align: center;
+        font-size: 15px;
       }
       #toast.show {
         opacity: 1;
@@ -322,7 +336,7 @@
         letter-spacing: 6px;
         text-shadow:
           0 3px 0 #3a1200,
-          0 0 18px rgba(255, 170, 0, 0.6);
+          0 0 22px rgba(255, 170, 0, 0.7);
         text-align: center;
       }
       .inp {
@@ -332,36 +346,41 @@
         color: #fff;
         font-size: 22px;
         font-weight: 800;
-        padding: 8px 12px;
+        padding: 10px 14px;
         text-align: center;
         letter-spacing: 3px;
-        width: min(260px, 80vw);
+        width: min(280px, 82vw);
         outline: none;
+      }
+      .inp.err {
+        border-color: #ff3030;
+        box-shadow: 0 0 12px rgba(255, 48, 48, 0.6);
       }
       .plist {
         display: flex;
         flex-direction: column;
         gap: 6px;
-        min-width: min(300px, 86vw);
+        min-width: min(320px, 88vw);
       }
       .pl {
         display: flex;
         gap: 10px;
         align-items: center;
-        padding: 6px 10px;
+        padding: 8px 12px;
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.07);
         font-weight: 700;
+        font-size: 15px;
       }
       .pl i {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
         border: 2px solid #000;
         display: inline-block;
       }
       input[type="range"] {
-        width: 160px;
+        width: 170px;
         accent-color: #daa520;
       }
       .srow {
@@ -369,12 +388,13 @@
         justify-content: space-between;
         align-items: center;
         gap: 14px;
-        min-width: min(340px, 86vw);
+        min-width: min(360px, 88vw);
         font-weight: 700;
+        font-size: 16px;
       }
       .bar {
-        width: min(320px, 80vw);
-        height: 14px;
+        width: min(340px, 84vw);
+        height: 16px;
         border-radius: 8px;
         border: 2px solid #daa520;
         background: #120818;
@@ -390,15 +410,52 @@
         display: flex;
         justify-content: space-between;
         gap: 20px;
-        padding: 4px 8px;
+        padding: 6px 10px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         font-variant-numeric: tabular-nums;
+        font-size: 15px;
       }
       .tabs {
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
         justify-content: center;
+      }
+      .langdrop {
+        position: relative;
+        display: inline-block;
+      }
+      .langmenu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        background: rgba(20, 10, 30, 0.95);
+        border: 2px solid #daa520;
+        border-radius: 10px;
+        padding: 4px;
+        min-width: 90px;
+        display: none;
+        z-index: 100;
+      }
+      .langmenu.show {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .langmenu button {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-weight: 800;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 15px;
+      }
+      .langmenu button:hover,
+      .langmenu button.sel {
+        background: rgba(218, 165, 32, 0.35);
       }
       @media (max-height: 520px) {
         .title {
@@ -408,14 +465,26 @@
           gap: 5px;
         }
         .btn {
-          min-height: 36px;
-          padding: 4px 14px;
+          min-height: 38px;
+          padding: 5px 16px;
         }
         .btn.primary {
-          min-height: 44px;
+          min-height: 48px;
         }
         .panel {
           padding: 8px 12px;
+        }
+      }
+      @media (max-width: 480px) {
+        .btn {
+          padding: 10px 18px;
+          min-height: 48px;
+        }
+        .btn.primary {
+          min-height: 60px;
+        }
+        .srow {
+          font-size: 14px;
         }
       }
     </style>
@@ -447,47 +516,49 @@
           >⚡ <b id="enV">5</b>/5 <small id="enT" style="opacity: 0.7"></small
         ></span>
       </div>
-      <button class="btn small" data-act="lang" id="langBtn">RU</button>
+      <div class="langdrop">
+        <button class="btn small" id="langBtn">RU ▾</button>
+        <div class="langmenu" id="langMenu">
+          <button data-lang="ru" class="sel">РУССКИЙ</button>
+          <button data-lang="en">ENGLISH</button>
+        </div>
+      </div>
     </div>
 
     <div
       class="screen"
       id="sc-menu"
-      style="justify-content: space-between; padding-top: 56px"
+      style="justify-content: space-between; padding-top: 60px"
     >
       <h1 class="title" style="margin-top: 6px">ARCANE ARENA</h1>
-      <div class="stack" style="margin-bottom: 6px">
+      <div class="stack" style="margin-bottom: 10px">
         <button class="btn primary" data-act="play">
-          ▶️ <span data-i18n="play"></span>
+          <span data-i18n="play"></span>
         </button>
         <button class="btn" data-act="survival">
-          🧟 <span data-i18n="survival"></span>
+          <span data-i18n="survival"></span>
         </button>
         <button class="btn" data-act="online" id="onlineBtn">
-          🌐 <span data-i18n="online"></span>
+          <span data-i18n="online"></span>
         </button>
         <div class="grid2">
           <button class="btn small" data-act="shop">
-            🛍️ <span data-i18n="shop"></span>
+            <span data-i18n="shop"></span>
           </button>
           <button class="btn small" data-act="codex">
-            📚 <span data-i18n="codex"></span>
+            <span data-i18n="codex"></span>
           </button>
-          <button
-            class="btn small"
-            data-act="quests"
-            style="position: relative"
-          >
-            📜 <span data-i18n="quests"></span>
+          <button class="btn small" data-act="quests">
+            <span data-i18n="quests"></span>
           </button>
           <button class="btn small" data-act="settings">
-            ⚙️ <span data-i18n="settings"></span>
+            <span data-i18n="settings"></span>
           </button>
           <button class="btn small" data-act="lb">
-            🏆 <span data-i18n="lb"></span>
+            <span data-i18n="lb"></span>
           </button>
           <button class="btn small" data-act="tutorial">
-            🎓 <span data-i18n="tutorial"></span>
+            <span data-i18n="tutorial"></span>
           </button>
         </div>
       </div>
@@ -500,24 +571,39 @@
         style="
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
           align-items: center;
           max-width: 96vw;
         "
       >
-        <div style="font-weight: 800" data-i18n="colorChoice"></div>
+        <div
+          style="font-weight: 800; font-size: 16px"
+          data-i18n="skinChoice"
+        ></div>
+        <div
+          class="row"
+          id="skinGrid"
+          style="padding-bottom: 8px; flex-wrap: wrap; max-width: 96vw"
+        ></div>
+        <div
+          style="font-weight: 800; font-size: 16px"
+          data-i18n="colorChoice"
+        ></div>
         <div class="row" id="colorGrid" style="padding-bottom: 8px"></div>
-        <div style="font-weight: 800" data-i18n="arenaChoice"></div>
+        <div
+          style="font-weight: 800; font-size: 16px"
+          data-i18n="arenaChoice"
+        ></div>
         <div class="row" id="arenaSel"></div>
-        <div style="font-weight: 800" id="countLbl"></div>
+        <div style="font-weight: 800; font-size: 16px" id="countLbl"></div>
         <div class="row" id="countSel"></div>
       </div>
       <div class="row">
         <button class="btn" data-act="back">
-          ◀ <span data-i18n="back"></span>
+          <span data-i18n="back"></span>
         </button>
         <button class="btn primary" data-act="startSetup">
-          ⚔️ <span data-i18n="startBattle"></span>
+          <span data-i18n="startBattle"></span>
         </button>
       </div>
     </div>
@@ -535,7 +621,7 @@
         style="max-height: 62vh; width: min(960px, 96vw)"
       ></div>
       <button class="btn" data-act="back">
-        ◀ <span data-i18n="back"></span>
+        <span data-i18n="back"></span>
       </button>
     </div>
 
@@ -556,7 +642,7 @@
         "
       ></div>
       <button class="btn" data-act="back">
-        ◀ <span data-i18n="back"></span>
+        <span data-i18n="back"></span>
       </button>
     </div>
 
@@ -578,7 +664,7 @@
         "
       ></div>
       <button class="btn primary" data-act="back">
-        ◀ <span data-i18n="back"></span>
+        <span data-i18n="back"></span>
       </button>
     </div>
 
@@ -594,7 +680,7 @@
         style="max-height: 64vh; width: min(520px, 94vw); padding: 12px"
       ></div>
       <button class="btn" data-act="back">
-        ◀ <span data-i18n="back"></span>
+        <span data-i18n="back"></span>
       </button>
     </div>
 
@@ -605,7 +691,7 @@
         style="
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 14px;
           align-items: center;
         "
       >
@@ -613,7 +699,7 @@
           <span data-i18n="nick"></span
           ><input
             class="inp"
-            style="font-size: 16px; width: 170px; letter-spacing: 0"
+            style="font-size: 17px; width: 190px; letter-spacing: 0"
             id="nickIn"
             maxlength="12"
           />
@@ -643,7 +729,7 @@
           <select
             id="qIn"
             class="inp"
-            style="font-size: 15px; width: 140px; letter-spacing: 0"
+            style="font-size: 16px; width: 150px; letter-spacing: 0"
           >
             <option value="auto">Auto</option>
             <option value="high">High</option>
@@ -655,7 +741,7 @@
         </button>
       </div>
       <button class="btn" data-act="back">
-        ◀ <span data-i18n="back"></span>
+        <span data-i18n="back"></span>
       </button>
     </div>
 
@@ -671,7 +757,7 @@
         style="max-height: 64vh; width: min(460px, 94vw)"
       ></div>
       <button class="btn" data-act="back">
-        ◀ <span data-i18n="back"></span>
+        <span data-i18n="back"></span>
       </button>
     </div>
 
@@ -679,7 +765,7 @@
       <h2 class="h2">🌐 <span data-i18n="online"></span></h2>
       <div class="stack">
         <button class="btn primary" data-act="createRoom">
-          ➕ <span data-i18n="createRoom"></span>
+          <span data-i18n="createRoom"></span>
         </button>
         <div
           class="panel"
@@ -699,7 +785,7 @@
             autocapitalize="characters"
           />
           <button class="btn" data-act="doJoin" style="width: 100%">
-            🔗 <span data-i18n="connect"></span>
+            <span data-i18n="connect"></span>
           </button>
           <div
             id="joinStatus"
@@ -712,7 +798,7 @@
           ></div>
         </div>
         <button class="btn" data-act="back">
-          ◀ <span data-i18n="back"></span>
+          <span data-i18n="back"></span>
         </button>
       </div>
     </div>
@@ -742,7 +828,7 @@
           🚪 <span data-i18n="leave"></span>
         </button>
         <button class="btn primary" data-act="startOnline" id="startOnlineBtn">
-          ⚔️ <span data-i18n="startOnline"></span>
+          <span data-i18n="startOnline"></span>
         </button>
       </div>
     </div>
@@ -751,16 +837,16 @@
       <h2 class="h2" data-i18n="paused"></h2>
       <div class="stack">
         <button class="btn primary" data-act="resume">
-          ▶ <span data-i18n="resume"></span>
+          <span data-i18n="resume"></span>
         </button>
         <button class="btn" data-act="pauseSettings">
-          ⚙️ <span data-i18n="settings"></span>
+          <span data-i18n="settings"></span>
         </button>
         <button class="btn" data-act="fs">
-          ⛶ <span data-i18n="fullscreen"></span>
+          <span data-i18n="fullscreen"></span>
         </button>
         <button class="btn" data-act="quit">
-          🏠 <span data-i18n="toMenu"></span>
+          <span data-i18n="toMenu"></span>
         </button>
       </div>
     </div>
@@ -789,7 +875,7 @@
       ></div>
       <div class="row">
         <button class="btn primary" data-act="rematch" id="rematchBtn">
-          🔁 <span data-i18n="rematch"></span>
+          <span data-i18n="rematch"></span>
         </button>
         <button
           class="btn"
@@ -797,10 +883,10 @@
           id="backToRoomBtn"
           style="display: none"
         >
-          🚪 <span data-i18n="returnToRoom"></span>
+          <span data-i18n="returnToRoom"></span>
         </button>
         <button class="btn" data-act="quit">
-          🏠 <span data-i18n="toMenu"></span>
+          <span data-i18n="toMenu"></span>
         </button>
       </div>
     </div>
@@ -826,7 +912,7 @@
           data-i18n="noEnergy"
         ></div>
         <button class="btn primary" data-act="adEnergy">
-          📺 <span data-i18n="watchAd"></span>
+          <span data-i18n="watchAd"></span>
         </button>
         <button class="btn" data-act="closeModal">
           <span data-i18n="back"></span>
@@ -954,7 +1040,7 @@
       const CONFIG = {
         STUDIO_NAME: "YOUR_STUDIO_NAME_HERE",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "20.1.0",
+        GAME_VERSION: "21.0.0",
         IS_PRODUCTION: true,
         DEFAULT_LANGUAGE: "ru",
         DEBUG_MODE: false,
@@ -1043,7 +1129,8 @@
           tutorial: "ОБУЧЕНИЕ",
           back: "НАЗАД",
           startBattle: "НАЧАТЬ БОЙ",
-          colorChoice: "ВЫБОР ЦВЕТА",
+          colorChoice: "ЦВЕТ МАНТИИ",
+          skinChoice: "СКИН",
           arenaChoice: "АРЕНА",
           random: "СЛУЧАЙНАЯ",
           players: "Магов в бою",
@@ -1134,6 +1221,11 @@
           reviveOnce: "Доступно 1 раз за матч",
           watchAdRevive: "ВОСКРЕСНУТЬ",
           giveUp: "СДАТЬСЯ",
+          nickEmpty: "Ник не может быть пустым",
+          nickTaken: "Этот ник уже занят",
+          nickSelf: "Это ваш ник, выберите другой",
+          specialSkin: "СПЕЦ-СКИН",
+          defaultSkin: "ОБЫЧНЫЙ",
         },
         en: {
           play: "PLAY",
@@ -1147,7 +1239,8 @@
           tutorial: "TUTORIAL",
           back: "BACK",
           startBattle: "START BATTLE",
-          colorChoice: "CHOOSE COLOR",
+          colorChoice: "MANTLE COLOR",
+          skinChoice: "SKIN",
           arenaChoice: "ARENA",
           random: "RANDOM",
           players: "Mages in match",
@@ -1238,6 +1331,11 @@
           reviveOnce: "Available once per match",
           watchAdRevive: "REVIVE",
           giveUp: "GIVE UP",
+          nickEmpty: "Nick cannot be empty",
+          nickTaken: "This nick is already taken",
+          nickSelf: "That's your nick, choose another",
+          specialSkin: "SPECIAL SKIN",
+          defaultSkin: "DEFAULT",
         },
       };
       let lang = CONFIG.DEFAULT_LANGUAGE;
@@ -1254,7 +1352,10 @@
         document.querySelectorAll("[data-i18n]").forEach((el) => {
           el.textContent = t(el.dataset.i18n);
         });
-        $("langBtn").textContent = lang.toUpperCase();
+        $("langBtn").textContent = lang.toUpperCase() + " ▾";
+        document.querySelectorAll("#langMenu button").forEach((b) => {
+          b.classList.toggle("sel", b.dataset.lang === lang);
+        });
         if (typeof onLangChange === "function") onLangChange();
       }
 
@@ -2077,6 +2178,8 @@
         { id: "ember", hex: "#D45A20" },
         { id: "shadow", hex: "#1A1A2E" },
       ];
+
+      /* SKINS - now with staff, accent, special */
       const SKINS = [
         {
           id: "base",
@@ -2087,10 +2190,12 @@
           gems: 0,
           mantle: null,
           trim: "plain",
+          accent: "#FFDD30",
           gem: { s: "diamond", c: "#FFDD30" },
           eye: "#FFFFFF",
           aura: "",
           staff: "wood",
+          special: false,
         },
         {
           id: "royal",
@@ -2101,10 +2206,12 @@
           gems: 0,
           mantle: "#5E2AA8",
           trim: "stripe",
+          accent: "#FF3050",
           gem: { s: "round", c: "#FF3050" },
           eye: "#FFFFFF",
           aura: "",
-          staff: "wood",
+          staff: "gold",
+          special: false,
         },
         {
           id: "cursed",
@@ -2115,10 +2222,12 @@
           gems: 50,
           mantle: "#2A1A3E",
           trim: "rune",
+          accent: "#FF3030",
           gem: { s: "diamond", c: "#FF2020" },
           eye: "#FF3030",
           aura: "smoke",
           staff: "bone",
+          special: false,
         },
         {
           id: "frost",
@@ -2129,11 +2238,13 @@
           gems: 50,
           mantle: "#3A78B8",
           trim: "star",
+          accent: "#B0F8FF",
           gem: { s: "diamond", c: "#B0F8FF" },
           eye: "#B0F0FF",
           aura: "snow",
           staff: "crystal",
           shoulder: true,
+          special: false,
         },
         {
           id: "celestial",
@@ -2144,10 +2255,12 @@
           gems: 150,
           mantle: "#8FC4F0",
           trim: "star",
+          accent: "#80F0FF",
           gem: { s: "star", c: "#80F0FF" },
           eye: "#60F0FF",
           aura: "sparkle",
           staff: "crystal",
+          special: false,
         },
         {
           id: "infernal",
@@ -2158,10 +2271,12 @@
           gems: 150,
           mantle: "#B8321A",
           trim: "swirl",
+          accent: "#FFAA00",
           gem: { s: "square", c: "#FFAA00" },
           eye: "#FFA020",
           aura: "flame",
-          staff: "gold",
+          staff: "firestaff",
+          special: false,
         },
         {
           id: "shark",
@@ -2170,14 +2285,16 @@
           rar: "epic",
           gold: 1500,
           gems: 100,
-          mantle: "#FF9AC8",
+          mantle: "#FFB6D9",
           trim: "stripe",
+          accent: "#FF69B4",
           gem: { s: "diamond", c: "#FFFFFF" },
           eye: "#FFFFFF",
           aura: "",
-          staff: "wood",
+          staff: "sharkstaff",
           fin: true,
           sharkSkin: true,
+          special: true,
         },
         {
           id: "cat",
@@ -2186,13 +2303,16 @@
           rar: "epic",
           gold: 1500,
           gems: 100,
-          mantle: "#FF9AC8",
+          mantle: "#FFB6D9",
           trim: "swirl",
+          accent: "#FF69B4",
           gem: { s: "round", c: "#FFC0E0" },
           eye: "#FFEE60",
           aura: "",
-          staff: "wood",
+          staff: "catstaff",
           catEars: true,
+          catTail: true,
+          special: true,
         },
         {
           id: "archmage",
@@ -2203,11 +2323,13 @@
           gems: 500,
           mantle: "#C8962A",
           trim: "swirl",
+          accent: "#FFD700",
           gem: { s: "round", c: "#FFFFFF" },
           eye: "#FFE060",
           aura: "sparkle",
-          staff: "gold",
+          staff: "starstaff",
           crown: true,
+          special: true,
         },
         {
           id: "arcanvoid",
@@ -2218,12 +2340,14 @@
           gems: 2000,
           mantle: "#0a0020",
           trim: "rune",
+          accent: "#FF00FF",
           gem: { s: "star", c: "#FF00FF" },
           eye: "#FF00FF",
           aura: "void",
-          staff: "crystal",
+          staff: "voidstaff",
           crown: true,
           shoulder: true,
+          special: true,
         },
       ];
       const SKIN_BY_ID = {};
@@ -2259,6 +2383,22 @@
           en: "Rainbow Trail",
           gold: 600,
           col: "rainbow",
+        },
+        {
+          id: "trail_void",
+          type: "trail",
+          ru: "След пустоты",
+          en: "Void Trail",
+          gold: 800,
+          col: "#B040FF",
+        },
+        {
+          id: "trail_hearts",
+          type: "trail",
+          ru: "След из сердечек",
+          en: "Heart Trail",
+          gold: 700,
+          col: "#FF69B4",
         },
         {
           id: "aura_souls",
@@ -2492,6 +2632,8 @@
           f: (m) => (m.multiStacks = Math.min(15, m.multiStacks + 1)),
         },
       ];
+
+      /* More varied monsters */
       const MONSTERS = [
         ["Голем", "Golem", 1, 90, 58, 12, 20, "#8a7a6a", "golem"],
         ["Валунник", "Boulderbeast", 3, 120, 62, 14, 22, "#6a6a7a", "golem"],
@@ -2563,6 +2705,55 @@
         ["Фантом", "Phantom", 11, 52, 180, 14, 14, "#60e0e0", "wisp"],
         ["Саранча", "Locust", 7, 28, 198, 8, 10, "#90c030", "bat"],
         ["Огненный дух", "Fire Sprite", 10, 40, 192, 13, 12, "#ff6a20", "wisp"],
+        ["Пустотный глаз", "Void Eye", 12, 68, 130, 15, 18, "#4a0070", "wisp"],
+        [
+          "Кристальный голем",
+          "Crystal Golem",
+          13,
+          220,
+          58,
+          20,
+          24,
+          "#40b0ff",
+          "golem",
+        ],
+        ["Тёмный жрец", "Dark Priest", 14, 88, 115, 16, 16, "#6020a0", "skull"],
+        [
+          "Шипастый червь",
+          "Spike Worm",
+          8,
+          100,
+          145,
+          14,
+          18,
+          "#804020",
+          "spiky",
+        ],
+        ["Морозный дух", "Frost Wisp", 9, 44, 190, 12, 12, "#a0e8ff", "wisp"],
+        ["Мясник", "Butcher", 16, 180, 130, 22, 20, "#a03030", "beast"],
+        [
+          "Каменный скорпион",
+          "Stone Scorpion",
+          11,
+          130,
+          135,
+          16,
+          18,
+          "#a09080",
+          "spiky",
+        ],
+        ["Кошмар", "Nightmare", 17, 110, 200, 20, 15, "#1a0a30", "beast"],
+        [
+          "Лавовый голем",
+          "Lava Golem",
+          18,
+          280,
+          62,
+          24,
+          26,
+          "#ff5010",
+          "golem",
+        ],
       ];
       const BOSSES = {
         10: [
@@ -2585,14 +2776,34 @@
           "#4ab0e8",
           "skull",
         ],
-        50: [
+        30: [
           "Пожиратель Пустоты",
           "Void Devourer",
-          16000,
-          95,
-          42,
-          58,
+          9500,
+          88,
+          38,
+          54,
           "#6a20a0",
+          "spiky",
+        ],
+        40: [
+          "Грозовой вестник",
+          "Storm Bringer",
+          14000,
+          90,
+          40,
+          56,
+          "#FFC800",
+          "skull",
+        ],
+        50: [
+          "Абсолютная Тьма",
+          "Absolute Darkness",
+          26000,
+          100,
+          46,
+          62,
+          "#2a0030",
           "spiky",
         ],
       };
@@ -2647,7 +2858,7 @@
           this.active.length = 0;
         }
       }
-      const PP = new Pool(1500, () => ({
+      const PP = new Pool(2000, () => ({
         x: 0,
         y: 0,
         vx: 0,
@@ -3041,6 +3252,7 @@
             td: 999,
             pk: null,
             strafe: 1,
+            strafeT: 2,
             fireDelay: 0.6,
             dodgeCd: 0,
             wander: rnd(0, TAU),
@@ -3049,6 +3261,7 @@
           this.cape = new Chain(6, 5);
           this.hemL = new Chain(4, 4);
           this.hemR = new Chain(4, 4);
+          this.tail = this.skin && this.skin.catTail ? new Chain(5, 3.5) : null;
           this.resetVerlet();
           this.emoT = {
             damage: 0,
@@ -3100,6 +3313,7 @@
           this.cape.reset(bx * 5, -17, bx * 0.4, 1);
           this.hemL.reset(-6.5, -15, 0, 1);
           this.hemR.reset(6.5, -15, 0, 1);
+          if (this.tail) this.tail.reset(-8, -6, -1, 0.3);
           this.px = this.x;
           this.py = this.y;
         }
@@ -3143,10 +3357,21 @@
           T.r = T.g = T.b = 255;
         } else if (m.victory) {
           T.nm = "victory";
-          T.shape = 1;
-          T.r = 255;
-          T.g = 215;
-          T.b = 0;
+          if (m.skin.id === "arcanvoid") T.shape = 6;
+          else if (m.skin.id === "cat") T.shape = 7;
+          else if (m.skin.id === "shark") T.shape = 8;
+          else T.shape = 1;
+          const col =
+            m.skin.id === "arcanvoid"
+              ? [180, 60, 255]
+              : m.skin.id === "cat"
+                ? [255, 120, 200]
+                : m.skin.id === "shark"
+                  ? [140, 220, 255]
+                  : [255, 215, 0];
+          T.r = col[0];
+          T.g = col[1];
+          T.b = col[2];
           T.a = 1;
           T.glow = 12 + Math.sin(TM * 6) * 3;
         } else if (m.aura > 0 || em.mega > 0) {
@@ -3262,7 +3487,11 @@
             rnd(-40, -10),
             0.6,
             2,
-            "#FFD700",
+            m.skin.id === "cat"
+              ? "#FF9AC8"
+              : m.skin.id === "arcanvoid"
+                ? "#D070FF"
+                : "#FFD700",
             0,
             true,
           );
@@ -3373,13 +3602,14 @@
           R[n - 1][1],
         );
         c.lineWidth = 2;
-        c.strokeStyle = "#DAA520";
+        c.strokeStyle = m.skin.accent || "#DAA520";
         c.stroke();
       }
-      function trimDeco(c, pat, x0, x1, y) {
+      function trimDeco(c, pat, x0, x1, y, accent) {
         if (pat === "plain") return;
-        c.fillStyle = "#FFD84A";
-        c.strokeStyle = "#FFD84A";
+        const ac = accent || "#FFD84A";
+        c.fillStyle = ac;
+        c.strokeStyle = ac;
         c.lineWidth = 1;
         for (let i = 1; i < 6; i++) {
           const x = x0 + ((x1 - x0) * i) / 6;
@@ -3463,9 +3693,9 @@
           rp[4][1],
         );
         c.lineWidth = 2;
-        c.strokeStyle = "#DAA520";
+        c.strokeStyle = m.skin.accent || "#DAA520";
         c.stroke();
-        trimDeco(c, m.skin.trim, lp[4][0], rp[4][0], by + 3);
+        trimDeco(c, m.skin.trim, lp[4][0], rp[4][0], by + 3, m.skin.accent);
       }
       function drawGem(c, g, x, y) {
         c.fillStyle = g.c;
@@ -3517,6 +3747,7 @@
             c.translate(ex, ey);
             c.scale(sd, 1);
             if (e.shape === 1) {
+              // victory star
               const pr = 1 + Math.sin(TM * 6) * 0.18;
               c.fillStyle = "rgb(" + col + ")";
               c.beginPath();
@@ -3530,6 +3761,48 @@
               c.fillStyle = "rgba(255,255,255," + a * 0.7 + ")";
               c.beginPath();
               c.arc(0, 0, 1.8 * pr, 0, TAU);
+              c.fill();
+            } else if (e.shape === 6) {
+              // 4-pointed star (void)
+              const pr = 1 + Math.sin(TM * 6) * 0.15;
+              c.fillStyle = "rgb(" + col + ")";
+              c.beginPath();
+              c.moveTo(0, -6 * pr);
+              c.quadraticCurveTo(0, 0, 6 * pr, 0);
+              c.quadraticCurveTo(0, 0, 0, 6 * pr);
+              c.quadraticCurveTo(0, 0, -6 * pr, 0);
+              c.quadraticCurveTo(0, 0, 0, -6 * pr);
+              c.closePath();
+              c.fill();
+              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.beginPath();
+              c.arc(0, 0, 1.5, 0, TAU);
+              c.fill();
+            } else if (e.shape === 7) {
+              // heart (cat)
+              const pr = 1 + Math.sin(TM * 6) * 0.1;
+              c.fillStyle = "rgb(" + col + ")";
+              c.beginPath();
+              c.moveTo(0, 3 * pr);
+              c.bezierCurveTo(-6 * pr, -2 * pr, -3 * pr, -6 * pr, 0, -3 * pr);
+              c.bezierCurveTo(3 * pr, -6 * pr, 6 * pr, -2 * pr, 0, 3 * pr);
+              c.fill();
+              c.fillStyle = "rgba(255,255,255," + a * 0.7 + ")";
+              c.beginPath();
+              c.arc(-1.2, -1, 1, 0, TAU);
+              c.fill();
+            } else if (e.shape === 8) {
+              // droplet (shark)
+              const pr = 1 + Math.sin(TM * 6) * 0.15;
+              c.fillStyle = "rgb(" + col + ")";
+              c.beginPath();
+              c.moveTo(0, -6 * pr);
+              c.bezierCurveTo(4 * pr, -2 * pr, 4 * pr, 3 * pr, 0, 3.5 * pr);
+              c.bezierCurveTo(-4 * pr, 3 * pr, -4 * pr, -2 * pr, 0, -6 * pr);
+              c.fill();
+              c.fillStyle = "rgba(255,255,255," + a * 0.7 + ")";
+              c.beginPath();
+              c.arc(-1, 0.5, 1.1, 0, TAU);
               c.fill();
             } else if (e.shape === 2) {
               c.strokeStyle = "rgba(" + col + "," + a + ")";
@@ -3759,18 +4032,9 @@
           }
         }
       }
-      function drawStaff(c, m, f) {
-        const sk = m.skin.staff;
-        const shaft =
-          sk === "bone"
-            ? "#E8E0C8"
-            : sk === "gold"
-              ? "#DAA520"
-              : sk === "crystal"
-                ? "#6a5a9a"
-                : "#8B6F3F";
-        const grain =
-          sk === "bone" ? "#B0A888" : sk === "gold" ? "#8a6a10" : "#5A4A2F";
+
+      /* ====== STAVES ====== */
+      function drawStaffWood(c, m, f, shaft, grain) {
         const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
         const bx = f * 14.5,
           tx = f * 18,
@@ -3858,6 +4122,556 @@
         c.stroke();
         c.restore();
       }
+      function drawStaffShark(c, m, f) {
+        // Pink shark fin staff - bigger fin pointing backwards toward mage
+        const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
+        const bx = f * 14.5,
+          topY = -50;
+        const px = f * 15,
+          py = -14;
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        // shaft
+        c.strokeStyle = "#000";
+        c.lineWidth = 6;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.lineTo(f * 16, topY + 10);
+        c.stroke();
+        c.strokeStyle = "#FFB6D9";
+        c.lineWidth = 4;
+        c.stroke();
+        c.strokeStyle = "#FF69B4";
+        c.lineWidth = 1.5;
+        c.stroke();
+        // Fin (much bigger, pointing backwards toward mage, i.e. toward -f)
+        const tipX = f * 16 - f * 6,
+          tipY = topY - 4;
+        const baseY = topY + 16;
+        const baseX = f * 16;
+        c.beginPath();
+        c.moveTo(baseX, baseY);
+        c.lineTo(baseX - f * 26, baseY - 4);
+        c.quadraticCurveTo(baseX - f * 24, topY - 10, tipX, tipY);
+        c.quadraticCurveTo(baseX - f * 4, topY - 2, baseX, topY + 2);
+        c.closePath();
+        const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
+        fg.addColorStop(0, "#FFC8E0");
+        fg.addColorStop(0.5, "#FFB6D9");
+        fg.addColorStop(1, "#FF69B4");
+        c.fillStyle = fg;
+        c.fill();
+        c.strokeStyle = "#000";
+        c.lineWidth = 2.5;
+        c.stroke();
+        // Fin detail lines
+        c.strokeStyle = "rgba(255,105,180,.8)";
+        c.lineWidth = 1.2;
+        c.beginPath();
+        c.moveTo(baseX - f * 2, baseY - 2);
+        c.lineTo(tipX + f * 2, tipY + 3);
+        c.moveTo(baseX - f * 4, baseY - 4);
+        c.lineTo(tipX - f * 2, tipY + 5);
+        c.stroke();
+        // Glow at tip
+        const ox = tipX,
+          oy = tipY;
+        const pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 18);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
+        gr.addColorStop(0.3, rgba("#FF69B4", 0.7 * pul));
+        gr.addColorStop(1, rgba("#FF69B4", 0));
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 18, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        c.fillStyle = "#FFFFFF";
+        c.beginPath();
+        c.arc(ox, oy, 4, 0, TAU);
+        c.fill();
+        c.restore();
+      }
+      function drawStaffCat(c, m, f) {
+        // Cat paw staff - pink with paw print
+        const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
+        const bx = f * 14.5,
+          tx = f * 18,
+          topY = -37;
+        const px = f * 15,
+          py = -14;
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        c.strokeStyle = "#000";
+        c.lineWidth = 5.4;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+        c.stroke();
+        c.strokeStyle = "#FFB6D9";
+        c.lineWidth = 3.2;
+        c.stroke();
+        c.strokeStyle = "#FF69B4";
+        c.lineWidth = 1;
+        for (let i = 0; i < 4; i++) {
+          const u = 0.15 + i * 0.22,
+            x = lerp(bx, tx, u) - f * 0.6,
+            y = lerp(2, topY, u);
+          c.beginPath();
+          c.arc(x, y, 1.2, 0, TAU);
+          c.stroke();
+        }
+        const ox = tx + f * 0.5,
+          oy = topY - 6;
+        const pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 20);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
+        gr.addColorStop(0.35, rgba("#FFB6D9", 0.7 * pul));
+        gr.addColorStop(1, rgba("#FFB6D9", 0));
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 20, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        // Paw print at tip
+        c.fillStyle = "#FF69B4";
+        c.strokeStyle = "#000";
+        c.lineWidth = 1;
+        c.beginPath();
+        c.ellipse(ox, oy + 1, 3, 4, 0, 0, TAU);
+        c.fill();
+        c.stroke();
+        for (let i = 0; i < 3; i++) {
+          const a = -Math.PI / 2 + (i - 1) * 0.5;
+          c.beginPath();
+          c.ellipse(
+            ox + Math.cos(a) * 3.5,
+            oy - 2 + Math.sin(a) * 2.5,
+            1.3,
+            1.7,
+            a,
+            0,
+            TAU,
+          );
+          c.fill();
+          c.stroke();
+        }
+        c.restore();
+      }
+      function drawStaffStar(c, m, f) {
+        // Four-pointed star staff - white, elongated, dark+light aura
+        const bx = f * 14.5,
+          topY = -42;
+        const px = f * 15,
+          py = -14;
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        // shaft
+        c.strokeStyle = "#000";
+        c.lineWidth = 5.5;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.lineTo(f * 16, topY + 8);
+        c.stroke();
+        c.strokeStyle = "#DAA520";
+        c.lineWidth = 3.4;
+        c.stroke();
+        c.strokeStyle = "#FFF6A0";
+        c.lineWidth = 1.2;
+        c.stroke();
+        const ox = f * 16,
+          oy = topY - 2;
+        const pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
+        // Outer glow aura (dark/light)
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
+        gr.addColorStop(0.35, rgba("#FFFFC0", 0.55 * pul));
+        gr.addColorStop(1, rgba("#FFB020", 0));
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 30, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        // 4-pointed star - elongated
+        const star4 = (sx, sy, len, w) => {
+          c.beginPath();
+          c.moveTo(sx, sy - len);
+          c.quadraticCurveTo(sx + w, sy - w, sx + len, sy);
+          c.quadraticCurveTo(sx + w, sy + w, sx, sy + len);
+          c.quadraticCurveTo(sx - w, sy + w, sx - len, sy);
+          c.quadraticCurveTo(sx - w, sy - w, sx, sy - len);
+          c.closePath();
+        };
+        // dark halo
+        star4(ox, oy, 15, 1.8);
+        c.fillStyle = "rgba(40,20,10,.85)";
+        c.fill();
+        c.strokeStyle = "#000";
+        c.lineWidth = 2;
+        c.stroke();
+        // light star
+        star4(ox, oy, 13, 1.2);
+        const sg = c.createRadialGradient(ox, oy, 0.5, ox, oy, 13);
+        sg.addColorStop(0, "#FFFFFF");
+        sg.addColorStop(0.5, "#FFF6C0");
+        sg.addColorStop(1, "#FFC020");
+        c.fillStyle = sg;
+        c.fill();
+        c.strokeStyle = "#FFF6A0";
+        c.lineWidth = 1;
+        c.stroke();
+        // inner sparkle
+        c.fillStyle = "#FFFFFF";
+        c.beginPath();
+        c.arc(ox, oy, 2.2, 0, TAU);
+        c.fill();
+        // secondary small star
+        star4(ox + f * 6, oy - 10, 5, 0.7);
+        c.fillStyle = "rgba(255,240,180,.9)";
+        c.fill();
+        c.restore();
+      }
+      function drawStaffVoid(c, m, f) {
+        // Void staff - top tier, rainbow
+        const bx = f * 14.5,
+          topY = -48;
+        const px = f * 15,
+          py = -14;
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        // shaft with rainbow gradient
+        c.strokeStyle = "#000";
+        c.lineWidth = 6;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.lineTo(f * 16, topY + 12);
+        c.stroke();
+        const shaftG = c.createLinearGradient(bx, 2, f * 16, topY + 12);
+        const hue = (TM * 60) % 360;
+        for (let i = 0; i <= 6; i++) {
+          shaftG.addColorStop(
+            i / 6,
+            "hsl(" + ((hue + i * 55) % 360) + ",100%,65%)",
+          );
+        }
+        c.strokeStyle = shaftG;
+        c.lineWidth = 4;
+        c.stroke();
+        const ox = f * 16,
+          oy = topY - 4;
+        const pul = 0.7 + 0.3 * Math.sin(TM * 5 + m.id);
+        // Rainbow orb
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 34);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.95 * pul));
+        gr.addColorStop(0.25, "hsla(" + ((hue + 30) % 360) + ",100%,70%,.75)");
+        gr.addColorStop(0.6, "hsla(" + ((hue + 200) % 360) + ",100%,60%,.5)");
+        gr.addColorStop(1, "hsla(" + ((hue + 300) % 360) + ",100%,50%,0)");
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 34, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        // Orb core - iridescent
+        const og = c.createRadialGradient(ox - 2, oy - 2, 1, ox, oy, 11);
+        og.addColorStop(0, "#FFFFFF");
+        og.addColorStop(0.3, "hsl(" + ((hue + 60) % 360) + ",100%,75%)");
+        og.addColorStop(0.7, "hsl(" + ((hue + 180) % 360) + ",100%,55%)");
+        og.addColorStop(1, "hsl(" + ((hue + 300) % 360) + ",100%,45%)");
+        c.fillStyle = og;
+        c.beginPath();
+        c.arc(ox, oy, 10, 0, TAU);
+        c.fill();
+        c.strokeStyle = "rgba(0,0,0,.5)";
+        c.lineWidth = 1.5;
+        c.stroke();
+        // Orbiting rings
+        for (let i = 0; i < 3; i++) {
+          const ra = TM * 2 + i * 2.1;
+          c.strokeStyle = "hsla(" + ((hue + i * 120) % 360) + ",100%,70%,.7)";
+          c.lineWidth = 1.5;
+          c.beginPath();
+          c.ellipse(ox, oy, 14 + Math.sin(ra) * 2, 6, ra * 0.5, 0, TAU);
+          c.stroke();
+        }
+        // Sparkles
+        for (let i = 0; i < 4; i++) {
+          const sa = TM * 3 + i * 1.7;
+          const sx = ox + Math.cos(sa) * 18;
+          const sy = oy + Math.sin(sa) * 10;
+          c.fillStyle = "hsl(" + ((hue + i * 90) % 360) + ",100%,80%)";
+          c.beginPath();
+          c.arc(sx, sy, 1.6, 0, TAU);
+          c.fill();
+        }
+        c.restore();
+      }
+      function drawStaffFire(c, m, f) {
+        // Fiery staff - extra fiery effects
+        const el = ELEMS[0];
+        const bx = f * 14.5,
+          tx = f * 18,
+          topY = -37;
+        const px = f * 15,
+          py = -14;
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        // shaft with dark ember look
+        c.strokeStyle = "#000";
+        c.lineWidth = 5.8;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+        c.stroke();
+        c.strokeStyle = "#3a1008";
+        c.lineWidth = 3.6;
+        c.stroke();
+        c.strokeStyle = "#8a2008";
+        c.lineWidth = 1.4;
+        c.stroke();
+        // Ember cracks
+        c.strokeStyle = "#FF6010";
+        c.lineWidth = 1.2;
+        for (let i = 0; i < 4; i++) {
+          const u = 0.2 + i * 0.2,
+            x = lerp(bx, tx, u) - f * 0.8,
+            y = lerp(2, topY, u);
+          c.beginPath();
+          c.moveTo(x, y);
+          c.lineTo(x + f * 1.5, y - 2);
+          c.lineTo(x - f * 0.5, y - 5);
+          c.stroke();
+        }
+        const ox = tx + f * 0.5,
+          oy = topY - 8;
+        const pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
+        // Big fiery glow
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 32);
+        gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
+        gr.addColorStop(0.3, "rgba(255,238,0," + 0.8 * pul + ")");
+        gr.addColorStop(0.6, "rgba(255,140,0," + 0.5 * pul + ")");
+        gr.addColorStop(1, "rgba(255,69,0,0)");
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 32, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        // Flame tongues
+        for (let i = 0; i < 5; i++) {
+          const a = TM * 4 + i * 1.26;
+          const bx2 = ox + Math.cos(a) * 5;
+          const by2 = oy + Math.sin(a) * 3;
+          const len = 10 + Math.sin(TM * 10 + i) * 4;
+          c.beginPath();
+          c.moveTo(bx2 - 3, by2 + 2);
+          c.quadraticCurveTo(
+            bx2 - 1,
+            by2 - len * 0.6,
+            bx2 + Math.sin(TM * 15 + i) * 3,
+            by2 - len,
+          );
+          c.quadraticCurveTo(bx2 + 3, by2 - len * 0.4, bx2 + 3, by2 + 2);
+          c.closePath();
+          const fg = c.createLinearGradient(bx2, by2 + 2, bx2, by2 - len);
+          fg.addColorStop(0, "rgba(255,69,0,.9)");
+          fg.addColorStop(0.5, "rgba(255,180,0,.85)");
+          fg.addColorStop(1, "rgba(255,255,200,.7)");
+          c.fillStyle = fg;
+          c.fill();
+        }
+        // Core orb
+        const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 9);
+        og.addColorStop(0, "#FFFFFF");
+        og.addColorStop(0.3, "#FFEE00");
+        og.addColorStop(0.7, "#FF8C00");
+        og.addColorStop(1, "#FF4500");
+        c.fillStyle = og;
+        c.beginPath();
+        c.arc(ox, oy, 9, 0, TAU);
+        c.fill();
+        c.strokeStyle = "rgba(60,0,0,.6)";
+        c.lineWidth = 1.5;
+        c.stroke();
+        // Spinning embers
+        for (let i = 0; i < 4; i++) {
+          const sa = TM * 5 + i * 1.57;
+          const sx = ox + Math.cos(sa) * 16;
+          const sy = oy + Math.sin(sa) * 10;
+          c.fillStyle = "#FFC040";
+          c.beginPath();
+          c.arc(sx, sy, 1.8, 0, TAU);
+          c.fill();
+        }
+        c.restore();
+      }
+      function drawStaff(c, m, f) {
+        const sk = m.skin.staff;
+        if (sk === "sharkstaff") {
+          drawStaffShark(c, m, f);
+        } else if (sk === "catstaff") {
+          drawStaffCat(c, m, f);
+        } else if (sk === "starstaff") {
+          drawStaffStar(c, m, f);
+        } else if (sk === "voidstaff") {
+          drawStaffVoid(c, m, f);
+        } else if (sk === "firestaff") {
+          drawStaffFire(c, m, f);
+        } else {
+          const shaft =
+            sk === "bone"
+              ? "#E8E0C8"
+              : sk === "gold"
+                ? "#DAA520"
+                : sk === "crystal"
+                  ? "#6a5a9a"
+                  : "#8B6F3F";
+          const grain =
+            sk === "bone" ? "#B0A888" : sk === "gold" ? "#8a6a10" : "#5A4A2F";
+          drawStaffWood(c, m, f, shaft, grain);
+        }
+      }
+
+      /* Shark hood teeth + fin */
+      function drawSharkHoodDeco(c, pal, f) {
+        // Teeth along bottom of hood
+        c.fillStyle = "#FFFFFF";
+        c.strokeStyle = "#000";
+        c.lineWidth = 1;
+        for (let i = 0; i < 6; i++) {
+          const x = -10 + i * 3.5;
+          c.beginPath();
+          c.moveTo(x, -15);
+          c.lineTo(x + 1.5, -11);
+          c.lineTo(x + 3, -15);
+          c.closePath();
+          c.fill();
+          c.stroke();
+        }
+        // Small fin on top of hood
+        c.fillStyle = "#FF69B4";
+        c.strokeStyle = "#000";
+        c.lineWidth = 1.8;
+        c.lineJoin = "round";
+        c.beginPath();
+        c.moveTo(-4, -47);
+        c.lineTo(-7, -58);
+        c.lineTo(0, -50);
+        c.lineTo(3, -58);
+        c.lineTo(5, -46);
+        c.closePath();
+        c.fill();
+        c.stroke();
+      }
+      /* Cat tail */
+      function drawCatTail(c, m, pal) {
+        if (!m.tail) return;
+        const s = m.tail.s;
+        const n = s.length;
+        // Draw tail as smooth curve
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        // outline
+        c.strokeStyle = "#000";
+        c.lineWidth = 7;
+        c.beginPath();
+        c.moveTo(s[0].x, s[0].y);
+        for (let i = 1; i < n - 1; i++) {
+          const xc = (s[i].x + s[i + 1].x) / 2;
+          const yc = (s[i].y + s[i + 1].y) / 2;
+          c.quadraticCurveTo(s[i].x, s[i].y, xc, yc);
+        }
+        c.lineTo(s[n - 1].x, s[n - 1].y);
+        c.stroke();
+        // tail fill
+        c.strokeStyle = pal.base;
+        c.lineWidth = 4.5;
+        c.stroke();
+        // tip
+        const tx = s[n - 1].x,
+          ty = s[n - 1].y;
+        c.fillStyle = m.skin.accent || "#FF69B4";
+        c.beginPath();
+        c.arc(tx, ty, 3.5, 0, TAU);
+        c.fill();
+        c.strokeStyle = "#000";
+        c.lineWidth = 1.5;
+        c.stroke();
+      }
+      /* Cat ears - more detailed */
+      function drawCatEars(c, pal, f) {
+        c.fillStyle = pal.hi;
+        c.strokeStyle = "#000";
+        c.lineWidth = 2.5;
+        c.lineJoin = "round";
+        for (const s of [-1, 1]) {
+          const bx = s * 7;
+          // outer ear
+          c.beginPath();
+          c.moveTo(bx - 6, -44);
+          c.quadraticCurveTo(bx - 3, -52, bx, -58);
+          c.quadraticCurveTo(bx + 3, -52, bx + 6, -44);
+          c.closePath();
+          c.fill();
+          c.stroke();
+          // inner ear (pink)
+          c.fillStyle = "#FF69B4";
+          c.beginPath();
+          c.moveTo(bx - 3.5, -45);
+          c.quadraticCurveTo(bx - 1.5, -51, bx, -54);
+          c.quadraticCurveTo(bx + 1.5, -51, bx + 3.5, -45);
+          c.closePath();
+          c.fill();
+          c.strokeStyle = "#FF69B4";
+          c.lineWidth = 1;
+          c.stroke();
+          // tuft
+          c.fillStyle = pal.hi;
+          c.strokeStyle = "#000";
+          c.lineWidth = 1.5;
+          c.beginPath();
+          c.moveTo(bx - 1, -53);
+          c.lineTo(bx, -57);
+          c.lineTo(bx + 1, -53);
+          c.closePath();
+          c.fill();
+          c.stroke();
+        }
+      }
+
       function drawMage(c, m, o) {
         o = o || {};
         const alpha = m.alpha * (o.alpha === undefined ? 1 : o.alpha);
@@ -3894,6 +4708,8 @@
         } else c.rotate(clamp(m.vx / 220, -1, 1) * 0.07);
 
         if (m.aura > 0) drawAuraBack(c, m);
+        // cat tail (behind)
+        if (m.skin.catTail) drawCatTail(c, m, pal);
         if (m.skin.fin) {
           c.fillStyle = shade(m.mantle, -0.15);
           c.strokeStyle = "#000";
@@ -3906,7 +4722,7 @@
           c.closePath();
           c.fill();
           c.stroke();
-          c.fillStyle = "rgba(255,255,255,.25)";
+          c.fillStyle = "rgba(255,255,255,.35)";
           c.beginPath();
           c.moveTo(-6, -20);
           c.lineTo(-12, -38);
@@ -3940,7 +4756,7 @@
         else c.rect(-9.5, -15.5, 19, 4.5);
         c.fill();
         c.stroke();
-        c.fillStyle = "#DAA520";
+        c.fillStyle = m.skin.accent || "#DAA520";
         c.strokeStyle = "#5a3a00";
         c.lineWidth = 1.5;
         c.beginPath();
@@ -3989,29 +4805,12 @@
         c.lineJoin = "round";
         c.strokeStyle = "#000";
         c.stroke();
+        // shark hood deco (teeth + fin)
+        if (m.skin.sharkSkin) {
+          drawSharkHoodDeco(c, pal, f);
+        }
         if (m.skin.catEars) {
-          c.fillStyle = pal.hi;
-          c.strokeStyle = "#000";
-          c.lineWidth = 2.5;
-          c.lineJoin = "round";
-          for (const s of [-1, 1]) {
-            const bx = s * 7;
-            c.beginPath();
-            c.moveTo(bx - 5, -44);
-            c.lineTo(bx, -57);
-            c.lineTo(bx + 5, -44);
-            c.closePath();
-            c.fill();
-            c.stroke();
-            c.fillStyle = "#FF9AC8";
-            c.beginPath();
-            c.moveTo(bx - 2.5, -45);
-            c.lineTo(bx, -52);
-            c.lineTo(bx + 2.5, -45);
-            c.closePath();
-            c.fill();
-            c.fillStyle = pal.hi;
-          }
+          drawCatEars(c, pal, f);
         }
         c.strokeStyle = pal.dk;
         c.globalAlpha = alpha * 0.5;
@@ -4044,7 +4843,7 @@
         c.stroke();
 
         if (m.skin.crown) {
-          c.fillStyle = "#FFD84A";
+          c.fillStyle = m.skin.accent || "#FFD84A";
           c.strokeStyle = "#000";
           c.lineWidth = 1.5;
           c.beginPath();
@@ -4668,7 +5467,7 @@
         return pts;
       }
 
-      /* ====== МОНСТРЫ ====== */
+      /* ====== MONSTERS ====== */
       let _monId = 100000;
       function makeMonster(ti, x, y, wave, aura) {
         const d = MONSTERS[ti];
@@ -4730,7 +5529,16 @@
         mo.col = d[6];
         mo.shape = d[7];
         mo.boss = true;
-        mo.bossElem = wave === 10 ? 0 : wave === 20 ? 1 : 4;
+        mo.bossElem =
+          wave === 10
+            ? 0
+            : wave === 20
+              ? 1
+              : wave === 30
+                ? 4
+                : wave === 40
+                  ? 2
+                  : 4;
         return mo;
       }
       function spawnMonster() {
@@ -4768,9 +5576,10 @@
       }
       function drawMonster(c, mo) {
         const r = mo.r;
+        const t = TM + mo.an;
         c.save();
         c.translate(mo.x, mo.y);
-        const pulse = 1 + Math.sin(TM * 4 + mo.an) * 0.05;
+        const pulse = 1 + Math.sin(t * 4) * 0.06;
         c.fillStyle = "rgba(0,0,0,.45)";
         c.beginPath();
         c.ellipse(0, 2, r * 1.1 * pulse, r * 0.4 * pulse, 0, 0, TAU);
@@ -4782,7 +5591,7 @@
               : mo.aura === "yellow"
                 ? "#FFE030"
                 : "#40A0FF";
-          const pu = 0.6 + 0.3 * Math.sin(TM * 6 + mo.an);
+          const pu = 0.6 + 0.3 * Math.sin(t * 6);
           const g = c.createRadialGradient(
             0,
             -r * 0.7,
@@ -4810,14 +5619,20 @@
         const squash =
           mo.atkCd > 0 && mo.atkCd > 0.5 ? 1 - (mo.atkCd - 0.5) * 0.4 : 1;
         const fl = mo.shape === "bat" || mo.shape === "wisp";
-        c.translate(
-          0,
-          Math.sin(TM * 6 + mo.an) * (fl ? 4 : 1.2) - (fl ? 10 : 0),
-        );
+        const bobY = Math.sin(t * 6) * (fl ? 4 : 1.4);
+        c.translate(0, bobY - (fl ? 10 : 0));
         c.scale(atkScale, squash);
+        // Walk cycle - subtle tilt based on velocity
+        const spd = Math.hypot(mo.vx, mo.vy);
+        if (spd > 10) {
+          const walkPhase = t * 8;
+          const walkBob = Math.abs(Math.sin(walkPhase)) * 2.5;
+          c.translate(0, -walkBob);
+          c.rotate(clamp(mo.vx / 300, -1, 1) * 0.1);
+        }
         const f = mo.vx >= 0 ? 1 : -1,
           col = mo.col,
-          wob = Math.sin(TM * 8 + mo.an);
+          wob = Math.sin(t * 8);
         const g = c.createLinearGradient(0, -r * 2, 0, 0);
         g.addColorStop(0, shade(col, 0.25));
         g.addColorStop(1, shade(col, -0.25));
@@ -4873,7 +5688,7 @@
             }
             break;
           case "bat": {
-            const w = Math.sin(TM * 18 + mo.an) * 0.6;
+            const w = Math.sin(t * 18) * 0.6;
             c.fillStyle = shade(col, -0.2);
             for (const s of [-1, 1]) {
               c.beginPath();
@@ -4996,7 +5811,7 @@
             break;
           }
           default: {
-            const lg = Math.sin(TM * 12 + mo.an) * 2;
+            const lg = Math.sin(t * 12) * 2;
             c.fillStyle = shade(col, -0.35);
             for (const s of [-1, 1]) {
               c.fillRect(s * r * 0.55 - 2, -r * 0.4, 4, r * 0.4 + lg * s * 0.5);
@@ -5058,7 +5873,7 @@
         }
       }
 
-      /* ====== БОЙ ====== */
+      /* ====== COMBAT ====== */
       let G = null;
       const FX = {
         shake: 0,
@@ -5166,7 +5981,7 @@
         );
         G.events.push({ k: "hit", x: t.x, y: t.y, a: amt, id: t.id });
         if (src && !src.isMonster && o.type !== "dot") {
-          src.ultCharge = Math.min(100, src.ultCharge + 2 * src.up.ult);
+          src.ultCharge = Math.min(100, src.ultCharge + 2.5 * src.up.ult);
           const ls = (src.elem === 4 ? 0.05 : 0) + src.up.steal;
           if (ls > 0) heal(src, amt * ls);
         }
@@ -5274,7 +6089,7 @@
           ];
           if (src.streak >= 2 && (src === G.player || G.online))
             announce(names[Math.min(6, src.streak)], "#ff6a20");
-          if (src.aura <= 0) src.ultCharge = Math.min(100, src.ultCharge + 15);
+          if (src.aura <= 0) src.ultCharge = Math.min(100, src.ultCharge + 18);
         }
         G.debris.push({
           x: t.x + t.facing * 10,
@@ -5327,6 +6142,12 @@
       }
       function elemColor(e) {
         return e === 4 ? "#B040FF" : ELEMS[e].color;
+      }
+
+      /* Skin-based dash color */
+      function skinAccentColor(m) {
+        if (m.skin && m.skin.accent) return m.skin.accent;
+        return m.mantle || "#4A2A8B";
       }
 
       function spawnProj(own, x, y, ang, e, dmg, o) {
@@ -5560,8 +6381,8 @@
               p.y,
               rnd(-25, 25),
               rnd(-25, 25) + (p.e === 0 ? -40 : 0),
-              0.45,
-              rnd(2.5, 5.5),
+              0.5,
+              rnd(3.5, 7),
               col,
               0,
               true,
@@ -5573,52 +6394,82 @@
                 p.y + rnd(-3, 3),
                 -p.vx * 0.08 + rnd(-20, 20),
                 -p.vy * 0.08 + rnd(-20, 20),
-                0.25,
-                rnd(1.5, 3),
+                0.35,
+                rnd(2, 4),
                 "#fff",
                 0,
                 true,
                 0.9,
               );
-            if (p.trail === "trail_rainbow")
+            if (p.trail === "trail_rainbow") {
+              for (let ti = 0; ti < 2; ti++) {
+                pt(
+                  p.x + rnd(-4, 4),
+                  p.y + rnd(-4, 4),
+                  rnd(-30, 30),
+                  rnd(-30, 30),
+                  0.8,
+                  5,
+                  "hsl(" + (((TM * 300 + ti * 180) % 360) | 0) + ",100%,60%)",
+                  0,
+                  true,
+                  0.94,
+                );
+              }
+            } else if (p.trail === "trail_ember") {
               pt(
-                p.x,
-                p.y,
-                0,
-                0,
-                0.5,
-                4,
-                "hsl(" + (((TM * 400) % 360) | 0) + ",100%,60%)",
-                0,
-                true,
-                0.95,
-              );
-            else if (p.trail === "trail_ember")
-              pt(
-                p.x,
-                p.y,
-                rnd(-20, 20),
-                rnd(-20, 20),
-                0.6,
-                3,
-                "#FF8030",
+                p.x + rnd(-4, 4),
+                p.y + rnd(-4, 4),
+                rnd(-30, 30),
+                rnd(-30, 30) - 30,
+                0.7,
+                4.5,
+                pick(["#FF8030", "#FF4500", "#FFAA00"]),
                 0,
                 true,
                 0.96,
               );
-            else if (p.trail === "trail_star")
+            } else if (p.trail === "trail_star") {
               pt(
-                p.x,
-                p.y,
-                rnd(-15, 15),
-                rnd(-15, 15),
-                0.5,
-                2.5,
+                p.x + rnd(-5, 5),
+                p.y + rnd(-5, 5),
+                rnd(-20, 20),
+                rnd(-20, 20),
+                0.7,
+                3.5,
                 "#FFE060",
+                0,
+                true,
+                0.94,
+              );
+            } else if (p.trail === "trail_void") {
+              pt(
+                p.x + rnd(-5, 5),
+                p.y + rnd(-5, 5),
+                rnd(-25, 25),
+                rnd(-25, 25),
+                0.9,
+                5,
+                pick(["#B040FF", "#6A0DAD", "#E0A0FF"]),
                 0,
                 true,
                 0.95,
               );
+            } else if (p.trail === "trail_hearts") {
+              if (Math.random() < 0.5)
+                pt(
+                  p.x + rnd(-6, 6),
+                  p.y + rnd(-6, 6),
+                  rnd(-15, 15),
+                  rnd(-20, 0),
+                  0.9,
+                  4,
+                  pick(["#FF69B4", "#FFB6D9", "#FFC0E0"]),
+                  0,
+                  true,
+                  0.94,
+                );
+            }
           }
           const dxc = p.x - CX,
             dyc = p.y - CY;
@@ -5664,9 +6515,13 @@
         m.cape.impulse(-m.dashX * 20);
         m.hemL.impulse(-m.dashX * 8);
         m.hemR.impulse(-m.dashX * 8);
+        if (m.tail) m.tail.impulse(-m.dashX * 10);
         emote(m, "dash", 0.3);
         sfx("dash");
-        burst(m.x, m.y - 8, "#00FFFF", 12, 160, 3, 0.4, true);
+        // Dash trail uses skin accent color
+        const dashCol = skinAccentColor(m);
+        burst(m.x, m.y - 8, dashCol, 16, 180, 3.5, 0.5, true);
+        burst(m.x, m.y - 8, "#FFFFFF", 6, 120, 2, 0.3, true);
         G.events.push({ k: "dash", id: m.id, a: ang });
         if (m === G.player) vib(20);
         return true;
@@ -5761,16 +6616,28 @@
       }
       function castFeel(m, u) {
         const me = m === G.player,
-          n = u.mega ? 160 : 110;
+          n = u.mega ? 200 : 140;
+        // Improved ult effects - more particles, bigger spread
         burst(
           m.x,
           m.y - 22,
           [elemColor(u.a), elemColor(u.b), "#fff"],
           n,
-          u.mega ? 420 : 300,
-          4,
-          0.9,
+          u.mega ? 480 : 340,
+          5,
+          1.1,
           true,
+        );
+        burst(
+          m.x,
+          m.y - 22,
+          [elemColor(u.a), "#FFFFFF"],
+          u.mega ? 60 : 40,
+          u.mega ? 280 : 200,
+          6,
+          0.7,
+          true,
+          40,
         );
         sfx(u.mega ? "mega" : "ult", u.a, u.b);
         duckMusic(u.mega ? 2.5 : 1.5);
@@ -5790,36 +6657,47 @@
         }
         const uMega = u.mega,
           elems = [u.a, u.b];
-        emitter(m, uMega ? 1.8 : 1.0, 0.025, () => {
+        emitter(m, uMega ? 2.2 : 1.3, 0.02, () => {
           const ang2 = rnd(0, TAU),
-            dist2 = rnd(15, 90),
+            dist2 = rnd(15, 110),
             col2 = elemColor(pick(elems)),
-            spd = 200 + (uMega ? 150 : 0);
+            spd = 220 + (uMega ? 180 : 0);
           pt(
             m.x + Math.cos(ang2) * dist2,
             m.y - 22 + Math.sin(ang2) * dist2 * 0.5,
             -Math.cos(ang2) * spd,
-            -Math.sin(ang2) * spd * 0.5 - 80,
-            rnd(0.4, 0.8),
-            rnd(2, 5),
+            -Math.sin(ang2) * spd * 0.5 - 100,
+            rnd(0.5, 1.0),
+            rnd(3, 6),
             col2,
             0,
             true,
             0.94,
           );
-          if (Math.random() < 0.3)
+          if (Math.random() < 0.4)
             pt(
-              m.x + rnd(-40, 40),
-              m.y - 30 + rnd(-30, 30),
+              m.x + rnd(-50, 50),
+              m.y - 30 + rnd(-40, 40),
               0,
-              -rnd(60, 180),
-              0.6,
-              rnd(1.5, 3),
+              -rnd(80, 200),
+              0.8,
+              rnd(2, 4),
               "#fff",
               0,
               true,
               0.9,
             );
+        });
+        // Add glow ring
+        G.rings.push({
+          x: m.x,
+          y: m.y - 22,
+          r0: 10,
+          r1: uMega ? 200 : 140,
+          l: 0.7,
+          m: 0.7,
+          c: elemColor(u.a),
+          w: 5,
         });
       }
       function splash(x, y, r, col, power) {
@@ -5838,10 +6716,10 @@
           x,
           y,
           [col, "#fff"],
-          Math.ceil(40 * (power || 1)),
+          Math.ceil(50 * (power || 1)),
           r * 2.2,
-          4,
-          0.7,
+          5,
+          0.8,
           true,
         );
         shake(8 * (power || 1));
@@ -6401,7 +7279,7 @@
         }
       }
 
-      /* ====== ПИКАПЫ ====== */
+      /* ====== PICKUPS ====== */
       function randomPickupType() {
         let r = Math.random() * PK_WSUM;
         for (const k of PK_KEYS) {
@@ -6511,19 +7389,25 @@
         }
       }
 
-      /* ====== AI ====== */
+      /* ====== AI (fixed dither) ====== */
       function aiUpdate(m, dt) {
         const a = m.ai;
         a.t -= dt;
         a.fireDelay -= dt;
         a.dodgeCd -= dt;
+        a.strafeT -= dt;
+
+        if (a.strafeT <= 0) {
+          a.strafeT = rnd(1.8, 3.5);
+          a.strafe = -a.strafe;
+        }
 
         if (!a.tg || a.tg.dead) a.tg = nearestFoe(m, m.x, m.y, 1e9);
         const td = a.tg ? dist(m.x, m.y, a.tg.x, a.tg.y) : 999;
         a.td = td;
 
         if (a.t <= 0) {
-          a.t = rnd(0.25, 0.4);
+          a.t = rnd(0.3, 0.45);
           a.pk = null;
           let bs = 1e9;
           if (m.hp < m.maxHp * 0.5 || m.mana < 30) {
@@ -6541,7 +7425,6 @@
               }
             }
           }
-          if (Math.random() < 0.3) a.strafe = -a.strafe;
         }
 
         let mx = 0,
@@ -6568,16 +7451,22 @@
           } else {
             want = 160;
           }
-          if (d > want + 40) {
-            mx = dx;
-            my = dy;
-          } else if (d < want - 60) {
-            mx = -dx;
-            my = -dy;
-          } else {
-            mx = -dy * a.strafe;
-            my = dx * a.strafe;
+          // Smooth target distance to prevent dithering
+          const distErr = d - want;
+          if (Math.abs(distErr) > 70) {
+            const sign = distErr > 0 ? 1 : -1;
+            mx = (dx / d) * sign;
+            my = (dy / d) * sign;
+          } else if (Math.abs(distErr) > 25) {
+            // slight forward/backward
+            const sign = distErr > 0 ? 1 : -1;
+            mx = (dx / d) * sign * 0.5;
+            my = (dy / d) * sign * 0.5;
           }
+          // Always add some strafe if in sweet spot
+          const strafeStrength = Math.abs(distErr) < 70 ? 1 : 0.4;
+          mx += (-dy / d) * a.strafe * strafeStrength;
+          my += (dx / d) * a.strafe * strafeStrength;
         } else {
           a.wander += rnd(-0.05, 0.05);
           mx = Math.cos(a.wander);
@@ -6681,6 +7570,8 @@
         m.cape.step(bx * 5, -17, shx, shy, TM, bx * 0.16, 0.3, 0.1);
         m.hemL.step(-6.5, -15, shx, shy, TM, 0, 0.3, 0.05);
         m.hemR.step(6.5, -15, shx, shy, TM, 0, 0.3, 0.05);
+        if (m.tail)
+          m.tail.step(-8, -6, shx * 0.8, shy * 0.8, TM, -0.1, 0.15, 0.2);
         m.walkT += Math.hypot(m.vx, m.vy) * dt * 0.05;
         m.scale = 1;
         const tl = m.victory ? 20 : m.aura > 0 ? 5 : 0;
@@ -6732,6 +7623,7 @@
             );
           }
           const isMe = G && m === G.player;
+          // Aura effects
           if (isMe && SAVE.fxAura === "aura_souls")
             pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#A0FFE0", 0, true);
           else if (isMe && SAVE.fxAura === "aura_petals")
@@ -6746,6 +7638,78 @@
               0,
               false,
             );
+          // Trail effects on the mage body itself
+          if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
+            const tx = m.x + rnd(-6, 6),
+              ty = m.y - rnd(5, 30);
+            if (SAVE.fxTrail === "trail_rainbow") {
+              pt(
+                tx,
+                ty,
+                rnd(-10, 10),
+                rnd(-10, 10),
+                0.7,
+                4,
+                "hsl(" + (((TM * 300) % 360) | 0) + ",100%,60%)",
+                0,
+                true,
+                0.94,
+              );
+            } else if (SAVE.fxTrail === "trail_ember") {
+              pt(
+                tx,
+                ty,
+                rnd(-10, 10),
+                rnd(-15, 10),
+                0.6,
+                3.5,
+                pick(["#FF8030", "#FF4500"]),
+                0,
+                true,
+                0.95,
+              );
+            } else if (SAVE.fxTrail === "trail_star") {
+              pt(
+                tx,
+                ty,
+                rnd(-10, 10),
+                rnd(-15, 10),
+                0.7,
+                3,
+                "#FFE060",
+                0,
+                true,
+                0.94,
+              );
+            } else if (SAVE.fxTrail === "trail_void") {
+              pt(
+                tx,
+                ty,
+                rnd(-10, 10),
+                rnd(-15, 10),
+                0.8,
+                4,
+                pick(["#B040FF", "#6A0DAD", "#E0A0FF"]),
+                0,
+                true,
+                0.94,
+              );
+            } else if (SAVE.fxTrail === "trail_hearts") {
+              if (Math.random() < 0.6)
+                pt(
+                  tx,
+                  ty,
+                  rnd(-8, 8),
+                  rnd(-12, 5),
+                  0.9,
+                  3.5,
+                  pick(["#FF69B4", "#FFB6D9"]),
+                  0,
+                  true,
+                  0.94,
+                );
+            }
+          }
         }
       }
       function updateMage(m, dt) {
@@ -6790,7 +7754,8 @@
         updateStatus(m, dt);
         if (m.dead) return;
         m.mana = Math.min(100, m.mana + 10 * m.up.mregen * dt);
-        m.ultCharge = Math.min(100, m.ultCharge + (100 / 30) * dt * m.up.ult);
+        // Filled faster - 20 seconds instead of 30
+        m.ultCharge = Math.min(100, m.ultCharge + (100 / 20) * dt * m.up.ult);
         if (m.aura > 0) m.aura -= dt;
         if (G.role !== "client") {
           if (m.remote) {
@@ -6824,18 +7789,20 @@
           m.dashT -= dt;
           m.vx = m.dashX * 1000;
           m.vy = m.dashY * 1000;
-          if (Math.random() < 0.8)
+          if (Math.random() < 0.8) {
+            const dashCol = skinAccentColor(m);
             pt(
               m.x,
               m.y - 14,
               rnd(-20, 20),
               rnd(-20, 20),
-              0.35,
-              rnd(3, 5),
-              pick(["#00FFFF", "#80FFFF"]),
+              0.4,
+              rnd(3, 6),
+              Math.random() < 0.4 ? "#FFFFFF" : dashCol,
               0,
               true,
             );
+          }
         } else {
           const k = 1 - Math.exp(-dt * 14);
           m.vx += (dx * sp - m.vx) * k;
@@ -7245,6 +8212,9 @@
       const IS_MOBILE =
         /Android|iPhone|iPad|iPod|Mobile/i.test(UA) ||
         (window.matchMedia && matchMedia("(pointer:coarse)").matches);
+      const IS_TABLET =
+        /iPad|Tablet/i.test(UA) ||
+        (IS_MOBILE && Math.min(window.innerWidth, window.innerHeight) > 700);
       let touchMode = IS_MOBILE;
       function applyQuality() {
         const q =
@@ -7281,13 +8251,18 @@
         H = window.innerHeight;
         canvas.width = Math.round(W * DPR);
         canvas.height = Math.round(H * DPR);
-        UIS = clamp(Math.min(W, H) / 620, 0.7, 1.5) * (IS_TV ? 1.3 : 1);
+        UIS = clamp(Math.min(W, H) / 620, 0.75, 1.6) * (IS_TV ? 1.3 : 1);
       }
       window.addEventListener("resize", resize);
       window.addEventListener("orientationchange", () =>
         setTimeout(resize, 150),
       );
-      const viewScale = () => clamp(H / 500, 0.6, 2.4) * cam.z;
+      const viewScale = () => {
+        // Increased scale for characters to be more visible, especially on tablet
+        let base = clamp(H / 500, 0.6, 2.4);
+        if (IS_TABLET) base *= 1.15;
+        return base * cam.z;
+      };
       function w2s(x, y) {
         const s = viewScale();
         return { x: (x - cam.x) * s + W / 2, y: (y - cam.y) * s + H / 2 };
@@ -8370,7 +9345,7 @@
         }
       }
 
-      /* ====== ЗАПУСК / КОНЕЦ ====== */
+      /* ====== START / END ====== */
       const BOT_NAMES = [
         "Ignis",
         "Frostia",
@@ -8414,7 +9389,12 @@
           return 1;
         if (h.includes("b8862f")) return 2;
         if (h.includes("2f8b5a")) return 3;
-        if (h.includes("ff9ac8") || h.includes("ffc0e0")) return 1;
+        if (
+          h.includes("ff9ac8") ||
+          h.includes("ffc0e0") ||
+          h.includes("ffb6d9")
+        )
+          return 1;
         return rndi(0, 4);
       }
 
@@ -8532,13 +9512,25 @@
             MAGE_COLORS.map((c) => c.hex).filter((h) => h !== pcol),
           );
           const names = shuffle(BOT_NAMES.slice());
+          // Use skin: special skins override color
+          const skinId = o.skin || SAVE.skin;
+          const skinDef = SKIN_BY_ID[skinId] || SKINS[0];
+          const useColor = skinDef.special ? skinDef.mantle || pcol : pcol;
           const pm = new Mage({
             name: SAVE.nick || "Mage",
-            mantle: pcol,
-            skin: SAVE.skin,
+            mantle: useColor,
+            skin: skinId,
             isPlayer: true,
           });
-          pm.elem = elemFromColor(pcol);
+          pm.elem = skinDef.special
+            ? elemFromColor(skinDef.mantle || "#4A2A8B")
+            : elemFromColor(pcol);
+          if (skinDef.special) {
+            // special skin element based on skin
+            if (skinId === "shark" || skinId === "cat") pm.elem = 1;
+            else if (skinId === "archmage") pm.elem = 2;
+            else if (skinId === "arcanvoid") pm.elem = 4;
+          }
           pm.auraElem = pm.elem;
           G.player = pm;
           G.mages.push(pm);
@@ -8885,7 +9877,7 @@
             c.lineCap = "round";
             for (let i = 1; i < N; i++) {
               const a = i / N;
-              c.strokeStyle = rgba(col, 0.12 * a);
+              c.strokeStyle = rgba(col, 0.15 * a);
               c.lineWidth = p.r * 5 * a;
               c.beginPath();
               c.moveTo(tp[i - 1].x, tp[i - 1].y);
@@ -9201,6 +10193,7 @@
           vy0 = cam.y - hh,
           vy1 = cam.y + hh;
         drawArenaLayers(ctx, vx0, vy0, vx1, vy1, th);
+        // Blurred shrink line
         if (G.mode !== "survival" && G.safeR < R_ARENA - 1) {
           ctx.fillStyle =
             "rgba(255,40,0," + (0.16 + 0.07 * Math.sin(TM * 4)) + ")";
@@ -9208,13 +10201,21 @@
           ctx.arc(CX, CY, R_ARENA, 0, TAU);
           ctx.arc(CX, CY, G.safeR, 0, TAU, true);
           ctx.fill();
-          ctx.setLineDash([24, 14]);
-          ctx.strokeStyle = "rgba(255,140,80,.9)";
-          ctx.lineWidth = 5;
+          // Soft blurred edge
+          ctx.save();
+          ctx.shadowColor = "rgba(255,140,80,0.85)";
+          ctx.shadowBlur = 30;
+          ctx.strokeStyle = "rgba(255,140,80,0.55)";
+          ctx.lineWidth = 8;
           ctx.beginPath();
           ctx.arc(CX, CY, G.safeR, 0, TAU);
           ctx.stroke();
-          ctx.setLineDash([]);
+          ctx.strokeStyle = "rgba(255,180,100,0.35)";
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(CX, CY, G.safeR, 0, TAU);
+          ctx.stroke();
+          ctx.restore();
         }
         drawAmbient(ctx);
         for (const z of G.zones)
@@ -9303,7 +10304,7 @@
         }
       }
       function drawNameplates() {
-        const u = UIS,
+        const u = UIS * 1.15, // Increased size for readability
           c = ctx;
         for (const m of G.mages) {
           if (m.dead && m.alpha < 0.1) continue;
@@ -9315,9 +10316,9 @@
             me = m === G.player;
           let y = Math.round(sp.y) - 4 * u;
           if (!me && !m.dead) {
-            const w = 60 * u,
-              hh = 5 * u,
-              mh = 3 * u;
+            const w = 66 * u,
+              hh = 5.5 * u,
+              mh = 3.5 * u;
             c.fillStyle = "#000";
             c.fillRect(x - w / 2 - 1, y - mh - 1, w + 2, mh + 2);
             const mg = c.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
@@ -9340,9 +10341,9 @@
             c.strokeRect(x - w / 2 - 1.5, y - hh - 1.5, w + 3, hh + 3);
             y -= hh + 8 * u;
           }
-          c.font = "800 " + 11 * u + 'px "Segoe UI",Arial,sans-serif';
+          c.font = "800 " + 13 * u + 'px "Segoe UI",Arial,sans-serif';
           const tw = c.measureText(m.name).width,
-            ic = 12 * u;
+            ic = 13 * u;
           const total = tw + (me ? 0 : ic + 3 * u);
           let tx = x - total / 2;
           if (!me) {
@@ -9350,7 +10351,7 @@
             if (im) c.drawImage(im, tx, y - ic / 2 - 1, ic, ic);
             tx += ic + 3 * u;
           }
-          txt(c, m.name, tx, y, 11 * u, me ? "#ffe27a" : "#fff", "left", 2);
+          txt(c, m.name, tx, y, 13 * u, me ? "#ffe27a" : "#fff", "left", 3);
           if (!m.dead) drawBuffRow(c, m, x, y - 28 * u, u);
         }
         c.globalAlpha = 1;
@@ -9517,12 +10518,12 @@
 
         const px = 10 * u,
           py = 10 * u,
-          pw = 236 * u,
-          ph = 74 * u;
+          pw = 250 * u,
+          ph = 80 * u;
         drawPanel(c, px, py, pw, ph, 14 * u);
-        const cx = px + 38 * u,
+        const cx = px + 42 * u,
           cy = py + ph / 2,
-          pr = 27 * u;
+          pr = 30 * u;
         c.save();
         c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
@@ -9540,30 +10541,30 @@
         c.lineWidth = 3 * u;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        const bx = px + 74 * u,
-          bw = 150 * u;
+        const bx = px + 80 * u,
+          bw = 160 * u;
         txt(
           c,
           p.name + (G.mode === "survival" ? "  Lv." + p.level : ""),
           bx,
-          py + 14 * u,
-          13 * u,
+          py + 15 * u,
+          14 * u,
           "#fff",
           "left",
           3,
         );
         const hr = clamp(p.hp / p.maxHp, 0, 1);
-        rr(c, bx, py + 26 * u, bw, 12 * u, 5 * u);
+        rr(c, bx, py + 28 * u, bw, 13 * u, 5 * u);
         c.fillStyle = "#000";
         c.fill();
         const hg = c.createLinearGradient(bx, 0, bx + bw, 0);
         hg.addColorStop(0, "#FF2020");
         hg.addColorStop(0.5, "#FFD020");
         hg.addColorStop(1, "#30E040");
-        rr(c, bx + 1, py + 27 * u, Math.max(0, (bw - 2) * hr), 10 * u, 4 * u);
+        rr(c, bx + 1, py + 29 * u, Math.max(0, (bw - 2) * hr), 11 * u, 4 * u);
         c.fillStyle = hg;
         c.fill();
-        rr(c, bx, py + 26 * u, bw, 12 * u, 5 * u);
+        rr(c, bx, py + 28 * u, bw, 13 * u, 5 * u);
         c.lineWidth = 1.5;
         c.strokeStyle = "#DAA520";
         c.stroke();
@@ -9571,13 +10572,13 @@
           c,
           Math.ceil(Math.max(0, p.hp)) + "/" + p.maxHp,
           bx + bw / 2,
-          py + 32.5 * u,
-          9 * u,
+          py + 34.5 * u,
+          10 * u,
           "#fff",
           "center",
           2,
         );
-        rr(c, bx, py + 43 * u, bw, 8 * u, 4 * u);
+        rr(c, bx, py + 46 * u, bw, 9 * u, 4 * u);
         c.fillStyle = "#000";
         c.fill();
         const mg = c.createLinearGradient(bx, 0, bx + bw, 0);
@@ -9586,25 +10587,25 @@
         rr(
           c,
           bx + 1,
-          py + 44 * u,
+          py + 47 * u,
           Math.max(0, (bw - 2) * clamp(p.mana / 100, 0, 1)),
-          6 * u,
+          7 * u,
           3 * u,
         );
         c.fillStyle = mg;
         c.fill();
-        rr(c, bx, py + 43 * u, bw, 8 * u, 4 * u);
+        rr(c, bx, py + 46 * u, bw, 9 * u, 4 * u);
         c.lineWidth = 1.5;
         c.strokeStyle = "#DAA520";
         c.stroke();
         if (G.mode === "survival") {
-          rr(c, bx, py + 56 * u, bw, 5 * u, 2 * u);
+          rr(c, bx, py + 60 * u, bw, 5 * u, 2 * u);
           c.fillStyle = "#000";
           c.fill();
           rr(
             c,
             bx,
-            py + 56 * u,
+            py + 60 * u,
             bw * clamp(p.xp / p.xpNeed, 0, 1),
             5 * u,
             2 * u,
@@ -9999,14 +11000,17 @@
           picks.push(id);
           used.add(id);
         }
+        // On mobile, only show 1 big character (except on tablet)
+        const showExtra = !(IS_MOBILE && !IS_TABLET);
         const positions = [
-          { x: 0.5, y: 0.5, s: 1.05, f: 1 },
-          { x: 0.27, y: 0.54, s: 0.66, f: 1 },
-          { x: 0.73, y: 0.54, s: 0.66, f: -1 },
-          { x: 0.1, y: 0.6, s: 0.5, f: 1 },
-          { x: 0.9, y: 0.6, s: 0.5, f: -1 },
+          { x: 0.5, y: 0.52, s: 1.15, f: 1 },
+          { x: 0.25, y: 0.56, s: IS_TABLET ? 0.75 : 0.7, f: 1 },
+          { x: 0.75, y: 0.56, s: IS_TABLET ? 0.75 : 0.7, f: -1 },
+          { x: 0.08, y: 0.62, s: IS_TABLET ? 0.55 : 0.5, f: 1 },
+          { x: 0.92, y: 0.62, s: IS_TABLET ? 0.55 : 0.5, f: -1 },
         ];
-        menuMages = picks.map((skinId, i) => {
+        const count = showExtra ? Math.min(5, picks.length) : 1;
+        menuMages = picks.slice(0, count).map((skinId, i) => {
           const sk = SKIN_BY_ID[skinId] || SKINS[0];
           const d = positions[i];
           const m = new Mage({
@@ -10214,15 +11218,17 @@
             0,
             true,
           );
-        const base = H / 175;
+        // Bigger characters on tablet, single big on mobile
+        const baseScale = IS_TABLET ? H / 150 : IS_MOBILE ? H / 155 : H / 175;
         const order = menuMages.slice().sort((a, b) => a.def.y - b.def.y);
         for (const m of order) {
           m.x = W * m.def.x;
           m.y = H * m.def.y;
           updateVisual(m, rd);
           updateEyes(m, rd);
-          m.scale = m.def.s * base;
+          m.scale = m.def.s * baseScale;
           m.vx = 0;
+          m.vy = 0;
           drawMage(c, m);
         }
         drawParticles(c, -50, -50, W + 50, H + 50);
@@ -10260,6 +11266,7 @@
         colorId: "purple",
         hex: "#4A2A8B",
         arena: "lava",
+        skinId: "base",
       };
       let shopTab = "skins",
         shopTimer = 0,
@@ -10278,6 +11285,7 @@
         setup.mode = mode;
         setup.colorId = SAVE.color;
         setup.hex = colorHex(SAVE.color);
+        setup.skinId = SAVE.skin || "base";
         setup.arena =
           SAVE.arenas.indexOf(SAVE.arenaSel) >= 0 || SAVE.arenaSel === "random"
             ? SAVE.arenaSel
@@ -10303,13 +11311,40 @@
       function buildSetupUI() {
         $("setupTitle").textContent =
           setup.mode === "arena" ? t("colorChoice") : t("survival");
+        // Skin selection
+        const sg = $("skinGrid");
+        sg.innerHTML = "";
+        for (const sk of SKINS) {
+          if (!SAVE.skins.includes(sk.id) && sk.id !== "base") continue;
+          if (!sk.special && sk.id !== "base") continue;
+          if (!sk.special && sk.id === "base") continue;
+          // Show only special skins + base
+          const d = document.createElement("div");
+          d.className = "chip" + (setup.skinId === sk.id ? " sel" : "");
+          d.textContent = sk[lang];
+          d.style.fontSize = "13px";
+          d.style.padding = "6px 10px";
+          d.onclick = () => {
+            setup.skinId = sk.id;
+            SAVE.skin = sk.id;
+            persist();
+            setMenuHero();
+            buildSetupUI();
+          };
+          sg.appendChild(d);
+        }
+        // Color grid - disabled for special skins
         const g = $("colorGrid");
         g.innerHTML = "";
-        g.style.opacity = SAVE.skin === "base" ? 1 : 0.45;
+        const sk = SKIN_BY_ID[setup.skinId] || SKINS[0];
+        const colorDisabled = sk.special;
+        g.style.opacity = colorDisabled ? 0.35 : 1;
+        g.style.pointerEvents = colorDisabled ? "none" : "auto";
         for (const c of MAGE_COLORS) {
           const d = document.createElement("div");
           d.className = "sw" + (setup.colorId === c.id ? " sel" : "");
           d.style.background = c.hex;
+          if (colorDisabled) d.classList.add("locked");
           d.onclick = () => {
             setup.colorId = c.id;
             setup.hex = c.hex;
@@ -10352,6 +11387,7 @@
           count: setup.mode === "arena" ? setup.cA : setup.cS,
           theme,
           color: setup.hex,
+          skin: setup.skinId,
         });
       }
       function drawSkinPreview(cv, skin) {
@@ -10370,6 +11406,8 @@
         m.facing = 1;
         m.resetVerlet();
         m.ey.a = 0.95;
+        // Update tail/cape physics a bit
+        for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
         c.save();
         c.translate(86, 165);
         c.scale(3.2, 3.2);
@@ -10528,8 +11566,13 @@
             k.cv.height = 200;
             c.translate(90, 100);
             for (let i = 0; i < 14; i++) {
-              c.fillStyle =
-                f.col === "rainbow" ? "hsl(" + i * 25 + ",100%,60%)" : f.col;
+              if (f.col === "rainbow") {
+                c.fillStyle = "hsl(" + i * 25 + ",100%,60%)";
+              } else if (f.id === "trail_hearts") {
+                c.fillStyle = pick(["#FF69B4", "#FFB6D9", "#FFC0E0"]);
+              } else {
+                c.fillStyle = f.col;
+              }
               c.globalAlpha = 1 - i / 16;
               c.beginPath();
               c.arc(-60 + i * 9, Math.sin(i * 0.7) * 18, 10 - i * 0.5, 0, TAU);
@@ -10846,7 +11889,12 @@
               : s.gold
                 ? `🪙 ${s.gold}` + (s.gems ? ` / 💎 ${s.gems}` : "")
                 : "";
-          secS += row("👕", col, s[lang], `${s.rar.toUpperCase()} · ${price}`);
+          secS += row(
+            "👕",
+            col,
+            s[lang],
+            `${s.rar.toUpperCase()} · ${price}${s.special ? " ⭐" : ""}`,
+          );
         }
         h += sec("🎨 " + (lang === "ru" ? "СКИНЫ" : "SKINS"), secS);
         h += sec(
@@ -10881,8 +11929,8 @@
           "🧟",
           isRu ? "ВЫЖИВАНИЕ" : "SURVIVAL",
           isRu
-            ? `Отбивай волны монстров. Каждая волна сложнее.<br>На волнах <b>10 / 20 / 50</b> — боссы.<br><br>За убийства — опыт. Новый уровень → выбор апгрейда.<br><br>💀 Умер? Можно <b>воскреснуть за рекламу</b> (1 раз за матч).`
-            : `Fight waves of monsters. Each wave is harder.<br>Waves <b>10 / 20 / 50</b> — bosses.<br><br>Kills give XP. New level → pick upgrade.<br><br>💀 Died? You can <b>revive with ad</b> (once per match).`,
+            ? `Отбивай волны монстров. Каждая волна сложнее.<br>На волнах <b>10 / 20 / 30 / 40 / 50</b> — боссы.<br><br>За убийства — опыт. Новый уровень → выбор апгрейда.<br><br>💀 Умер? Можно <b>воскреснуть за рекламу</b> (1 раз за матч).`
+            : `Fight waves of monsters. Each wave is harder.<br>Waves <b>10 / 20 / 30 / 40 / 50</b> — bosses.<br><br>Kills give XP. New level → pick upgrade.<br><br>💀 Died? You can <b>revive with ad</b> (once per match).`,
         );
         h += sect(
           "⚔️",
@@ -10942,8 +11990,22 @@
         showScreen("sc-settings");
       }
       $("nickIn").addEventListener("input", (e) => {
-        SAVE.nick = e.target.value.replace(/[<>]/g, "").slice(0, 12);
+        let v = e.target.value.replace(/[<>]/g, "").slice(0, 12);
+        e.target.classList.remove("err");
+        SAVE.nick = v;
         persist();
+      });
+      $("nickIn").addEventListener("blur", (e) => {
+        let v = SAVE.nick.trim();
+        if (v === "") {
+          v = (lang === "ru" ? "Маг" : "Mage") + rndi(100, 999);
+          SAVE.nick = v;
+          e.target.value = v;
+          e.target.classList.add("err");
+          toast(t("nickEmpty"));
+          setTimeout(() => e.target.classList.remove("err"), 1500);
+          persist();
+        }
       });
       $("musIn").addEventListener("input", (e) => {
         SAVE.music = e.target.value / 100;
@@ -10965,8 +12027,13 @@
         SAVE.quality = e.target.value;
         persist();
         applyQuality();
-        ARENA.ok = false;
-        buildArena("lava");
+        // Do not rebuild the current match arena - only rebuild preview
+        // (fixes bug: arena reset when changing quality)
+        // Rebuild arena texture only when not in game
+        if (!G || state !== "PLAYING") {
+          ARENA.ok = false;
+          buildArena("lava");
+        }
       });
 
       let _muteClicks = 0,
@@ -11405,6 +12472,30 @@
           sfx("hover");
         }
       });
+      // Language dropdown
+      $("langBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        $("langMenu").classList.toggle("show");
+      });
+      $("langMenu").addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-lang]");
+        if (!btn) return;
+        const nl = btn.dataset.lang;
+        if (nl && nl !== lang) {
+          lang = nl;
+          SAVE.lang = lang;
+          try {
+            localStorage.setItem("arcane_lang", lang);
+          } catch (e) {}
+          applyLang();
+          persist();
+        }
+        $("langMenu").classList.remove("show");
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest || !e.target.closest(".langdrop"))
+          $("langMenu").classList.remove("show");
+      });
 
       /* ====== NETWORK ====== */
       const NET = {
@@ -11464,20 +12555,28 @@
           toast(t("unavailable"));
           return;
         }
+        // Validate nick
+        const nick = (SAVE.nick || "").trim();
+        if (nick === "") {
+          toast(t("nickEmpty"));
+          openSettings();
+          return;
+        }
         netCleanup();
         const code = genCode();
         NET.code = code;
         NET.role = "host";
         toast(t("connecting"));
         try {
-          const peer = new Peer("arcane-arena-" + code, peerOpts());
+          // Use default PeerJS server (0.peerjs.com) - always reliable
+          const peer = new Peer("arcane-arena-" + code);
           NET.peer = peer;
           peer.on("open", () => {
             NET.myId = 1;
             NET.players = [
               {
                 id: 1,
-                nick: SAVE.nick,
+                nick: nick,
                 skin: SAVE.skin,
                 host: true,
                 conn: null,
@@ -11490,7 +12589,9 @@
             if (err && err.type === "unavailable-id" && NET.tries++ < 4)
               netCreateRoom();
             else {
-              toast(t("connErr"));
+              toast(
+                t("connErr") + (err && err.type ? " (" + err.type + ")" : ""),
+              );
               if (state === "LOBBY") {
                 netCleanup();
                 state = "ONLINE";
@@ -11587,13 +12688,27 @@
             return;
           }
           if (conn.pid) return;
+          const joinNick = String(d.nick || "")
+            .replace(/[<>]/g, "")
+            .trim()
+            .slice(0, 12);
+          if (joinNick === "") {
+            sendTo(conn, { type: "error", msg: "nickEmpty" });
+            return;
+          }
+          // Check unique nickname
+          const lowerNick = joinNick.toLowerCase();
+          if (
+            NET.players.some((p) => (p.nick || "").toLowerCase() === lowerNick)
+          ) {
+            sendTo(conn, { type: "error", msg: "nickTaken" });
+            return;
+          }
           const id = NET.nextId++;
           conn.pid = id;
           NET.players.push({
             id,
-            nick: String(d.nick || "Mage")
-              .replace(/[<>]/g, "")
-              .slice(0, 12),
+            nick: joinNick,
             skin: SKIN_BY_ID[d.skin] ? d.skin : "base",
             conn,
           });
@@ -11686,13 +12801,20 @@
           toast(t("unavailable"));
           return;
         }
+        // Validate nick
+        const nick = (SAVE.nick || "").trim();
+        if (nick === "") {
+          $("joinStatus").textContent = t("nickEmpty");
+          sfx("error");
+          return;
+        }
         netCleanup();
         NET.role = "client";
         NET.code = code;
         $("joinStatus").textContent = t("connecting");
         let opened = false;
         try {
-          const peer = new Peer(null, peerOpts());
+          const peer = new Peer(null);
           NET.peer = peer;
           peer.on("open", () => {
             const conn = peer.connect("arcane-arena-" + code, {
@@ -11701,7 +12823,7 @@
             NET.hostConn = conn;
             conn.on("open", () => {
               opened = true;
-              conn.send({ type: "join", nick: SAVE.nick, skin: SAVE.skin });
+              conn.send({ type: "join", nick: nick, skin: SAVE.skin });
             });
             conn.on("data", (d) => clientHandle(d));
             conn.on("close", () => {
@@ -11725,8 +12847,9 @@
               }
             }, 10000);
           });
-          peer.on("error", () => {
-            $("joinStatus").textContent = t("connErr");
+          peer.on("error", (err) => {
+            $("joinStatus").textContent =
+              t("connErr") + (err && err.type ? " (" + err.type + ")" : "");
             sfx("error");
           });
         } catch (e) {
@@ -11740,6 +12863,7 @@
           case "welcome":
             NET.myId = d.id;
             NET.code = d.code || NET.code;
+            $("joinStatus").textContent = "";
             showRoom();
             break;
           case "lobby":
@@ -11757,6 +12881,11 @@
             break;
           case "full":
             $("joinStatus").textContent = t("lobbyFull");
+            sfx("error");
+            netCleanup();
+            break;
+          case "error":
+            $("joinStatus").textContent = t(d.msg) || t("connErr");
             sfx("error");
             netCleanup();
             break;
@@ -11989,7 +13118,8 @@
               emote(m, "dash", 0.3);
               m.cape.impulse(-Math.cos(ev.a) * 20);
               sfx("dash");
-              burst(m.x, m.y - 8, "#00FFFF", 12, 160, 3, 0.4, true);
+              const dashCol = skinAccentColor(m);
+              burst(m.x, m.y - 8, dashCol, 12, 160, 3, 0.4, true);
             }
             break;
           case "kill":
@@ -12147,8 +13277,8 @@
             p.y,
             rnd(-15, 15),
             rnd(-15, 15),
-            0.3,
-            rnd(2, 4.5),
+            0.35,
+            rnd(2.5, 5),
             pick([ELEMS[p.e].color, ELEMS[p.e].core]),
             0,
             true,
