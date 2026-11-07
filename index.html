@@ -12065,6 +12065,22 @@
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
             { urls: "stun:stun1.l.google.com:19302" },
+            // Бесплатный TURN-сервер для обхода блокировок
+            {
+              urls: "turn:openrelay.metered.ca:80",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
+            {
+              urls: "turn:openrelay.metered.ca:443?transport=tcp",
+              username: "openrelayproject",
+              credential: "openrelayproject",
+            },
           ],
         },
       });
@@ -12338,7 +12354,8 @@
                 showScreen("sc-online");
               }
             });
-            conn.on("error", () => {
+            conn.on("error", (err) => {
+              console.error("CONNECTION ERROR:", err); // <-- покажет ошибку
               $("joinStatus").textContent = t("connErr");
             });
             setTimeout(() => {
@@ -12348,7 +12365,8 @@
               }
             }, 10000);
           });
-          peer.on("error", () => {
+          peer.on("error", (err) => {
+            console.error("PEER ERROR:", err); // <-- покажет ошибку в консоли
             $("joinStatus").textContent = t("connErr");
             sfx("error");
           });
