@@ -12057,10 +12057,17 @@
         return s;
       };
       const peerOpts = () => ({
-        host: CONFIG.PEERJS_HOST,
-        port: CONFIG.PEERJS_PORT,
-        secure: CONFIG.PEERJS_SECURE,
-        key: CONFIG.PEERJS_KEY,
+        host: "0.peerjs.com",
+        port: 443,
+        secure: true,
+        key: "peerjs",
+        config: {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:global.stun.twilio.com:3478" },
+          ],
+        },
       });
       const sendTo = (conn, msg) => {
         try {
