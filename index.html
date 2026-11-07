@@ -478,7 +478,7 @@
             id="icoGold"
             width="24"
             height="24"
-            style="width: 18px; height: 18px"
+            style="width: 20px; height: 20px"
           ></canvas>
           <b id="goldV">0</b></span
         >
@@ -487,7 +487,7 @@
             id="icoGem"
             width="24"
             height="24"
-            style="width: 18px; height: 18px"
+            style="width: 20px; height: 20px"
           ></canvas>
           <b id="gemsV">0</b></span
         >
@@ -496,7 +496,7 @@
             id="icoEnergy"
             width="24"
             height="24"
-            style="width: 18px; height: 18px"
+            style="width: 20px; height: 20px"
           ></canvas>
           <b id="enV">5</b>/5 <small id="enT" style="opacity: 0.7"></small
         ></span>
@@ -1024,9 +1024,12 @@
       const CONFIG = {
         STUDIO_NAME: "ARCANE STUDIO",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "22.1.0",
+        GAME_VERSION: "23.0.0",
         DEFAULT_LANGUAGE: "ru",
-        PEERJS_HOST: "0.peerjs.com",
+        // НАСТРОЙКА РЕЗЕРВНОГО СЕРВЕРА (YANDEX CLOUD)
+        // Если вы развернули PeerJS на Yandex Cloud, укажите адрес здесь.
+        // По умолчанию используется облако PeerJS.
+        PEERJS_HOST: "0.peerjs.com", // Например: "peerjs.your-domain.ru"
         PEERJS_PORT: 443,
         PEERJS_PATH: "/",
         PEERJS_SECURE: true,
@@ -1308,7 +1311,15 @@
         devMode: false,
         quality: "auto",
         vip: false,
-        stats: { matches: 0, wins: 0, kills: 0, bestWave: 0 },
+        stats: {
+          matches: 0,
+          wins: 0,
+          kills: 0,
+          bestWave: 0,
+          ultsUsed: 0,
+          bossesKilled: 0,
+          runesCollected: 0,
+        },
         lb: [],
         arenaSel: "lava",
         firstWin: false,
@@ -2248,7 +2259,7 @@
           rar: "legendary",
           gold: 5000,
           gems: 500,
-          mantle: "#C8962A",
+          mantle: "#F0E6D2",
           trim: "swirl",
           accent: "#FFD700",
           gem: { s: "round", c: "#FFFFFF" },
@@ -2947,7 +2958,7 @@
         y: 0,
         vx: 0,
         vy: 0,
-        r: 6,
+        r: 10,
         e: 0,
         own: null,
         dmg: 15,
@@ -4279,65 +4290,90 @@
         c.translate(-px, -py);
         c.lineCap = "round";
         c.lineJoin = "round";
+
+        // Shaft
         c.strokeStyle = "#000";
         c.lineWidth = 6;
         c.beginPath();
         c.moveTo(bx, 2);
         c.lineTo(f * 16, topY + 12);
         c.stroke();
-        const shaftG = c.createLinearGradient(bx, 2, f * 16, topY + 12),
-          hue = (TM * 60) % 360;
-        for (let i = 0; i <= 6; i++)
-          shaftG.addColorStop(
-            i / 6,
-            "hsl(" + ((hue + i * 55) % 360) + ",100%,65%)",
-          );
-        c.strokeStyle = shaftG;
+        c.strokeStyle = "#2a0040";
         c.lineWidth = 4;
         c.stroke();
-        const ox = f * 16,
-          oy = topY - 4,
-          pul = 0.7 + 0.3 * Math.sin(TM * 5 + m.id);
-        c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 34);
-        gr.addColorStop(0, rgba("#FFFFFF", 0.95 * pul));
-        gr.addColorStop(0.25, "hsla(" + ((hue + 30) % 360) + ",100%,70%,.75)");
-        gr.addColorStop(0.6, "hsla(" + ((hue + 200) % 360) + ",100%,60%,.5)");
-        gr.addColorStop(1, "hsla(" + ((hue + 300) % 360) + ",100%,50%,0)");
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(ox, oy, 34, 0, TAU);
-        c.fill();
-        c.globalCompositeOperation = "source-over";
-        const og = c.createRadialGradient(ox - 2, oy - 2, 1, ox, oy, 11);
-        og.addColorStop(0, "#FFFFFF");
-        og.addColorStop(0.3, "hsl(" + ((hue + 60) % 360) + ",100%,75%)");
-        og.addColorStop(0.7, "hsl(" + ((hue + 180) % 360) + ",100%,55%)");
-        og.addColorStop(1, "hsl(" + ((hue + 300) % 360) + ",100%,45%)");
-        c.fillStyle = og;
-        c.beginPath();
-        c.arc(ox, oy, 10, 0, TAU);
-        c.fill();
-        c.strokeStyle = "rgba(0,0,0,.5)";
+        c.strokeStyle = "#DAA520";
         c.lineWidth = 1.5;
         c.stroke();
-        for (let i = 0; i < 3; i++) {
-          const ra = TM * 2 + i * 2.1;
-          c.strokeStyle = "hsla(" + ((hue + i * 120) % 360) + ",100%,70%,.7)";
-          c.lineWidth = 1.5;
+
+        // Wings/Spikes
+        c.fillStyle = "#DAA520";
+        c.strokeStyle = "#000";
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(f * 16, topY + 12);
+        c.quadraticCurveTo(f * 28, topY + 5, f * 24, topY - 10);
+        c.quadraticCurveTo(f * 20, topY - 2, f * 16, topY - 4);
+        c.closePath();
+        c.fill();
+        c.stroke();
+        c.beginPath();
+        c.moveTo(f * 16, topY + 12);
+        c.quadraticCurveTo(f * 4, topY + 5, f * 8, topY - 10);
+        c.quadraticCurveTo(f * 12, topY - 2, f * 16, topY - 4);
+        c.closePath();
+        c.fill();
+        c.stroke();
+
+        // Center Orb (Black Hole)
+        const ox = f * 16,
+          oy = topY - 4,
+          pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
+
+        // Outer Gold Frame
+        c.beginPath();
+        c.arc(ox, oy, 14, 0, TAU);
+        c.fillStyle = "#DAA520";
+        c.fill();
+        c.strokeStyle = "#000";
+        c.lineWidth = 2;
+        c.stroke();
+
+        // Void Glow
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 26);
+        gr.addColorStop(0, "rgba(20,0,30,1)");
+        gr.addColorStop(0.4, "rgba(106,13,173,0.8)");
+        gr.addColorStop(0.8, "rgba(176,64,255,0.4)");
+        gr.addColorStop(1, "rgba(176,64,255,0)");
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 26, 0, TAU);
+        c.fill();
+
+        // Core
+        c.fillStyle = "#05000a";
+        c.beginPath();
+        c.arc(ox, oy, 9, 0, TAU);
+        c.fill();
+
+        // Purple Energy Rings
+        c.strokeStyle = `rgba(176,64,255,${0.7 * pul})`;
+        c.lineWidth = 2;
+        for (let i = 0; i < 2; i++) {
+          const ra = TM * 3 + i * 1.5;
           c.beginPath();
-          c.ellipse(ox, oy, 14 + Math.sin(ra) * 2, 6, ra * 0.5, 0, TAU);
+          c.ellipse(ox, oy, 16 + i * 4, 6 + i * 2, ra, 0, TAU);
           c.stroke();
         }
-        for (let i = 0; i < 4; i++) {
-          const sa = TM * 3 + i * 1.7,
-            sx = ox + Math.cos(sa) * 18,
-            sy = oy + Math.sin(sa) * 10;
-          c.fillStyle = "hsl(" + ((hue + i * 90) % 360) + ",100%,80%)";
-          c.beginPath();
-          c.arc(sx, sy, 1.6, 0, TAU);
-          c.fill();
-        }
+
+        // Inner white spark
+        c.fillStyle = "#FFF";
+        c.globalAlpha = pul;
+        c.beginPath();
+        c.arc(ox, oy, 1.5, 0, TAU);
+        c.fill();
+        c.globalAlpha = 1;
+        c.globalCompositeOperation = "source-over";
         c.restore();
       }
 
@@ -4708,7 +4744,7 @@
         if (m.skin.id !== "base" && m.skin.gem)
           drawGem(c, m.skin.gem, 0, -13.2);
 
-        // Fixed Hand 1 (Left)
+        // Hand 1
         c.lineCap = "round";
         c.strokeStyle = "#000";
         c.lineWidth = 6.5;
@@ -4746,19 +4782,40 @@
         c.strokeStyle = "#000";
         c.stroke();
         if (m.skin.sharkSkin) {
+          // Shark Mouth
+          c.fillStyle = "#050208";
+          c.beginPath();
+          c.ellipse(0, -26, 10.5, 9.5, 0, 0, TAU);
+          c.fill();
+          // Teeth
           c.fillStyle = "#FFFFFF";
           c.strokeStyle = "#000";
           c.lineWidth = 1;
           for (let i = 0; i < 6; i++) {
-            const x = -12 + i * 4;
+            const ang = -Math.PI * 0.8 + (i / 5) * Math.PI * 0.6;
+            const tx = Math.cos(ang) * 10.5,
+              ty = -26 + Math.sin(ang) * 9.5;
             c.beginPath();
-            c.moveTo(x, -14);
-            c.lineTo(x + 1.5, -10);
-            c.lineTo(x + 3, -14);
+            c.moveTo(tx, ty);
+            c.lineTo(tx + 1.5, ty + 3);
+            c.lineTo(tx + 3, ty);
             c.closePath();
             c.fill();
             c.stroke();
           }
+          for (let i = 0; i < 6; i++) {
+            const ang = -Math.PI * 0.2 - (i / 5) * Math.PI * 0.6;
+            const tx = Math.cos(ang) * 10.5,
+              ty = -26 + Math.sin(ang) * 9.5;
+            c.beginPath();
+            c.moveTo(tx, ty);
+            c.lineTo(tx - 1.5, ty - 3);
+            c.lineTo(tx - 3, ty);
+            c.closePath();
+            c.fill();
+            c.stroke();
+          }
+          // Fin
           c.fillStyle = "#FF69B4";
           c.strokeStyle = "#000";
           c.lineWidth = 1.8;
@@ -4854,7 +4911,7 @@
         drawEyes(c, m, fx, -26);
         drawStaff(c, m, f);
 
-        // Fixed Hand 2 (Right, holding staff)
+        // Hand 2
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
@@ -5983,6 +6040,7 @@
           burst(t.x, t.y - t.r, "#FFF", 6, 120, 2, 0.3, true);
           sfx("impact");
           G.kills++;
+          if (t.boss) SAVE.stats.bossesKilled++; // Track boss kills for quests
           const owner = src && !src.isMonster ? src : null;
           if (owner) {
             owner.kills++;
@@ -6103,7 +6161,7 @@
         p.y = y;
         p.vx = Math.cos(ang) * sp;
         p.vy = Math.sin(ang) * sp;
-        p.r = o.r || 9;
+        p.r = o.r || 10;
         p.e = e;
         p.own = own;
         p.dmg = dmg;
@@ -6231,8 +6289,9 @@
                 trail: m === G.player ? SAVE.fxTrail : "",
                 style: stStyle,
                 col: stCol,
+                r: 10,
               },
-            );
+            ); // r:10 for uniform size
           elemFx(ex, ey, m.elem, 8, 140);
         }
         G.events.push({ k: "atk", id: m.id, a: ang, e: m.elem });
@@ -6477,16 +6536,20 @@
         const dashCol = m.skin.accent || m.mantle;
         burst(m.x, m.y - 8, dashCol, 16, 180, 3.5, 0.5, true);
         burst(m.x, m.y - 8, "#FFFFFF", 6, 120, 2, 0.3, true);
-        for (let i = 1; i <= 3; i++) {
+
+        // Add to ghosts trail based on selected fx
+        for (let i = 1; i <= 4; i++) {
           G.ghosts.push({
-            x: m.x - m.dashX * i * 12,
-            y: m.y - m.dashY * i * 12,
+            x: m.x - m.dashX * i * 15,
+            y: m.y - m.dashY * i * 15,
             facing: m.facing,
             col: dashCol,
-            life: 0.3,
-            max: 0.3,
+            life: 0.4 - i * 0.05,
+            max: 0.4,
+            trailType: m === G.player ? SAVE.fxTrail : "",
           });
         }
+
         G.events.push({ k: "dash", id: m.id, a: ang });
         if (m === G.player) {
           vib(20);
@@ -6571,6 +6634,9 @@
         if (Math.abs(ax - m.x) > 4) m.facing = ax > m.x ? 1 : -1;
         emote(m, u.mega ? "mega" : "ult", u.mega ? 2 : 1.5);
         castFeel(m, u);
+
+        if (m === G.player) SAVE.stats.ultsUsed++; // Track ults for quests
+
         G.events.push({
           k: "ult",
           id: m.id,
@@ -6942,7 +7008,7 @@
                     speed: 340,
                     life: 2.5,
                     home: true,
-                    r: 9,
+                    r: 10,
                     kind: 1,
                   });
               });
@@ -7274,6 +7340,7 @@
         m.runes.push(e);
         if (m.runes.length > 3) m.runes.shift();
         m.elem = e;
+        if (m === G.player) SAVE.stats.runesCollected++; // Track runes for quests
       }
       function addMulti(m) {
         m.multiStacks = Math.min(15, m.multiStacks + 1);
@@ -7849,7 +7916,7 @@
                 off + (i / n) * TAU,
                 mo.bossElem,
                 10 + G.wave * 0.3,
-                { speed: 260, life: 2.2, r: 8 },
+                { speed: 260, life: 2.2, r: 10 },
               );
             sfx("shoot", mo.bossElem);
           }
@@ -8794,6 +8861,35 @@
         c.lineWidth = 3;
         c.stroke();
       }
+      function drawAdIcon(c) {
+        c.fillStyle = "#222";
+        c.fillRect(2, 4, 20, 16);
+        c.strokeStyle = "#FFF";
+        c.lineWidth = 1;
+        c.strokeRect(2, 4, 20, 16);
+        c.fillStyle = "#FFF";
+        c.beginPath();
+        c.moveTo(10, 8);
+        c.lineTo(16, 12);
+        c.lineTo(10, 16);
+        c.fill();
+      }
+      function drawVipIcon(c) {
+        c.fillStyle = "#FFD700";
+        c.beginPath();
+        c.moveTo(2, 18);
+        c.lineTo(22, 18);
+        c.lineTo(22, 10);
+        c.lineTo(17, 14);
+        c.lineTo(12, 6);
+        c.lineTo(7, 14);
+        c.lineTo(2, 10);
+        c.closePath();
+        c.fill();
+        c.strokeStyle = "#B8860B";
+        c.lineWidth = 2;
+        c.stroke();
+      }
 
       function glyph(c, e, x, y, s) {
         c.save();
@@ -9408,6 +9504,10 @@
         drawEnergyIcon(IC.energy.getContext("2d"));
         IC.daily = mkc(64);
         drawDailyIcon(IC.daily.getContext("2d"));
+        IC.ad = mkc(24);
+        drawAdIcon(IC.ad.getContext("2d"));
+        IC.vip = mkc(24);
+        drawVipIcon(IC.vip.getContext("2d"));
       }
 
       /* START/END */
@@ -9958,7 +10058,7 @@
 
       function drawProjShape(c, p, col) {
         const style = p.style || "orb",
-          r = p.r || 9;
+          r = p.r || 10;
         if (style === "heart") {
           c.fillStyle = "rgba(255,154,200,.35)";
           c.beginPath();
@@ -10438,9 +10538,51 @@
           else if (d.t === 2) drawPickup(ctx, d.o);
           else if (d.t === 3) drawRock(ctx, d.o, th);
           else if (d.t === 4) {
-            ctx.globalAlpha = d.o.life / d.o.max;
-            drawGhostMage(ctx, d.o.x, d.o.y, d.o.facing, d.o.col, 0.5);
-            ctx.globalAlpha = 1;
+            const gh = d.o,
+              ratio = gh.life / gh.max;
+            if (gh.trailType === "trail_hearts") {
+              ctx.globalAlpha = ratio;
+              ctx.fillStyle = "#FF69B4";
+              ctx.beginPath();
+              ctx.moveTo(gh.x, gh.y - 10);
+              ctx.bezierCurveTo(
+                gh.x - 15,
+                gh.y - 20,
+                gh.x - 10,
+                gh.y - 35,
+                gh.x,
+                gh.y - 20,
+              );
+              ctx.bezierCurveTo(
+                gh.x + 10,
+                gh.y - 35,
+                gh.x + 15,
+                gh.y - 20,
+                gh.x,
+                gh.y - 10,
+              );
+              ctx.fill();
+              ctx.globalAlpha = 1;
+            } else if (gh.trailType === "trail_void") {
+              ctx.globalAlpha = ratio;
+              ctx.fillStyle = "#05000a";
+              ctx.beginPath();
+              ctx.arc(gh.x, gh.y - 15, 15, 0, TAU);
+              ctx.fill();
+              ctx.strokeStyle = "#B040FF";
+              ctx.lineWidth = 3;
+              ctx.stroke();
+              ctx.globalAlpha = 1;
+            } else if (gh.trailType === "trail_rainbow") {
+              ctx.globalAlpha = ratio;
+              ctx.fillStyle = `hsl(${(TM * 500 + gh.x * 5) % 360}, 100%, 60%)`;
+              ctx.beginPath();
+              ctx.arc(gh.x, gh.y - 15, 15, 0, TAU);
+              ctx.fill();
+              ctx.globalAlpha = 1;
+            } else {
+              drawGhostMage(ctx, gh.x, gh.y, gh.facing, gh.col, ratio * 0.6);
+            }
           }
         }
         drawDebris(ctx);
@@ -11707,36 +11849,41 @@
           grid.appendChild(c);
           return { c, cv };
         };
+
+        // Helper to make icon buttons in shop
+        const mkShopBtn = (icon, text, cb) => {
+          const b = document.createElement("button");
+          b.className = "btn small";
+          b.style.display = "flex";
+          b.style.alignItems = "center";
+          b.style.gap = "4px";
+          if (icon && IC[icon]) {
+            const cv = document.createElement("canvas");
+            cv.width = 20;
+            cv.height = 20;
+            cv.getContext("2d").drawImage(IC[icon], 0, 0, 20, 20);
+            b.appendChild(cv);
+          }
+          b.appendChild(document.createTextNode(text));
+          b.onclick = () => {
+            sfx("click");
+            cb();
+          };
+          return b;
+        };
+
         const btns = (list, id, gold, gems, ownedCheck, equipped, onEquip) => {
           const box = document.createElement("div");
           box.style.cssText =
             "display:flex;gap:4px;flex-wrap:wrap;justify-content:center";
-          const mk = (txt, cb, off) => {
-            const b = document.createElement("button");
-            b.className = "btn small" + (off ? " off" : "");
-            b.innerHTML = txt;
-            b.onclick = () => {
-              sfx("click");
-              cb();
-            };
-            box.appendChild(b);
-          };
-
-          const coinCanvas = document.createElement("canvas");
-          coinCanvas.width = 16;
-          coinCanvas.height = 16;
-          coinCanvas.style.verticalAlign = "middle";
-          if (IC.coin)
-            coinCanvas.getContext("2d").drawImage(IC.coin, 0, 0, 16, 16);
-          const gemCanvas = document.createElement("canvas");
-          gemCanvas.width = 16;
-          gemCanvas.height = 16;
-          gemCanvas.style.verticalAlign = "middle";
-          if (IC.gemIcon)
-            gemCanvas.getContext("2d").drawImage(IC.gemIcon, 0, 0, 16, 16);
-
           if (ownedCheck)
-            mk(equipped ? "✓ " + t("equipped") : t("equip"), onEquip, equipped);
+            box.appendChild(
+              mkShopBtn(
+                "",
+                equipped ? "✓ " + t("equipped") : t("equip"),
+                onEquip,
+              ),
+            );
           else {
             const buy = (cur) => {
               const price = cur === "gold" ? gold : gems;
@@ -11751,31 +11898,16 @@
               persist();
               buildShop();
             };
-            if (gold) {
-              const b = document.createElement("button");
-              b.className = "btn small";
-              b.appendChild(coinCanvas.cloneNode(true));
-              b.appendChild(document.createTextNode(" " + gold));
-              b.onclick = () => {
-                sfx("click");
-                buy("gold");
-              };
-              box.appendChild(b);
-            }
-            if (gems) {
-              const b = document.createElement("button");
-              b.className = "btn small";
-              b.appendChild(gemCanvas.cloneNode(true));
-              b.appendChild(document.createTextNode(" " + gems));
-              b.onclick = () => {
-                sfx("click");
-                buy("gems");
-              };
-              box.appendChild(b);
-            }
+            if (gold)
+              box.appendChild(mkShopBtn("coin", " " + gold, () => buy("gold")));
+            if (gems)
+              box.appendChild(
+                mkShopBtn("gemIcon", " " + gems, () => buy("gems")),
+              );
           }
           return box;
         };
+
         if (shopTab === "skins")
           for (const s of SKINS) {
             const k = card(s[lang], s.rar.toUpperCase(), RAR_COL[s.rar]);
@@ -11884,9 +12016,11 @@
         else {
           const items = [
             {
-              n: "+3 ⚡",
+              n: "3",
+              icon: "energy",
               sub: t("energyPack"),
-              btn: "100",
+              btn: "coin",
+              price: 100,
               f: () => {
                 if (!SAVE.devMode) {
                   if (SAVE.gold < 100) return toast(t("notEnough"));
@@ -11899,9 +12033,11 @@
               },
             },
             {
-              n: "+5 ⚡",
+              n: "5",
+              icon: "energy",
               sub: t("energyPack"),
-              btn: "150",
+              btn: "coin",
+              price: 150,
               f: () => {
                 if (!SAVE.devMode) {
                   if (SAVE.gold < 150) return toast(t("notEnough"));
@@ -11914,9 +12050,11 @@
               },
             },
             {
-              n: "+3 ⚡",
+              n: "3",
+              icon: "energy",
               sub: t("adEnergy"),
-              btn: "FREE",
+              btn: "ad",
+              price: 0,
               f: () =>
                 showRewarded(() => {
                   SAVE.energy += 3;
@@ -11926,9 +12064,11 @@
                 }),
             },
             {
-              n: "+50",
+              n: "50",
+              icon: "coin",
               sub: "Реклама",
-              btn: "FREE",
+              btn: "ad",
+              price: 0,
               f: () =>
                 showRewarded(() => {
                   SAVE.gold += 50;
@@ -11939,9 +12079,11 @@
                 }),
             },
             {
-              n: "👑 VIP",
+              n: "VIP",
+              icon: "vip",
               sub: t("vipDesc"),
-              btn: SAVE.vip ? "✓" : "1000",
+              btn: SAVE.vip ? "✓" : "coin",
+              price: 1000,
               f: () => {
                 if (SAVE.vip) return;
                 if (!SAVE.devMode) {
@@ -11956,38 +12098,50 @@
             },
             {
               n: "500",
+              icon: "coin",
               sub: "49 ₽",
               btn: "КУПИТЬ",
+              price: 0,
               f: () => buyProduct("gold_500"),
             },
             {
               n: "1500",
+              icon: "coin",
               sub: "129 ₽",
               btn: "КУПИТЬ",
+              price: 0,
               f: () => buyProduct("gold_1500"),
             },
             {
               n: "5000",
+              icon: "coin",
               sub: "349 ₽",
               btn: "КУПИТЬ",
+              price: 0,
               f: () => buyProduct("gold_5000"),
             },
             {
               n: "100",
+              icon: "gemIcon",
               sub: "49 ₽",
               btn: "КУПИТЬ",
+              price: 0,
               f: () => buyProduct("gems_100"),
             },
             {
               n: "500",
+              icon: "gemIcon",
               sub: "199 ₽",
               btn: "КУПИТЬ",
+              price: 0,
               f: () => buyProduct("gems_500"),
             },
             {
               n: "1500",
+              icon: "gemIcon",
               sub: "499 ₽",
               btn: "КУПИТЬ",
+              price: 0,
               f: () => buyProduct("gems_1500"),
             },
           ];
@@ -11997,14 +12151,28 @@
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML =
-              '<div style="font-size:30px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">' +
+              '<div style="font-size:30px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;"><span class="ico-cv" data-ico="' +
+              it.icon +
+              '"></span> ' +
               it.n +
               '</div><div style="opacity:.8">' +
               it.sub +
               "</div>";
             const b = document.createElement("button");
             b.className = "btn small";
-            b.textContent = it.btn;
+            b.style.display = "flex";
+            b.style.alignItems = "center";
+            b.style.gap = "6px";
+            if (IC[it.btn]) {
+              const cv = document.createElement("canvas");
+              cv.width = 16;
+              cv.height = 16;
+              cv.getContext("2d").drawImage(IC[it.btn], 0, 0, 16, 16);
+              b.appendChild(cv);
+            }
+            b.appendChild(
+              document.createTextNode(it.btn === "coin" ? it.price : it.btn),
+            );
             b.onclick = () => {
               sfx("click");
               it.f();
@@ -12012,6 +12180,19 @@
             c.appendChild(b);
             grid.appendChild(c);
           }
+          // Replace placeholders with canvases
+          setTimeout(() => {
+            document.querySelectorAll(".ico-cv").forEach((el) => {
+              const ico = el.dataset.ico;
+              if (IC[ico]) {
+                const cv = document.createElement("canvas");
+                cv.width = 24;
+                cv.height = 24;
+                cv.getContext("2d").drawImage(IC[ico], 0, 0, 24, 24);
+                el.appendChild(cv);
+              }
+            });
+          }, 0);
         }
         if (
           menuMages[0] &&
@@ -12434,6 +12615,42 @@
           desc_en: "Kill 500 enemies",
           check: (s) => (s.stats.kills || 0) >= 500,
         },
+        {
+          id: "ult_10",
+          reward: 250,
+          ru: "10 ульт",
+          en: "10 Ults",
+          desc_ru: "Используйте ульту 10 раз",
+          desc_en: "Use ultimate 10 times",
+          check: (s) => (s.stats.ultsUsed || 0) >= 10,
+        },
+        {
+          id: "boss_5",
+          reward: 1000,
+          ru: "Охотник на боссов",
+          en: "Boss Hunter",
+          desc_ru: "Убейте 5 боссов",
+          desc_en: "Kill 5 bosses",
+          check: (s) => (s.stats.bossesKilled || 0) >= 5,
+        },
+        {
+          id: "wins_5",
+          reward: 400,
+          ru: "5 побед",
+          en: "5 Wins",
+          desc_ru: "Выиграйте 5 раз",
+          desc_en: "Win 5 matches",
+          check: (s) => (s.stats.wins || 0) >= 5,
+        },
+        {
+          id: "runes_50",
+          reward: 300,
+          ru: "Коллекционер рун",
+          en: "Rune Collector",
+          desc_ru: "Соберите 50 рун",
+          desc_en: "Collect 50 runes",
+          check: (s) => (s.stats.runesCollected || 0) >= 50,
+        },
       ];
       function checkQuestsInternal() {
         if (!SAVE.questsReady) SAVE.questsReady = [];
@@ -12781,6 +12998,7 @@
         for (let i = 0; i < 6; i++) s += A[rndi(0, A.length - 1)];
         return s;
       };
+
       const peerOpts = () => ({
         host: CONFIG.PEERJS_HOST,
         port: CONFIG.PEERJS_PORT,
@@ -12811,6 +13029,7 @@
           ],
         },
       });
+
       const sendTo = (conn, msg) => {
         try {
           if (conn && conn.open) conn.send(msg);
