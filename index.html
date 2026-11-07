@@ -1100,7 +1100,7 @@
       const CONFIG = {
         STUDIO_NAME: "ARCANE STUDIO",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "23.1.0",
+        GAME_VERSION: "23.2.0",
         DEFAULT_LANGUAGE: "ru",
         PEERJS_HOST: "0.peerjs.com",
         PEERJS_PORT: 443,
@@ -2440,8 +2440,8 @@
         },
         {
           id: "abyss",
-          ru: "Посох Бездны",
-          en: "Abyss Staff",
+          ru: "Посох Пустоты",
+          en: "Void Staff",
           rar: "legendary",
           gold: 5000,
           gems: 500,
@@ -3700,10 +3700,10 @@
       function sharkHoodPath(c) {
         c.beginPath();
         c.moveTo(-14, -14);
-        c.quadraticCurveTo(-30, -32, -22, -50); // Pointy nose
-        c.quadraticCurveTo(-10, -58, 10, -52); // Top curve
-        c.quadraticCurveTo(18, -40, 15, -22); // Back
-        c.quadraticCurveTo(10, -12, 0, -10); // Neck
+        c.quadraticCurveTo(-30, -32, -22, -50);
+        c.quadraticCurveTo(-10, -58, 10, -52);
+        c.quadraticCurveTo(18, -40, 15, -22);
+        c.quadraticCurveTo(10, -12, 0, -10);
         c.closePath();
       }
 
@@ -4234,18 +4234,19 @@
         c.lineWidth = 1.5;
         c.stroke();
 
-        // Elongated triangular fin
-        const tipX = f * 16 - f * 12,
-          tipY = topY - 16,
+        // Large layered shark fin
+        const tipX = f * 16 - f * 16,
+          tipY = topY - 24,
           baseY = topY + 16,
           baseX = f * 16;
 
         c.beginPath();
         c.moveTo(baseX, baseY);
-        c.lineTo(baseX - f * 18, baseY - 4);
-        c.quadraticCurveTo(baseX - f * 12, topY - 6, tipX, tipY);
-        c.quadraticCurveTo(baseX - f * 4, topY + 2, baseX, topY + 4);
+        c.lineTo(baseX - f * 22, baseY - 6);
+        c.quadraticCurveTo(baseX - f * 16, topY - 10, tipX, tipY);
+        c.quadraticCurveTo(baseX - f * 6, topY + 2, baseX, topY + 4);
         c.closePath();
+
         const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
         fg.addColorStop(0, "#FFC8E0");
         fg.addColorStop(0.5, "#FFB6D9");
@@ -4256,24 +4257,27 @@
         c.lineWidth = 2.5;
         c.stroke();
 
+        // Fin details / lines
         c.strokeStyle = "rgba(255,105,180,.8)";
-        c.lineWidth = 1.2;
+        c.lineWidth = 1.5;
         c.beginPath();
-        c.moveTo(baseX - f * 2, baseY - 2);
-        c.lineTo(tipX + f * 2, tipY + 3);
+        c.moveTo(baseX - f * 4, baseY - 2);
+        c.lineTo(tipX + f * 4, tipY + 4);
+        c.moveTo(baseX - f * 8, baseY - 4);
+        c.lineTo(tipX + f * 2, tipY + 6);
         c.stroke();
 
         const ox = tipX,
           oy = tipY,
           pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
         c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 18);
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
         gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
         gr.addColorStop(0.3, rgba("#FF69B4", 0.7 * pul));
         gr.addColorStop(1, rgba("#FF69B4", 0));
         c.fillStyle = gr;
         c.beginPath();
-        c.arc(ox, oy, 18, 0, TAU);
+        c.arc(ox, oy, 22, 0, TAU);
         c.fill();
         c.globalCompositeOperation = "source-over";
         c.restore();
@@ -4353,7 +4357,7 @@
 
       function drawStaffVoid(c, m, f) {
         const bx = f * 14.5,
-          topY = -48,
+          topY = -50,
           px = f * 15,
           py = -14,
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
@@ -4364,33 +4368,39 @@
         c.lineCap = "round";
         c.lineJoin = "round";
 
+        // Shaft
         c.strokeStyle = "#000";
         c.lineWidth = 6;
         c.beginPath();
         c.moveTo(bx, 2);
         c.lineTo(f * 16, topY + 12);
         c.stroke();
-        c.strokeStyle = "#2a0040";
+        c.strokeStyle = "#110020";
         c.lineWidth = 4;
         c.stroke();
-        c.strokeStyle = "#DAA520";
+        c.strokeStyle = "#8A2BE2";
         c.lineWidth = 1.5;
         c.stroke();
 
-        c.fillStyle = "#DAA520";
+        // Outer Wings/Crystals
+        c.fillStyle = "#4B0082";
         c.strokeStyle = "#000";
         c.lineWidth = 1.5;
+
+        // Left wing
         c.beginPath();
         c.moveTo(f * 16, topY + 12);
-        c.quadraticCurveTo(f * 28, topY + 5, f * 24, topY - 10);
-        c.quadraticCurveTo(f * 20, topY - 2, f * 16, topY - 4);
+        c.lineTo(f * 2, topY - 10);
+        c.lineTo(f * 10, topY + 2);
         c.closePath();
         c.fill();
         c.stroke();
+
+        // Right wing
         c.beginPath();
         c.moveTo(f * 16, topY + 12);
-        c.quadraticCurveTo(f * 4, topY + 5, f * 8, topY - 10);
-        c.quadraticCurveTo(f * 12, topY - 2, f * 16, topY - 4);
+        c.lineTo(f * 30, topY - 10);
+        c.lineTo(f * 22, topY + 2);
         c.closePath();
         c.fill();
         c.stroke();
@@ -4399,45 +4409,61 @@
           oy = topY - 4,
           pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
 
-        c.beginPath();
-        c.arc(ox, oy, 14, 0, TAU);
-        c.fillStyle = "#DAA520";
-        c.fill();
-        c.strokeStyle = "#000";
-        c.lineWidth = 2;
-        c.stroke();
-
+        // Orbital Rings (Accretion Disk)
         c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 26);
-        gr.addColorStop(0, "rgba(20,0,30,1)");
-        gr.addColorStop(0.4, "rgba(106,13,173,0.8)");
-        gr.addColorStop(0.8, "rgba(176,64,255,0.4)");
-        gr.addColorStop(1, "rgba(176,64,255,0)");
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(ox, oy, 26, 0, TAU);
-        c.fill();
-
-        c.fillStyle = "#05000a";
-        c.beginPath();
-        c.arc(ox, oy, 9, 0, TAU);
-        c.fill();
-
-        c.strokeStyle = `rgba(176,64,255,${0.7 * pul})`;
-        c.lineWidth = 2;
-        for (let i = 0; i < 2; i++) {
-          const ra = TM * 3 + i * 1.5;
+        c.strokeStyle = `rgba(180, 50, 255, ${0.7 * pul})`;
+        c.lineWidth = 3;
+        for (let i = 0; i < 3; i++) {
+          const ra = TM * 2.5 + i * 1.2;
           c.beginPath();
-          c.ellipse(ox, oy, 16 + i * 4, 6 + i * 2, ra, 0, TAU);
+          c.ellipse(ox, oy, 20 + i * 4, 7 + i * 2, ra, 0, TAU);
           c.stroke();
         }
 
-        c.fillStyle = "#FFF";
+        // Outer Glow
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 35);
+        gr.addColorStop(0, "rgba(20,0,30,1)");
+        gr.addColorStop(0.4, "rgba(106,13,173,0.8)");
+        gr.addColorStop(0.8, "rgba(176,64,255,0.3)");
+        gr.addColorStop(1, "rgba(176,64,255,0)");
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 35, 0, TAU);
+        c.fill();
+
+        // Core Black Hole
+        c.fillStyle = "#000000";
+        c.beginPath();
+        c.arc(ox, oy, 12, 0, TAU);
+        c.fill();
+
+        // Bright Rim
+        c.strokeStyle = `rgba(255, 100, 255, ${pul})`;
+        c.lineWidth = 2;
+        c.beginPath();
+        c.arc(ox, oy, 12, 0, TAU);
+        c.stroke();
+
+        // Singularity point
+        c.fillStyle = "#FFFFFF";
         c.globalAlpha = pul;
         c.beginPath();
-        c.arc(ox, oy, 1.5, 0, TAU);
+        c.arc(ox, oy, 2, 0, TAU);
         c.fill();
         c.globalAlpha = 1;
+
+        // Floating particles
+        for (let i = 0; i < 4; i++) {
+          const a = TM * 4 + (i * TAU) / 4;
+          const dist = 18 + Math.sin(TM * 8 + i) * 4;
+          const px = ox + Math.cos(a) * dist;
+          const py = oy + Math.sin(a) * dist;
+          c.fillStyle = "#D070FF";
+          c.beginPath();
+          c.arc(px, py, 1.5, 0, TAU);
+          c.fill();
+        }
+
         c.globalCompositeOperation = "source-over";
         c.restore();
       }
@@ -4572,34 +4598,34 @@
           c.stroke();
         }
         const ox = tx + f * 0.5,
-          oy = topY - 6,
+          oy = topY - 8,
           pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
         c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 20);
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 24);
         gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
         gr.addColorStop(0.35, rgba("#FFB6D9", 0.7 * pul));
         gr.addColorStop(1, rgba("#FFB6D9", 0));
         c.fillStyle = gr;
         c.beginPath();
-        c.arc(ox, oy, 20, 0, TAU);
+        c.arc(ox, oy, 24, 0, TAU);
         c.fill();
         c.globalCompositeOperation = "source-over";
 
-        // Heart shape
+        // Bigger Heart shape
         c.fillStyle = "#FF69B4";
         c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
+        c.lineWidth = 1.8;
         c.beginPath();
-        c.moveTo(ox, oy + 4);
-        c.bezierCurveTo(ox - 7, oy - 2, ox - 5, oy - 9, ox, oy - 4);
-        c.bezierCurveTo(ox + 5, oy - 9, ox + 7, oy - 2, ox, oy + 4);
+        c.moveTo(ox, oy + 7);
+        c.bezierCurveTo(ox - 11, oy - 3, ox - 8, oy - 13, ox, oy - 5);
+        c.bezierCurveTo(ox + 8, oy - 13, ox + 11, oy - 3, ox, oy + 7);
         c.fill();
         c.stroke();
 
-        // Highlight
-        c.fillStyle = "rgba(255,255,255,0.6)";
+        // Highlights
+        c.fillStyle = "rgba(255,255,255,0.7)";
         c.beginPath();
-        c.ellipse(ox - 2, oy - 2, 1.5, 1.5, -0.5, 0, TAU);
+        c.ellipse(ox - 3.5, oy - 4, 2, 2.5, -0.5, 0, TAU);
         c.fill();
 
         c.restore();
@@ -6487,6 +6513,8 @@
             p.trailPts.push({ x: p.x, y: p.y });
             if (p.trailPts.length > 8) p.trailPts.shift();
           }
+
+          // Always spawn base element trail
           if (Q.pmul >= 0.4) {
             const col =
               p.e === 4
@@ -6517,6 +6545,8 @@
                 true,
                 0.9,
               );
+
+            // Stack custom trail effect on top
             if (p.trail === "trail_rainbow") {
               for (let ti = 0; ti < 2; ti++)
                 pt(
@@ -6586,6 +6616,7 @@
                 );
             }
           }
+
           const dxc = p.x - CX,
             dyc = p.y - CY;
           if (p.life <= 0 || dxc * dxc + dyc * dyc > lim2) {
@@ -7436,7 +7467,7 @@
         if (!ok) return;
         const type = randomPickupType();
         spawnPickup(type, x, y);
-        G.spawnFx.push({ x, y, t: 1.2, m: 1.2, c: PK[type].col, w: 24 });
+        G.spawnFx.push({ x, y, t: 1.2, m: 1.2, c: PK[type].col, w: 40 });
         burst(x, y, PK[type].col, 14, 120, 3, 0.6, true);
       }
 
@@ -7504,7 +7535,7 @@
               p.x += ((m.x - p.x) / d) * 120 * dt;
               p.y += ((m.y - 10 - p.y) / d) * 120 * dt;
             }
-            if (d < 26) {
+            if (d < 35) {
               collect(m, p);
               G.pickups.splice(i, 1);
               break;
@@ -7728,7 +7759,24 @@
               Math.random() < 0.3,
               0.98,
             );
+
           const isMe = G && m === G.player;
+
+          // Default speed trail (always active for the player)
+          if (isMe && Math.hypot(m.vx, m.vy) > 40 && Math.random() < 0.5) {
+            pt(
+              m.x,
+              m.y - 10,
+              rnd(-15, 15),
+              rnd(-15, 15),
+              0.3,
+              rnd(2, 4),
+              elemColor(m.elem),
+              0,
+              true,
+            );
+          }
+
           if (isMe && SAVE.fxAura === "aura_souls")
             pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#A0FFE0", 0, true);
           else if (isMe && SAVE.fxAura === "aura_petals")
@@ -7743,6 +7791,7 @@
               0,
               false,
             );
+
           if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
             const tx = m.x + rnd(-6, 6),
               ty = m.y - rnd(5, 30);
@@ -8118,8 +8167,9 @@
           }
         }
         g.pkT -= dt;
-        if (g.pkT <= 0 && g.pickups.length < 9) {
-          g.pkT = rnd(8, 15);
+        // Spawn more frequently and allow more buffs on the map (up from 9 to 15)
+        if (g.pkT <= 0 && g.pickups.length < 15) {
+          g.pkT = rnd(4, 8);
           spawnRandomPickup();
         } else if (g.pkT <= 0) g.pkT = 3;
         if (g.epicT > 0) g.epicT -= dt;
@@ -10398,19 +10448,50 @@
           c.arc(t.x, t.y, t.r * (1 - k), 0, TAU);
           c.stroke();
         }
+
         if (G.pillar) {
           const pl = G.pillar;
           pl.t -= 1 / 60;
           if (pl.t <= 0) G.pillar = null;
           else {
-            const g = c.createLinearGradient(pl.x, pl.y - 900, pl.x, pl.y);
-            g.addColorStop(0, "rgba(255,215,0,0)");
-            g.addColorStop(
-              1,
-              "rgba(255,230,120," + clamp(pl.t, 0, 1) * 0.8 + ")",
-            );
-            c.fillStyle = g;
-            c.fillRect(pl.x - 40, pl.y - 900, 80, 900);
+            const alpha = clamp(pl.t, 0, 1);
+            const w = 100 + Math.sin(TM * 10) * 15;
+
+            // Soft base glow
+            const rg = c.createRadialGradient(pl.x, pl.y, 10, pl.x, pl.y, 200);
+            rg.addColorStop(0, `rgba(255,255,255,${alpha})`);
+            rg.addColorStop(0.3, `rgba(255,215,0,${0.7 * alpha})`);
+            rg.addColorStop(1, "rgba(255,215,0,0)");
+            c.fillStyle = rg;
+            c.beginPath();
+            c.ellipse(pl.x, pl.y, 200, 50, 0, 0, TAU);
+            c.fill();
+
+            // Smooth column
+            const gr = c.createLinearGradient(pl.x, pl.y - 900, pl.x, pl.y);
+            gr.addColorStop(0, "rgba(255,255,255,0)");
+            gr.addColorStop(0.3, `rgba(255,255,180,${0.4 * alpha})`);
+            gr.addColorStop(1, `rgba(255,215,0,${0.9 * alpha})`);
+            c.fillStyle = gr;
+
+            // Draw using arc for smooth top and bottom
+            c.beginPath();
+            c.moveTo(pl.x - w / 2, pl.y);
+            c.lineTo(pl.x - w / 2, pl.y - 800);
+            c.quadraticCurveTo(pl.x, pl.y - 900, pl.x + w / 2, pl.y - 800);
+            c.lineTo(pl.x + w / 2, pl.y);
+            c.quadraticCurveTo(pl.x, pl.y + 40, pl.x - w / 2, pl.y);
+            c.fill();
+
+            // Bright inner core
+            c.fillStyle = `rgba(255,255,255,${alpha * 0.8})`;
+            c.beginPath();
+            c.moveTo(pl.x - w / 6, pl.y);
+            c.lineTo(pl.x - w / 6, pl.y - 800);
+            c.quadraticCurveTo(pl.x, pl.y - 850, pl.x + w / 6, pl.y - 800);
+            c.lineTo(pl.x + w / 6, pl.y);
+            c.quadraticCurveTo(pl.x, pl.y + 20, pl.x - w / 6, pl.y);
+            c.fill();
           }
         }
       }
@@ -10439,26 +10520,26 @@
         if (p.life < 6 && Math.floor(TM * 6) % 2) return;
         c.fillStyle = "rgba(0,0,0,.35)";
         c.beginPath();
-        c.ellipse(p.x, p.y, 11, 4, 0, 0, TAU);
+        c.ellipse(p.x, p.y, 16, 6, 0, 0, TAU);
         c.fill();
         c.globalCompositeOperation = Q.glow ? "lighter" : "source-over";
         const g = c.createRadialGradient(
           p.x,
-          p.y - 14 + bob,
+          p.y - 20 + bob,
           2,
           p.x,
-          p.y - 14 + bob,
-          26,
+          p.y - 20 + bob,
+          36,
         );
-        g.addColorStop(0, rgba(col, 0.55));
+        g.addColorStop(0, rgba(col, 0.6));
         g.addColorStop(1, rgba(col, 0));
         c.fillStyle = g;
         c.beginPath();
-        c.arc(p.x, p.y - 14 + bob, 26, 0, TAU);
+        c.arc(p.x, p.y - 20 + bob, 36, 0, TAU);
         c.fill();
         c.globalCompositeOperation = "source-over";
         const im = IC[p.type];
-        if (im) c.drawImage(im, p.x - 16, p.y - 32 + bob, 32, 32);
+        if (im) c.drawImage(im, p.x - 24, p.y - 48 + bob, 48, 48);
       }
 
       function drawAimIndicators(c) {
