@@ -287,11 +287,21 @@
         border: 2px solid rgba(218, 165, 32, 0.4);
         text-align: center;
         font-size: 13px;
+        position: relative;
       }
-      .card canvas {
+      .card > canvas {
         width: 120px;
         height: 140px;
         object-fit: contain;
+      }
+      .shop-btn-canvas {
+        width: 20px !important;
+        height: 20px !important;
+        flex-shrink: 0;
+      }
+      .ico-cv canvas {
+        width: 24px;
+        height: 24px;
       }
       .card .rar {
         font-size: 11px;
@@ -784,6 +794,25 @@
             align-items: center;
           "
         >
+          <!-- ВЫБОР СЕРВЕРА -->
+          <select
+            id="serverSelect"
+            class="inp"
+            style="
+              font-size: 14px;
+              width: 100%;
+              color: #fff;
+              background: #000;
+              padding: 10px;
+              border-radius: 10px;
+              letter-spacing: 0;
+              text-align: left;
+            "
+          >
+            <option value="0.peerjs.com">Сервер: Default (PeerJS Cloud)</option>
+            <option value="peerjs.yandex.cloud">Сервер: Yandex Cloud</option>
+            <option value="peerjs.cloudflare.com">Сервер: Cloudflare</option>
+          </select>
           <input
             class="inp"
             id="codeIn"
@@ -1026,10 +1055,7 @@
         GAME_TITLE: "ARCANE ARENA",
         GAME_VERSION: "23.0.0",
         DEFAULT_LANGUAGE: "ru",
-        // НАСТРОЙКА РЕЗЕРВНОГО СЕРВЕРА (YANDEX CLOUD)
-        // Если вы развернули PeerJS на Yandex Cloud, укажите адрес здесь.
-        // По умолчанию используется облако PeerJS.
-        PEERJS_HOST: "0.peerjs.com", // Например: "peerjs.your-domain.ru"
+        PEERJS_HOST: "0.peerjs.com",
         PEERJS_PORT: 443,
         PEERJS_PATH: "/",
         PEERJS_SECURE: true,
@@ -2970,6 +2996,7 @@
         trailPts: [],
         style: "orb",
         col: null,
+        age: 0,
         on: false,
         _inActive: false,
       }));
@@ -3626,10 +3653,10 @@
       function sharkHoodPath(c) {
         c.beginPath();
         c.moveTo(-14, -14);
-        c.lineTo(-22, -35); // snout
-        c.quadraticCurveTo(-10, -58, 10, -48);
-        c.lineTo(16, -22);
-        c.quadraticCurveTo(10, -12, 0, -10);
+        c.quadraticCurveTo(-28, -30, -20, -48); // snout
+        c.quadraticCurveTo(-5, -60, 12, -50); // top
+        c.quadraticCurveTo(18, -40, 15, -22); // back
+        c.quadraticCurveTo(10, -12, 0, -10); // neck
         c.closePath();
       }
 
@@ -4291,7 +4318,6 @@
         c.lineCap = "round";
         c.lineJoin = "round";
 
-        // Shaft
         c.strokeStyle = "#000";
         c.lineWidth = 6;
         c.beginPath();
@@ -4305,7 +4331,6 @@
         c.lineWidth = 1.5;
         c.stroke();
 
-        // Wings/Spikes
         c.fillStyle = "#DAA520";
         c.strokeStyle = "#000";
         c.lineWidth = 1.5;
@@ -4324,12 +4349,10 @@
         c.fill();
         c.stroke();
 
-        // Center Orb (Black Hole)
         const ox = f * 16,
           oy = topY - 4,
           pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
 
-        // Outer Gold Frame
         c.beginPath();
         c.arc(ox, oy, 14, 0, TAU);
         c.fillStyle = "#DAA520";
@@ -4338,7 +4361,6 @@
         c.lineWidth = 2;
         c.stroke();
 
-        // Void Glow
         c.globalCompositeOperation = "lighter";
         const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 26);
         gr.addColorStop(0, "rgba(20,0,30,1)");
@@ -4350,13 +4372,11 @@
         c.arc(ox, oy, 26, 0, TAU);
         c.fill();
 
-        // Core
         c.fillStyle = "#05000a";
         c.beginPath();
         c.arc(ox, oy, 9, 0, TAU);
         c.fill();
 
-        // Purple Energy Rings
         c.strokeStyle = `rgba(176,64,255,${0.7 * pul})`;
         c.lineWidth = 2;
         for (let i = 0; i < 2; i++) {
@@ -4366,7 +4386,6 @@
           c.stroke();
         }
 
-        // Inner white spark
         c.fillStyle = "#FFF";
         c.globalAlpha = pul;
         c.beginPath();
@@ -4561,8 +4580,13 @@
                 ? "#E8E0C8"
                 : sk === "crystal"
                   ? "#6a5a9a"
-                  : "#8B6F3F",
-            grain = sk === "bone" ? "#B0A888" : "#5A4A2F";
+                  : sk === "rainbow"
+                    ? "#DAA520" // Fallback for rainbow shaft
+                    : sk === "ice"
+                      ? "#A0E8FF"
+                      : "#8B6F3F",
+            grain =
+              sk === "bone" ? "#B0A888" : sk === "rainbow" ? "#FFF" : "#5A4A2F";
           const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
             bx = f * 14.5,
             tx = f * 18,
@@ -4581,7 +4605,19 @@
           c.moveTo(bx, 2);
           c.quadraticCurveTo(f * 13.5, -18, tx, topY);
           c.stroke();
-          c.strokeStyle = shaft;
+
+          if (sk === "rainbow") {
+            const rg = c.createLinearGradient(bx, 2, tx, topY);
+            rg.addColorStop(0, "#ff0000");
+            rg.addColorStop(0.2, "#ffff00");
+            rg.addColorStop(0.4, "#00ff00");
+            rg.addColorStop(0.6, "#00ffff");
+            rg.addColorStop(0.8, "#0000ff");
+            rg.addColorStop(1, "#ff00ff");
+            c.strokeStyle = rg;
+          } else {
+            c.strokeStyle = shaft;
+          }
           c.lineWidth = 3.2;
           c.stroke();
           c.strokeStyle = grain;
@@ -4597,13 +4633,23 @@
           }
           const ox = tx + f * 0.5,
             oy = topY - 8,
-            pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id),
-            elc = el.color === "#6A0DAD" ? "#B040FF" : el.color;
+            pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+          let coreCol = el.core,
+            outerCol = el.color === "#6A0DAD" ? "#B040FF" : el.color;
+
+          if (sk === "ice") {
+            coreCol = "#E8FFFF";
+            outerCol = "#00DDFF";
+          } else if (sk === "rainbow") {
+            coreCol = "#FFFFFF";
+            outerCol = `hsl(${(TM * 200) % 360}, 100%, 60%)`;
+          }
+
           c.globalCompositeOperation = "lighter";
           const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
-          gr.addColorStop(0, rgba(el.core, 0.9 * pul));
-          gr.addColorStop(0.3, rgba(elc, 0.6 * pul));
-          gr.addColorStop(1, rgba(elc, 0));
+          gr.addColorStop(0, rgba(coreCol, 0.9 * pul));
+          gr.addColorStop(0.3, rgba(outerCol, 0.6 * pul));
+          gr.addColorStop(1, rgba(outerCol, 0));
           c.fillStyle = gr;
           c.beginPath();
           c.arc(ox, oy, 22, 0, TAU);
@@ -4611,8 +4657,8 @@
           c.globalCompositeOperation = "source-over";
           const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 8);
           og.addColorStop(0, "#FFFFFF");
-          og.addColorStop(0.4, el.core);
-          og.addColorStop(1, el.color);
+          og.addColorStop(0.4, coreCol);
+          og.addColorStop(1, outerCol);
           c.fillStyle = og;
           c.beginPath();
           c.arc(ox, oy, 7, 0, TAU);
@@ -4785,7 +4831,7 @@
           // Shark Mouth
           c.fillStyle = "#050208";
           c.beginPath();
-          c.ellipse(0, -26, 10.5, 9.5, 0, 0, TAU);
+          c.ellipse(0, -26, 11.5, 10.5, 0, 0, TAU);
           c.fill();
           // Teeth
           c.fillStyle = "#FFFFFF";
@@ -4793,8 +4839,8 @@
           c.lineWidth = 1;
           for (let i = 0; i < 6; i++) {
             const ang = -Math.PI * 0.8 + (i / 5) * Math.PI * 0.6;
-            const tx = Math.cos(ang) * 10.5,
-              ty = -26 + Math.sin(ang) * 9.5;
+            const tx = Math.cos(ang) * 11,
+              ty = -26 + Math.sin(ang) * 10;
             c.beginPath();
             c.moveTo(tx, ty);
             c.lineTo(tx + 1.5, ty + 3);
@@ -4805,8 +4851,8 @@
           }
           for (let i = 0; i < 6; i++) {
             const ang = -Math.PI * 0.2 - (i / 5) * Math.PI * 0.6;
-            const tx = Math.cos(ang) * 10.5,
-              ty = -26 + Math.sin(ang) * 9.5;
+            const tx = Math.cos(ang) * 11,
+              ty = -26 + Math.sin(ang) * 10;
             c.beginPath();
             c.moveTo(tx, ty);
             c.lineTo(tx - 1.5, ty - 3);
@@ -4821,11 +4867,11 @@
           c.lineWidth = 1.8;
           c.lineJoin = "round";
           c.beginPath();
-          c.moveTo(-4, -47);
-          c.lineTo(-7, -58);
-          c.lineTo(0, -50);
-          c.lineTo(3, -58);
-          c.lineTo(5, -46);
+          c.moveTo(-4, -48);
+          c.lineTo(-7, -64);
+          c.lineTo(0, -51);
+          c.lineTo(3, -64);
+          c.lineTo(5, -47);
           c.closePath();
           c.fill();
           c.stroke();
@@ -4836,34 +4882,26 @@
           c.lineWidth = 2.5;
           c.lineJoin = "round";
           for (const s of [-1, 1]) {
-            const bx = s * 7;
+            const bx = s * 8;
             c.beginPath();
-            c.moveTo(bx - 5, -45);
-            c.quadraticCurveTo(bx - 6, -55, bx, -58);
-            c.quadraticCurveTo(bx + 6, -55, bx + 5, -45);
+            c.moveTo(bx - 6, -45);
+            c.lineTo(bx - 8, -62);
+            c.lineTo(bx, -50);
+            c.lineTo(bx + 8, -62);
+            c.lineTo(bx + 6, -45);
             c.closePath();
             c.fill();
             c.stroke();
             c.fillStyle = "#FF69B4";
             c.beginPath();
-            c.moveTo(bx - 2.5, -46);
-            c.quadraticCurveTo(bx - 3, -52, bx, -54);
-            c.quadraticCurveTo(bx + 3, -52, bx + 2.5, -46);
+            c.moveTo(bx - 4, -46);
+            c.lineTo(bx - 5, -57);
+            c.lineTo(bx, -49);
+            c.lineTo(bx + 5, -57);
+            c.lineTo(bx + 4, -46);
             c.closePath();
             c.fill();
-            c.strokeStyle = "#FF69B4";
-            c.lineWidth = 1;
-            c.stroke();
             c.fillStyle = pal.hi;
-            c.strokeStyle = "#000";
-            c.lineWidth = 1.5;
-            c.beginPath();
-            c.moveTo(bx - 1, -53);
-            c.lineTo(bx, -57);
-            c.lineTo(bx + 1, -53);
-            c.closePath();
-            c.fill();
-            c.stroke();
           }
         }
         c.strokeStyle = pal.dk;
@@ -4894,6 +4932,28 @@
         c.lineWidth = 1.5;
         c.strokeStyle = "rgba(0,0,0,0.8)";
         c.stroke();
+
+        if (m.skin.catEars) {
+          c.strokeStyle = "rgba(255,255,255,0.7)";
+          c.lineWidth = 1.5;
+          c.beginPath();
+          for (let i = 0; i < 3; i++) {
+            const y = -28 + i * 4;
+            c.moveTo(fx - 6, y);
+            c.lineTo(fx - 16, y - 2 + i);
+            c.moveTo(fx + 6, y);
+            c.lineTo(fx + 16, y - 2 + i);
+          }
+          c.stroke();
+          c.fillStyle = "#FF69B4";
+          c.beginPath();
+          c.moveTo(fx, -24);
+          c.lineTo(fx - 2, -26);
+          c.lineTo(fx + 2, -26);
+          c.closePath();
+          c.fill();
+        }
+
         if (m.skin.crown) {
           c.fillStyle = m.skin.accent || "#FFD84A";
           c.strokeStyle = "#000";
@@ -6040,7 +6100,7 @@
           burst(t.x, t.y - t.r, "#FFF", 6, 120, 2, 0.3, true);
           sfx("impact");
           G.kills++;
-          if (t.boss) SAVE.stats.bossesKilled++; // Track boss kills for quests
+          if (t.boss) SAVE.stats.bossesKilled++;
           const owner = src && !src.isMonster ? src : null;
           if (owner) {
             owner.kills++;
@@ -6172,8 +6232,8 @@
         p.trail = o.trail || "";
         p.style = o.style || "orb";
         p.col = o.col || null;
-        if (!p.trailPts) p.trailPts = [];
-        p.trailPts.length = 0;
+        p.age = 0;
+        p.trailPts = [];
         p.trailPts.push({ x: p.x, y: p.y });
         return p;
       }
@@ -6204,8 +6264,9 @@
         for (const t of G.all) {
           if (!isFoe(m, t)) continue;
           const d = dist(m.x, m.y, t.x, t.y);
+          // Уменьшили радиус ближней атаки до 80, чтобы шар летел дальше
           if (
-            d < 110 + t.r &&
+            d < 80 + t.r &&
             Math.abs(angDiff(ang, Math.atan2(t.y - m.y, t.x - m.x))) < 1.25
           ) {
             melee = true;
@@ -6221,7 +6282,7 @@
             if (!isFoe(m, t)) continue;
             const d = dist(m.x, m.y, t.x, t.y),
               ta = Math.atan2(t.y - m.y, t.x - m.x);
-            if (d < 120 + t.r && Math.abs(angDiff(ang, ta)) < Math.PI / 2.6) {
+            if (d < 90 + t.r && Math.abs(angDiff(ang, ta)) < Math.PI / 2.6) {
               dealDamage(m, t, base, { type: "melee" });
               if (!t.dead) {
                 t.kvx += Math.cos(ta) * 15;
@@ -6291,7 +6352,7 @@
                 col: stCol,
                 r: 10,
               },
-            ); // r:10 for uniform size
+            );
           elemFx(ex, ey, m.elem, 8, 140);
         }
         G.events.push({ k: "atk", id: m.id, a: ang, e: m.elem });
@@ -6368,6 +6429,7 @@
         for (let i = 0; i < a.length; i++) {
           const p = a[i];
           if (!p.on) continue;
+          p.age += dt;
           if (p.home) {
             const tg = nearestFoe(p.own, p.x, p.y, 600);
             if (tg) {
@@ -6492,20 +6554,25 @@
             p.on = false;
             continue;
           }
-          let hit = false;
-          for (const rk of G.rocks) {
-            const ddx = rk.x - p.x,
-              ddy = rk.y - p.y;
-            if (ddx * ddx + ddy * ddy < rk.r * rk.r) {
-              hit = true;
-              break;
+
+          // Не проверяем коллизию с камнями в первые 0.1 секунды (исправление бага исчезновения шара)
+          if (p.age > 0.1) {
+            let hit = false;
+            for (const rk of G.rocks) {
+              const ddx = rk.x - p.x,
+                ddy = rk.y - p.y;
+              if (ddx * ddx + ddy * ddy < rk.r * rk.r) {
+                hit = true;
+                break;
+              }
+            }
+            if (hit) {
+              burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
+              p.on = false;
+              continue;
             }
           }
-          if (hit) {
-            burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
-            p.on = false;
-            continue;
-          }
+
           _pp = p;
           GRID.query(p.x, p.y, 60, projHitCb);
         }
@@ -6537,7 +6604,6 @@
         burst(m.x, m.y - 8, dashCol, 16, 180, 3.5, 0.5, true);
         burst(m.x, m.y - 8, "#FFFFFF", 6, 120, 2, 0.3, true);
 
-        // Add to ghosts trail based on selected fx
         for (let i = 1; i <= 4; i++) {
           G.ghosts.push({
             x: m.x - m.dashX * i * 15,
@@ -6635,7 +6701,7 @@
         emote(m, u.mega ? "mega" : "ult", u.mega ? 2 : 1.5);
         castFeel(m, u);
 
-        if (m === G.player) SAVE.stats.ultsUsed++; // Track ults for quests
+        if (m === G.player) SAVE.stats.ultsUsed++;
 
         G.events.push({
           k: "ult",
@@ -7340,7 +7406,7 @@
         m.runes.push(e);
         if (m.runes.length > 3) m.runes.shift();
         m.elem = e;
-        if (m === G.player) SAVE.stats.runesCollected++; // Track runes for quests
+        if (m === G.player) SAVE.stats.runesCollected++;
       }
       function addMulti(m) {
         m.multiStacks = Math.min(15, m.multiStacks + 1);
@@ -11780,6 +11846,7 @@
         drawMage(c, m, { noShadow: false });
         c.restore();
       }
+
       function drawStaffPreview(cv, staff) {
         const c = cv.getContext("2d");
         cv.width = 180;
@@ -11790,21 +11857,25 @@
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
-        const m = new Mage({
-          mantle: SKIN_BY_ID[SAVE.skin].mantle || "#4A2A8B",
-          skin: SAVE.skin,
-          staff: staff.id,
-        });
-        m.x = 0;
-        m.y = 0;
-        m.facing = 1;
-        m.resetVerlet();
-        m.ey.a = 0.95;
-        for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
+
+        // Создаем фейкового мага только для отрисовки посоха
+        const fakeMage = {
+          x: 0,
+          y: 0,
+          facing: 1,
+          swing: 0,
+          elem: 0,
+          aura: 0,
+          id: 0,
+          lev: 0,
+          staff: staff,
+          skin: { id: "" },
+        };
+
         c.save();
-        c.translate(90, 180);
-        c.scale(2.6, 2.6);
-        drawMage(c, m, { noShadow: false });
+        c.translate(70, 130);
+        c.scale(2.6, 2.6); // Увеличиваем посох для наглядности
+        drawStaff(c, fakeMage, 1);
         c.restore();
       }
 
@@ -11850,7 +11921,6 @@
           return { c, cv };
         };
 
-        // Helper to make icon buttons in shop
         const mkShopBtn = (icon, text, cb) => {
           const b = document.createElement("button");
           b.className = "btn small";
@@ -11861,6 +11931,7 @@
             const cv = document.createElement("canvas");
             cv.width = 20;
             cv.height = 20;
+            cv.className = "shop-btn-canvas";
             cv.getContext("2d").drawImage(IC[icon], 0, 0, 20, 20);
             b.appendChild(cv);
           }
@@ -12150,14 +12221,12 @@
             c.className = "card";
             c.style.height = "170px";
             c.style.justifyContent = "center";
-            c.innerHTML =
-              '<div style="font-size:30px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;"><span class="ico-cv" data-ico="' +
-              it.icon +
-              '"></span> ' +
-              it.n +
-              '</div><div style="opacity:.8">' +
-              it.sub +
-              "</div>";
+            c.innerHTML = `
+              <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
+                <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
+              </div>
+              <div style="opacity:.8;font-size:13px">${it.sub}</div>
+            `;
             const b = document.createElement("button");
             b.className = "btn small";
             b.style.display = "flex";
@@ -12167,6 +12236,7 @@
               const cv = document.createElement("canvas");
               cv.width = 16;
               cv.height = 16;
+              cv.className = "shop-btn-canvas";
               cv.getContext("2d").drawImage(IC[it.btn], 0, 0, 16, 16);
               b.appendChild(cv);
             }
@@ -12180,7 +12250,6 @@
             c.appendChild(b);
             grid.appendChild(c);
           }
-          // Replace placeholders with canvases
           setTimeout(() => {
             document.querySelectorAll(".ico-cv").forEach((el) => {
               const ico = el.dataset.ico;
@@ -13047,6 +13116,10 @@
           openSettings();
           return;
         }
+        // Установка выбранного сервера
+        const server = $("serverSelect").value || "0.peerjs.com";
+        CONFIG.PEERJS_HOST = server;
+
         netCleanup();
         const code = genCode();
         NET.code = code;
@@ -13292,6 +13365,10 @@
           sfx("error");
           return;
         }
+        // Установка выбранного сервера
+        const server = $("serverSelect").value || "0.peerjs.com";
+        CONFIG.PEERJS_HOST = server;
+
         netCleanup();
         NET.role = "client";
         NET.code = code;
