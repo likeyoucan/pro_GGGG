@@ -86,7 +86,6 @@
         padding: 14px 16px;
       }
 
-      /* Улучшенный заголовок */
       .title {
         font-family: Georgia, serif;
         font-weight: 900;
@@ -132,7 +131,6 @@
         -webkit-text-stroke: 1px #1a0500;
       }
 
-      /* Улучшенные кнопки */
       .btn {
         display: flex;
         align-items: center;
@@ -291,8 +289,8 @@
         font-size: 13px;
       }
       .card canvas {
-        width: 100px;
-        height: 120px;
+        width: 120px;
+        height: 140px;
         object-fit: contain;
       }
       .card .rar {
@@ -474,12 +472,33 @@
     </div>
 
     <div id="topbar" style="display: none">
-      <div class="panel cur">
-        <span>Золото: <b id="goldV">0</b></span>
-        <span>Кристаллы: <b id="gemsV">0</b></span>
-        <span
-          >Энергия: <b id="enV">5</b>/5
-          <small id="enT" style="opacity: 0.7"></small
+      <div class="panel cur" style="gap: 16px">
+        <span style="display: flex; align-items: center; gap: 4px"
+          ><canvas
+            id="icoGold"
+            width="24"
+            height="24"
+            style="width: 18px; height: 18px"
+          ></canvas>
+          <b id="goldV">0</b></span
+        >
+        <span style="display: flex; align-items: center; gap: 4px"
+          ><canvas
+            id="icoGem"
+            width="24"
+            height="24"
+            style="width: 18px; height: 18px"
+          ></canvas>
+          <b id="gemsV">0</b></span
+        >
+        <span style="display: flex; align-items: center; gap: 4px"
+          ><canvas
+            id="icoEnergy"
+            width="24"
+            height="24"
+            style="width: 18px; height: 18px"
+          ></canvas>
+          <b id="enV">5</b>/5 <small id="enT" style="opacity: 0.7"></small
         ></span>
       </div>
       <select
@@ -491,6 +510,10 @@
           padding: 5px 10px;
           font-size: 14px;
           outline: none;
+          -webkit-appearance: none;
+          appearance: none;
+          text-align: center;
+          cursor: pointer;
         "
       >
         <option value="ru" style="color: #000">РУССКИЙ</option>
@@ -900,18 +923,28 @@
         class="panel"
         style="text-align: center; padding: 20px; min-width: min(300px, 86vw)"
       >
-        <div style="font-size: 64px; margin-bottom: 6px" id="dailyIcon">🎁</div>
+        <div
+          style="
+            font-size: 64px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: center;
+          "
+          id="dailyIcon"
+        ></div>
         <div
           style="
             font-size: 22px;
             font-weight: 900;
             color: #ffd84a;
             margin: 6px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
           "
           id="dailyAmt"
-        >
-          +50 Золота
-        </div>
+        ></div>
         <div style="opacity: 0.75; font-size: 14px" id="dailyDay">День 1/7</div>
         <div
           class="row"
@@ -991,7 +1024,7 @@
       const CONFIG = {
         STUDIO_NAME: "ARCANE STUDIO",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "22.0.0",
+        GAME_VERSION: "22.1.0",
         DEFAULT_LANGUAGE: "ru",
         PEERJS_HOST: "0.peerjs.com",
         PEERJS_PORT: 443,
@@ -1322,6 +1355,17 @@
           $("enT").textContent =
             Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
         } else $("enT").textContent = "";
+        if (IC.coin) {
+          const ctx = $("icoGold").getContext("2d");
+          ctx.clearRect(0, 0, 24, 24);
+          ctx.drawImage(IC.coin, 0, 0, 24, 24);
+          const ctx2 = $("icoGem").getContext("2d");
+          ctx2.clearRect(0, 0, 24, 24);
+          ctx2.drawImage(IC.gemIcon, 0, 0, 24, 24);
+          const ctx3 = $("icoEnergy").getContext("2d");
+          ctx3.clearRect(0, 0, 24, 24);
+          ctx3.drawImage(IC.energy, 0, 0, 24, 24);
+        }
       }
 
       async function loadScript(url, to = 4000) {
@@ -3557,6 +3601,7 @@
         }
         return p;
       }
+
       function hoodPath(c) {
         c.beginPath();
         c.moveTo(-14, -14);
@@ -3565,6 +3610,15 @@
         c.bezierCurveTo(17, -47, 16, -41, 13, -39);
         c.bezierCurveTo(16, -30, 19, -20, 15, -14);
         c.quadraticCurveTo(0, -10, -14, -14);
+        c.closePath();
+      }
+      function sharkHoodPath(c) {
+        c.beginPath();
+        c.moveTo(-14, -14);
+        c.lineTo(-22, -35); // snout
+        c.quadraticCurveTo(-10, -58, 10, -48);
+        c.lineTo(16, -22);
+        c.quadraticCurveTo(10, -12, 0, -10);
         c.closePath();
       }
 
@@ -3878,15 +3932,15 @@
             } else if (m.skin.sharkSkin) {
               c.beginPath();
               c.moveTo(-4.5, 2.5);
-              c.lineTo(6.5, -3);
-              c.quadraticCurveTo(0.5, 1, -4.5, 2.5);
+              c.lineTo(7.5, -3.5);
+              c.quadraticCurveTo(0.5, 1.0, -4.5, 2.5);
               c.closePath();
               c.fillStyle = "rgba(" + col + "," + a + ")";
               c.fill();
               c.beginPath();
-              c.moveTo(-3, 1.8);
-              c.lineTo(5.2, -2.4);
-              c.quadraticCurveTo(0.5, 1.2, -3, 1.8);
+              c.moveTo(-3.0, 1.8);
+              c.lineTo(6.2, -2.9);
+              c.quadraticCurveTo(0.5, 1.2, -3.0, 1.8);
               c.closePath();
               c.fillStyle = "rgba(255,255,255," + a + ")";
               c.fill();
@@ -4653,6 +4707,8 @@
         c.fill();
         if (m.skin.id !== "base" && m.skin.gem)
           drawGem(c, m.skin.gem, 0, -13.2);
+
+        // Fixed Hand 1 (Left)
         c.lineCap = "round";
         c.strokeStyle = "#000";
         c.lineWidth = 6.5;
@@ -4674,9 +4730,11 @@
         c.beginPath();
         c.arc(-f * 10, -8.8, 1, 0, TAU);
         c.fill();
+
         c.save();
         c.scale(-f, 1);
-        hoodPath(c);
+        if (m.skin.sharkSkin) sharkHoodPath(c);
+        else hoodPath(c);
         const hg = c.createLinearGradient(-14, -48, 14, -14);
         hg.addColorStop(0, pal.hi);
         hg.addColorStop(0.45, pal.base);
@@ -4692,11 +4750,11 @@
           c.strokeStyle = "#000";
           c.lineWidth = 1;
           for (let i = 0; i < 6; i++) {
-            const x = -10 + i * 3.5;
+            const x = -12 + i * 4;
             c.beginPath();
-            c.moveTo(x, -15);
-            c.lineTo(x + 1.5, -11);
-            c.lineTo(x + 3, -15);
+            c.moveTo(x, -14);
+            c.lineTo(x + 1.5, -10);
+            c.lineTo(x + 3, -14);
             c.closePath();
             c.fill();
             c.stroke();
@@ -4723,17 +4781,17 @@
           for (const s of [-1, 1]) {
             const bx = s * 7;
             c.beginPath();
-            c.moveTo(bx - 6, -44);
-            c.quadraticCurveTo(bx - 3, -52, bx, -58);
-            c.quadraticCurveTo(bx + 3, -52, bx + 6, -44);
+            c.moveTo(bx - 5, -45);
+            c.quadraticCurveTo(bx - 6, -55, bx, -58);
+            c.quadraticCurveTo(bx + 6, -55, bx + 5, -45);
             c.closePath();
             c.fill();
             c.stroke();
             c.fillStyle = "#FF69B4";
             c.beginPath();
-            c.moveTo(bx - 3.5, -45);
-            c.quadraticCurveTo(bx - 1.5, -51, bx, -54);
-            c.quadraticCurveTo(bx + 1.5, -51, bx + 3.5, -45);
+            c.moveTo(bx - 2.5, -46);
+            c.quadraticCurveTo(bx - 3, -52, bx, -54);
+            c.quadraticCurveTo(bx + 3, -52, bx + 2.5, -46);
             c.closePath();
             c.fill();
             c.strokeStyle = "#FF69B4";
@@ -4795,6 +4853,8 @@
         }
         drawEyes(c, m, fx, -26);
         drawStaff(c, m, f);
+
+        // Fixed Hand 2 (Right, holding staff)
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
@@ -4811,6 +4871,7 @@
         c.lineWidth = 4;
         c.stroke();
         c.restore();
+
         c.fillStyle = "#1A1520";
         c.strokeStyle = "#000";
         c.lineWidth = 1.8;
@@ -4822,6 +4883,7 @@
         c.beginPath();
         c.arc(f * 14, -15.2, 1.2, 0, TAU);
         c.fill();
+
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
           c.fillStyle = "#5080FF";
@@ -6041,7 +6103,7 @@
         p.y = y;
         p.vx = Math.cos(ang) * sp;
         p.vy = Math.sin(ang) * sp;
-        p.r = o.r || 7;
+        p.r = o.r || 9;
         p.e = e;
         p.own = own;
         p.dmg = dmg;
@@ -6415,6 +6477,16 @@
         const dashCol = m.skin.accent || m.mantle;
         burst(m.x, m.y - 8, dashCol, 16, 180, 3.5, 0.5, true);
         burst(m.x, m.y - 8, "#FFFFFF", 6, 120, 2, 0.3, true);
+        for (let i = 1; i <= 3; i++) {
+          G.ghosts.push({
+            x: m.x - m.dashX * i * 12,
+            y: m.y - m.dashY * i * 12,
+            facing: m.facing,
+            col: dashCol,
+            life: 0.3,
+            max: 0.3,
+          });
+        }
         G.events.push({ k: "dash", id: m.id, a: ang });
         if (m === G.player) {
           vib(20);
@@ -7929,6 +8001,10 @@
             arr[i].t -= dt;
             if (arr[i].t <= 0) arr.splice(i, 1);
           }
+        for (let i = G.ghosts.length - 1; i >= 0; i--) {
+          G.ghosts[i].life -= dt;
+          if (G.ghosts[i].life <= 0) G.ghosts.splice(i, 1);
+        }
         for (let i = G.debris.length - 1; i >= 0; i--) {
           const d = G.debris[i];
           d.t += dt;
@@ -8213,7 +8289,7 @@
           attack: { x: W - 120 * u, y: H - 110 * u, r: 45 * u },
           ult: { x: W - 62 * u, y: H - 218 * u, r: 42 * u },
           dash: { x: W - 222 * u, y: H - 62 * u, r: 33 * u },
-          pause: { x: W - 24 * u, y: 22 * u, r: 15 * u },
+          pause: { x: W - 30 * u, y: 30 * u, r: 22 * u },
         };
       }
       function resetAllInputs() {
@@ -8650,6 +8726,75 @@
         c.width = c.height = s;
         return c;
       }
+
+      function drawCoin(c) {
+        c.fillStyle = "#FFD700";
+        c.strokeStyle = "#B8860B";
+        c.lineWidth = 2;
+        c.beginPath();
+        c.arc(12, 12, 10, 0, TAU);
+        c.fill();
+        c.stroke();
+        c.fillStyle = "#FFF6A0";
+        c.beginPath();
+        c.arc(12, 12, 6, 0, TAU);
+        c.fill();
+      }
+      function drawGemIcon(c) {
+        c.fillStyle = "#00FFFF";
+        c.strokeStyle = "#0080FF";
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(12, 2);
+        c.lineTo(22, 10);
+        c.lineTo(12, 22);
+        c.lineTo(2, 10);
+        c.closePath();
+        c.fill();
+        c.stroke();
+        c.fillStyle = "#FFFFFF";
+        c.beginPath();
+        c.moveTo(12, 4);
+        c.lineTo(16, 10);
+        c.lineTo(12, 14);
+        c.lineTo(8, 10);
+        c.closePath();
+        c.fill();
+      }
+      function drawEnergyIcon(c) {
+        c.fillStyle = "#FFD700";
+        c.strokeStyle = "#B8860B";
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(14, 2);
+        c.lineTo(6, 12);
+        c.lineTo(12, 12);
+        c.lineTo(10, 22);
+        c.lineTo(18, 12);
+        c.lineTo(12, 12);
+        c.closePath();
+        c.fill();
+        c.stroke();
+      }
+      function drawDailyIcon(c) {
+        c.fillStyle = "#FF4500";
+        c.strokeStyle = "#B8860B";
+        c.lineWidth = 2;
+        c.fillRect(4, 12, 16, 10);
+        c.strokeRect(4, 12, 16, 10);
+        c.fillRect(10, 6, 4, 6);
+        c.fillRect(2, 6, 20, 6);
+        c.strokeRect(2, 6, 20, 6);
+        c.beginPath();
+        c.moveTo(12, 6);
+        c.lineTo(6, 2);
+        c.moveTo(12, 6);
+        c.lineTo(18, 2);
+        c.strokeStyle = "#FFFF00";
+        c.lineWidth = 3;
+        c.stroke();
+      }
+
       function glyph(c, e, x, y, s) {
         c.save();
         c.translate(x, y);
@@ -9229,8 +9374,25 @@
             IC.dash = cv;
           } else {
             c.fillStyle = "#fff";
-            c.fillRect(-8, -12, 6, 24);
-            c.fillRect(2, -12, 6, 24);
+            c.strokeStyle = "#000";
+            c.lineWidth = 3;
+            c.lineJoin = "round";
+            c.beginPath();
+            c.moveTo(-10, -12);
+            c.quadraticCurveTo(-10, -15, -5, -15);
+            c.lineTo(-5, 15);
+            c.quadraticCurveTo(-10, 15, -10, 12);
+            c.closePath();
+            c.fill();
+            c.stroke();
+            c.beginPath();
+            c.moveTo(10, -12);
+            c.quadraticCurveTo(10, -15, 5, -15);
+            c.lineTo(5, 15);
+            c.quadraticCurveTo(10, 15, 10, 12);
+            c.closePath();
+            c.fill();
+            c.stroke();
             IC.ico_pause = cv;
           }
           if (++i % 6 === 0) {
@@ -9238,6 +9400,14 @@
             await new Promise((r) => setTimeout(r, 0));
           }
         }
+        IC.coin = mkc(24);
+        drawCoin(IC.coin.getContext("2d"));
+        IC.gemIcon = mkc(24);
+        drawGemIcon(IC.gemIcon.getContext("2d"));
+        IC.energy = mkc(24);
+        drawEnergyIcon(IC.energy.getContext("2d"));
+        IC.daily = mkc(64);
+        drawDailyIcon(IC.daily.getContext("2d"));
       }
 
       /* START/END */
@@ -9328,6 +9498,7 @@
           fall: [],
           gfx: [],
           debris: [],
+          ghosts: [],
           pickups: [],
           headIcons: [],
           notice: null,
@@ -9787,7 +9958,7 @@
 
       function drawProjShape(c, p, col) {
         const style = p.style || "orb",
-          r = p.r || 7;
+          r = p.r || 9;
         if (style === "heart") {
           c.fillStyle = "rgba(255,154,200,.35)";
           c.beginPath();
@@ -10259,12 +10430,18 @@
           if (inV(p.x, p.y, 40)) DR.push({ y: p.y, o: p, t: 2 });
         for (const r of G.rocks)
           if (inV(r.x, r.y, 90)) DR.push({ y: r.y + r.r * 0.3, o: r, t: 3 });
+        for (const gh of G.ghosts) DR.push({ y: gh.y, o: gh, t: 4 });
         DR.sort((a, b) => a.y - b.y);
         for (const d of DR) {
           if (d.t === 0) drawMage(ctx, d.o);
           else if (d.t === 1) drawMonster(ctx, d.o);
           else if (d.t === 2) drawPickup(ctx, d.o);
-          else drawRock(ctx, d.o, th);
+          else if (d.t === 3) drawRock(ctx, d.o, th);
+          else if (d.t === 4) {
+            ctx.globalAlpha = d.o.life / d.o.max;
+            drawGhostMage(ctx, d.o.x, d.o.y, d.o.facing, d.o.col, 0.5);
+            ctx.globalAlpha = 1;
+          }
         }
         drawDebris(ctx);
         for (const z of G.zones) if (z.style === "tornado") drawZone(ctx, z);
@@ -11444,11 +11621,10 @@
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
-        const skinStaff = SKIN_STAFF[skin.id] || "wood";
         const m = new Mage({
           mantle: skin.mantle || "#4A2A8B",
           skin: skin.id,
-          staff: skinStaff,
+          staff: SAVE.staff,
         });
         m.x = 0;
         m.y = 0;
@@ -11457,8 +11633,8 @@
         m.ey.a = 0.95;
         for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
         c.save();
-        c.translate(86, 165);
-        c.scale(3.2, 3.2);
+        c.translate(90, 180);
+        c.scale(2.6, 2.6);
         drawMage(c, m, { noShadow: false });
         c.restore();
       }
@@ -11473,7 +11649,7 @@
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
         const m = new Mage({
-          mantle: "#4A2A8B",
+          mantle: SKIN_BY_ID[SAVE.skin].mantle || "#4A2A8B",
           skin: SAVE.skin,
           staff: staff.id,
         });
@@ -11484,8 +11660,8 @@
         m.ey.a = 0.95;
         for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
         c.save();
-        c.translate(86, 165);
-        c.scale(3.2, 3.2);
+        c.translate(90, 180);
+        c.scale(2.6, 2.6);
         drawMage(c, m, { noShadow: false });
         c.restore();
       }
@@ -11538,13 +11714,27 @@
           const mk = (txt, cb, off) => {
             const b = document.createElement("button");
             b.className = "btn small" + (off ? " off" : "");
-            b.textContent = txt;
+            b.innerHTML = txt;
             b.onclick = () => {
               sfx("click");
               cb();
             };
             box.appendChild(b);
           };
+
+          const coinCanvas = document.createElement("canvas");
+          coinCanvas.width = 16;
+          coinCanvas.height = 16;
+          coinCanvas.style.verticalAlign = "middle";
+          if (IC.coin)
+            coinCanvas.getContext("2d").drawImage(IC.coin, 0, 0, 16, 16);
+          const gemCanvas = document.createElement("canvas");
+          gemCanvas.width = 16;
+          gemCanvas.height = 16;
+          gemCanvas.style.verticalAlign = "middle";
+          if (IC.gemIcon)
+            gemCanvas.getContext("2d").drawImage(IC.gemIcon, 0, 0, 16, 16);
+
           if (ownedCheck)
             mk(equipped ? "✓ " + t("equipped") : t("equip"), onEquip, equipped);
           else {
@@ -11561,8 +11751,28 @@
               persist();
               buildShop();
             };
-            if (gold) mk("🪙 " + gold, () => buy("gold"));
-            if (gems) mk("💎 " + gems, () => buy("gems"));
+            if (gold) {
+              const b = document.createElement("button");
+              b.className = "btn small";
+              b.appendChild(coinCanvas.cloneNode(true));
+              b.appendChild(document.createTextNode(" " + gold));
+              b.onclick = () => {
+                sfx("click");
+                buy("gold");
+              };
+              box.appendChild(b);
+            }
+            if (gems) {
+              const b = document.createElement("button");
+              b.className = "btn small";
+              b.appendChild(gemCanvas.cloneNode(true));
+              b.appendChild(document.createTextNode(" " + gems));
+              b.onclick = () => {
+                sfx("click");
+                buy("gems");
+              };
+              box.appendChild(b);
+            }
           }
           return box;
         };
@@ -11676,7 +11886,7 @@
             {
               n: "+3 ⚡",
               sub: t("energyPack"),
-              btn: "🪙 100",
+              btn: "100",
               f: () => {
                 if (!SAVE.devMode) {
                   if (SAVE.gold < 100) return toast(t("notEnough"));
@@ -11691,7 +11901,7 @@
             {
               n: "+5 ⚡",
               sub: t("energyPack"),
-              btn: "🪙 150",
+              btn: "150",
               f: () => {
                 if (!SAVE.devMode) {
                   if (SAVE.gold < 150) return toast(t("notEnough"));
@@ -11704,7 +11914,7 @@
               },
             },
             {
-              n: "📺 +3 ⚡",
+              n: "+3 ⚡",
               sub: t("adEnergy"),
               btn: "FREE",
               f: () =>
@@ -11716,7 +11926,7 @@
                 }),
             },
             {
-              n: "📺 +50 🪙",
+              n: "+50",
               sub: "Реклама",
               btn: "FREE",
               f: () =>
@@ -11725,13 +11935,13 @@
                   sfx("purchase");
                   persist();
                   buildShop();
-                  toast("+50 🪙");
+                  toast("+50");
                 }),
             },
             {
               n: "👑 VIP",
               sub: t("vipDesc"),
-              btn: SAVE.vip ? "✓" : "🪙 1000",
+              btn: SAVE.vip ? "✓" : "1000",
               f: () => {
                 if (SAVE.vip) return;
                 if (!SAVE.devMode) {
@@ -11745,37 +11955,37 @@
               },
             },
             {
-              n: "🪙 500",
+              n: "500",
               sub: "49 ₽",
               btn: "КУПИТЬ",
               f: () => buyProduct("gold_500"),
             },
             {
-              n: "🪙 1500",
+              n: "1500",
               sub: "129 ₽",
               btn: "КУПИТЬ",
               f: () => buyProduct("gold_1500"),
             },
             {
-              n: "🪙 5000",
+              n: "5000",
               sub: "349 ₽",
               btn: "КУПИТЬ",
               f: () => buyProduct("gold_5000"),
             },
             {
-              n: "💎 100",
+              n: "100",
               sub: "49 ₽",
               btn: "КУПИТЬ",
               f: () => buyProduct("gems_100"),
             },
             {
-              n: "💎 500",
+              n: "500",
               sub: "199 ₽",
               btn: "КУПИТЬ",
               f: () => buyProduct("gems_500"),
             },
             {
-              n: "💎 1500",
+              n: "1500",
               sub: "499 ₽",
               btn: "КУПИТЬ",
               f: () => buyProduct("gems_1500"),
@@ -11787,7 +11997,7 @@
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML =
-              '<div style="font-size:30px;font-weight:900">' +
+              '<div style="font-size:30px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">' +
               it.n +
               '</div><div style="opacity:.8">' +
               it.sub +
@@ -12249,7 +12459,7 @@
         persist();
         buildQuests();
         updateTopbar();
-        toast("+" + q.reward + " 🪙");
+        toast("+" + q.reward);
       }
       window.claimQuest = claimQuest;
       function updateQuestsBadge() {
@@ -12297,7 +12507,7 @@
               : prog
                 ? "#50FF70"
                 : "#ccc";
-          h += `<div style="display:flex;gap:10px;align-items:center;padding:10px;margin:6px 0;background:${isClaimed ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.06)"};border-radius:10px;border-left:3px solid ${col};${isClaimed ? "opacity:.6" : ""}"><div style="flex:1"><b style="color:${col};font-size:14px">${q[lang]}</b><div style="opacity:.8;font-size:12px;margin-top:2px">${lang === "ru" ? q.desc_ru : q.desc_en}</div></div><div style="text-align:right;min-width:80px"><div style="color:#FFD84A;font-weight:800">+${q.reward} 🪙</div>${isClaimed ? `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("claimed")}</div>` : isReady ? `<button class="btn small" style="margin-top:4px;min-height:28px;padding:4px 10px;font-size:12px" onclick="claimQuest('${q.id}')">${t("claim")}</button>` : `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("progress")}</div>`}</div></div>`;
+          h += `<div style="display:flex;gap:10px;align-items:center;padding:10px;margin:6px 0;background:${isClaimed ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.06)"};border-radius:10px;border-left:3px solid ${col};${isClaimed ? "opacity:.6" : ""}"><div style="flex:1"><b style="color:${col};font-size:14px">${q[lang]}</b><div style="opacity:.8;font-size:12px;margin-top:2px">${lang === "ru" ? q.desc_ru : q.desc_en}</div></div><div style="text-align:right;min-width:80px"><div style="color:#FFD84A;font-weight:800">+${q.reward}</div>${isClaimed ? `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("claimed")}</div>` : isReady ? `<button class="btn small" style="margin-top:4px;min-height:28px;padding:4px 10px;font-size:12px" onclick="claimQuest('${q.id}')">${t("claim")}</button>` : `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("progress")}</div>`}</div></div>`;
         }
         b.innerHTML = h;
       }
@@ -12318,9 +12528,17 @@
         if (!dailyReady()) return false;
         const day = (SAVE.dailyDay || 0) % 7,
           amt = DAILY_REWARDS[day];
-        $("dailyAmt").textContent = "+" + amt + " Золота";
+        $("dailyAmt").innerHTML = "+" + amt;
         $("dailyDay").textContent = t("day") + " " + (day + 1) + "/7";
-        $("dailyIcon").textContent = day >= 5 ? "💎" : day >= 3 ? "🎁" : "🪙";
+        $("dailyIcon").innerHTML = "";
+        if (IC.daily) {
+          const cv = document.createElement("canvas");
+          cv.width = 64;
+          cv.height = 64;
+          cv.getContext("2d").drawImage(IC.daily, 0, 0);
+          $("dailyIcon").appendChild(cv);
+        } else $("dailyIcon").textContent = "🎁";
+
         let ph = "";
         for (let i = 0; i < 7; i++) {
           const claimed = i < day,
@@ -12349,7 +12567,7 @@
         tone(880, 0.12, "triangle", 0.18, 1);
         tone(1320, 0.18, "triangle", 0.18, 1, 0.08);
         tone(1760, 0.3, "triangle", 0.18, 1, 0.16);
-        toast("+" + amt + " Золота");
+        toast("+" + amt);
         vib(40);
         state = "MENU";
         showScreen("sc-menu");
@@ -13175,6 +13393,16 @@
               sfx("dash");
               const dashCol = m.skin.accent || m.mantle;
               burst(m.x, m.y - 8, dashCol, 12, 160, 3, 0.4, true);
+              for (let i = 1; i <= 3; i++) {
+                G.ghosts.push({
+                  x: m.x - m.dashX * i * 12,
+                  y: m.y - m.dashY * i * 12,
+                  facing: m.facing,
+                  col: dashCol,
+                  life: 0.3,
+                  max: 0.3,
+                });
+              }
             }
             break;
           case "kill":
