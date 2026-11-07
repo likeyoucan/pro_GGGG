@@ -40,7 +40,8 @@
         outline: none;
         background: #000;
       }
-      input,
+      input[type="text"],
+      input[type="number"],
       select {
         -webkit-user-select: text;
         user-select: text;
@@ -346,6 +347,8 @@
           0 0 22px rgba(255, 170, 0, 0.7);
         text-align: center;
       }
+
+      /* Стилизация инпутов и селектов */
       .inp {
         background: rgba(0, 0, 0, 0.5);
         border: 2px solid #daa520;
@@ -358,11 +361,55 @@
         letter-spacing: 3px;
         width: min(280px, 82vw);
         outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      select.inp {
+        background-image: url('data:image/svg+xml;utf8,<svg fill="%23daa520" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 35px;
+        text-align: left;
+        cursor: pointer;
+      }
+      select.inp option {
+        background: #1a0a24;
+        color: #fff;
       }
       .inp.err {
         border-color: #ff3030;
         box-shadow: 0 0 12px rgba(255, 48, 48, 0.6);
       }
+
+      /* Кастомный чекбокс */
+      input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 28px;
+        height: 28px;
+        border: 2px solid #daa520;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.5);
+        position: relative;
+        cursor: pointer;
+        outline: none;
+        transition: all 0.2s;
+        flex-shrink: 0;
+      }
+      input[type="checkbox"]:checked {
+        background: #daa520;
+      }
+      input[type="checkbox"]:checked::after {
+        content: "✔";
+        position: absolute;
+        color: #1a0500;
+        font-size: 18px;
+        font-weight: 900;
+        left: 50%;
+        top: 48%;
+        transform: translate(-50%, -50%);
+      }
+
       .plist {
         display: flex;
         flex-direction: column;
@@ -720,10 +767,10 @@
           ><select
             id="qLang"
             class="inp"
-            style="font-size: 15px; width: 140px; letter-spacing: 0"
+            style="font-size: 15px; width: 150px; letter-spacing: 0"
           >
-            <option value="ru" style="color: #000">РУССКИЙ</option>
-            <option value="en" style="color: #000">ENGLISH</option>
+            <option value="ru" style="color: #fff">РУССКИЙ</option>
+            <option value="en" style="color: #fff">ENGLISH</option>
           </select>
         </div>
         <div class="srow">
@@ -747,11 +794,11 @@
           ><select
             id="qIn"
             class="inp"
-            style="font-size: 16px; width: 150px; letter-spacing: 0"
+            style="font-size: 16px; width: 170px; letter-spacing: 0"
           >
-            <option value="auto">Auto</option>
-            <option value="high">High</option>
-            <option value="low">Low</option>
+            <option value="auto">Авто</option>
+            <option value="high">Высокое</option>
+            <option value="low">Низкое</option>
           </select>
         </div>
         <button class="btn small" data-act="fs">
@@ -1053,7 +1100,7 @@
       const CONFIG = {
         STUDIO_NAME: "ARCANE STUDIO",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "23.0.0",
+        GAME_VERSION: "23.1.0",
         DEFAULT_LANGUAGE: "ru",
         PEERJS_HOST: "0.peerjs.com",
         PEERJS_PORT: 443,
@@ -2984,7 +3031,7 @@
         y: 0,
         vx: 0,
         vy: 0,
-        r: 10,
+        r: 14,
         e: 0,
         own: null,
         dmg: 15,
@@ -3653,10 +3700,10 @@
       function sharkHoodPath(c) {
         c.beginPath();
         c.moveTo(-14, -14);
-        c.quadraticCurveTo(-28, -30, -20, -48); // snout
-        c.quadraticCurveTo(-5, -60, 12, -50); // top
-        c.quadraticCurveTo(18, -40, 15, -22); // back
-        c.quadraticCurveTo(10, -12, 0, -10); // neck
+        c.quadraticCurveTo(-30, -32, -22, -50); // Pointy nose
+        c.quadraticCurveTo(-10, -58, 10, -52); // Top curve
+        c.quadraticCurveTo(18, -40, 15, -22); // Back
+        c.quadraticCurveTo(10, -12, 0, -10); // Neck
         c.closePath();
       }
 
@@ -4186,15 +4233,18 @@
         c.strokeStyle = "#FF69B4";
         c.lineWidth = 1.5;
         c.stroke();
-        const tipX = f * 16 - f * 8,
-          tipY = topY - 6,
+
+        // Elongated triangular fin
+        const tipX = f * 16 - f * 12,
+          tipY = topY - 16,
           baseY = topY + 16,
           baseX = f * 16;
+
         c.beginPath();
         c.moveTo(baseX, baseY);
-        c.lineTo(baseX - f * 32, baseY - 6);
-        c.quadraticCurveTo(baseX - f * 28, topY - 12, tipX, tipY);
-        c.quadraticCurveTo(baseX - f * 4, topY - 2, baseX, topY + 2);
+        c.lineTo(baseX - f * 18, baseY - 4);
+        c.quadraticCurveTo(baseX - f * 12, topY - 6, tipX, tipY);
+        c.quadraticCurveTo(baseX - f * 4, topY + 2, baseX, topY + 4);
         c.closePath();
         const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
         fg.addColorStop(0, "#FFC8E0");
@@ -4205,14 +4255,14 @@
         c.strokeStyle = "#000";
         c.lineWidth = 2.5;
         c.stroke();
+
         c.strokeStyle = "rgba(255,105,180,.8)";
         c.lineWidth = 1.2;
         c.beginPath();
         c.moveTo(baseX - f * 2, baseY - 2);
         c.lineTo(tipX + f * 2, tipY + 3);
-        c.moveTo(baseX - f * 4, baseY - 4);
-        c.lineTo(tipX - f * 2, tipY + 5);
         c.stroke();
+
         const ox = tipX,
           oy = tipY,
           pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
@@ -4226,10 +4276,6 @@
         c.arc(ox, oy, 18, 0, TAU);
         c.fill();
         c.globalCompositeOperation = "source-over";
-        c.fillStyle = "#FFFFFF";
-        c.beginPath();
-        c.arc(ox, oy, 4, 0, TAU);
-        c.fill();
         c.restore();
       }
 
@@ -4538,28 +4584,24 @@
         c.arc(ox, oy, 20, 0, TAU);
         c.fill();
         c.globalCompositeOperation = "source-over";
+
+        // Heart shape
         c.fillStyle = "#FF69B4";
         c.strokeStyle = "#000";
-        c.lineWidth = 1;
+        c.lineWidth = 1.5;
         c.beginPath();
-        c.ellipse(ox, oy + 1, 3, 4, 0, 0, TAU);
+        c.moveTo(ox, oy + 4);
+        c.bezierCurveTo(ox - 7, oy - 2, ox - 5, oy - 9, ox, oy - 4);
+        c.bezierCurveTo(ox + 5, oy - 9, ox + 7, oy - 2, ox, oy + 4);
         c.fill();
         c.stroke();
-        for (let i = 0; i < 3; i++) {
-          const a = -Math.PI / 2 + (i - 1) * 0.5;
-          c.beginPath();
-          c.ellipse(
-            ox + Math.cos(a) * 3.5,
-            oy - 2 + Math.sin(a) * 2.5,
-            1.3,
-            1.7,
-            a,
-            0,
-            TAU,
-          );
-          c.fill();
-          c.stroke();
-        }
+
+        // Highlight
+        c.fillStyle = "rgba(255,255,255,0.6)";
+        c.beginPath();
+        c.ellipse(ox - 2, oy - 2, 1.5, 1.5, -0.5, 0, TAU);
+        c.fill();
+
         c.restore();
       }
 
@@ -4827,54 +4869,45 @@
         c.lineJoin = "round";
         c.strokeStyle = "#000";
         c.stroke();
+
         if (m.skin.sharkSkin) {
           // Shark Mouth
           c.fillStyle = "#050208";
           c.beginPath();
-          c.ellipse(0, -26, 11.5, 10.5, 0, 0, TAU);
+          c.ellipse(-2, -28, 13, 11, -0.2, 0, TAU);
           c.fill();
-          // Teeth
+
+          // Teeth (Bigger, contouring the hood)
           c.fillStyle = "#FFFFFF";
           c.strokeStyle = "#000";
-          c.lineWidth = 1;
+          c.lineWidth = 1.2;
+
+          // Top teeth
           for (let i = 0; i < 6; i++) {
-            const ang = -Math.PI * 0.8 + (i / 5) * Math.PI * 0.6;
-            const tx = Math.cos(ang) * 11,
-              ty = -26 + Math.sin(ang) * 10;
+            const ang = -Math.PI * 0.85 + (i / 5) * Math.PI * 0.7;
+            const tx = -2 + Math.cos(ang) * 13,
+              ty = -28 + Math.sin(ang) * 11;
             c.beginPath();
             c.moveTo(tx, ty);
-            c.lineTo(tx + 1.5, ty + 3);
-            c.lineTo(tx + 3, ty);
+            c.lineTo(tx + 2.5, ty + 4);
+            c.lineTo(tx + 4, ty);
             c.closePath();
             c.fill();
             c.stroke();
           }
+          // Bottom teeth
           for (let i = 0; i < 6; i++) {
-            const ang = -Math.PI * 0.2 - (i / 5) * Math.PI * 0.6;
-            const tx = Math.cos(ang) * 11,
-              ty = -26 + Math.sin(ang) * 10;
+            const ang = -Math.PI * 0.15 - (i / 5) * Math.PI * 0.7;
+            const tx = -2 + Math.cos(ang) * 13,
+              ty = -28 + Math.sin(ang) * 11;
             c.beginPath();
             c.moveTo(tx, ty);
-            c.lineTo(tx - 1.5, ty - 3);
-            c.lineTo(tx - 3, ty);
+            c.lineTo(tx - 2.5, ty - 4);
+            c.lineTo(tx - 4, ty);
             c.closePath();
             c.fill();
             c.stroke();
           }
-          // Fin
-          c.fillStyle = "#FF69B4";
-          c.strokeStyle = "#000";
-          c.lineWidth = 1.8;
-          c.lineJoin = "round";
-          c.beginPath();
-          c.moveTo(-4, -48);
-          c.lineTo(-7, -64);
-          c.lineTo(0, -51);
-          c.lineTo(3, -64);
-          c.lineTo(5, -47);
-          c.closePath();
-          c.fill();
-          c.stroke();
         }
         if (m.skin.catEars) {
           c.fillStyle = pal.hi;
@@ -4924,6 +4957,8 @@
         c.bezierCurveTo(-13.5, -33, -10, -39, -5.5, -42);
         c.stroke();
         c.globalAlpha = alpha;
+
+        // Eyes
         const fx = f * 1.2;
         c.fillStyle = "#050208";
         c.beginPath();
@@ -6221,7 +6256,7 @@
         p.y = y;
         p.vx = Math.cos(ang) * sp;
         p.vy = Math.sin(ang) * sp;
-        p.r = o.r || 10;
+        p.r = o.r || 14;
         p.e = e;
         p.own = own;
         p.dmg = dmg;
@@ -6259,12 +6294,16 @@
         if (m.fx.blind > 0) ang += rnd(-0.5, 0.5);
         m.facing = Math.cos(ang) >= 0 ? 1 : -1;
         emote(m, "cast", 0.3);
-        const base = (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1);
+
+        // Damage scaling with multiStacks (15% per extra stack)
+        const dmgMult = 1 + (m.multiStacks - 1) * 0.15;
+        const base =
+          (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
+
         let melee = false;
         for (const t of G.all) {
           if (!isFoe(m, t)) continue;
           const d = dist(m.x, m.y, t.x, t.y);
-          // Уменьшили радиус ближней атаки до 80, чтобы шар летел дальше
           if (
             d < 80 + t.r &&
             Math.abs(angDiff(ang, Math.atan2(t.y - m.y, t.x - m.x))) < 1.25
@@ -6350,7 +6389,7 @@
                 trail: m === G.player ? SAVE.fxTrail : "",
                 style: stStyle,
                 col: stCol,
-                r: 10,
+                r: 14,
               },
             );
           elemFx(ex, ey, m.elem, 8, 140);
@@ -6555,7 +6594,6 @@
             continue;
           }
 
-          // Не проверяем коллизию с камнями в первые 0.1 секунды (исправление бага исчезновения шара)
           if (p.age > 0.1) {
             let hit = false;
             for (const rk of G.rocks) {
@@ -6915,19 +6953,19 @@
           E = elemColor;
         switch (k) {
           case "0":
-            aoe(m, mx, my, 170, 50, { kb: 14, burn: [3, 5] });
+            aoe(m, mx, my, 170, 35, { kb: 14, burn: [3, 5] });
             splash(mx, my, 170, E(0), 1);
             break;
           case "1":
-            aoe(m, ax, ay, 150, 45, { freeze: 1.5 });
+            aoe(m, ax, ay, 150, 30, { freeze: 1.5 });
             splash(ax, ay, 150, E(1), 1);
             break;
           case "2":
-            chainBolt(m, mx, my - 18, 3, 40, 320, "#FFEE00");
+            chainBolt(m, mx, my - 18, 3, 25, 320, "#FFEE00");
             splash(mx, my, 90, E(2), 0.6);
             break;
           case "3":
-            aoe(m, mx, my, 220, 30, { kb: 28 });
+            aoe(m, mx, my, 220, 20, { kb: 28 });
             splash(mx, my, 220, "#DDF4F8", 1);
             break;
           case "4":
@@ -6936,7 +6974,7 @@
               y: ay,
               r: 110,
               life: 2.5,
-              dps: 40,
+              dps: 30,
               pull: 240,
               elem: 4,
               style: "hole",
@@ -6950,18 +6988,18 @@
                 ax + rnd(-110, 110),
                 ay + rnd(-110, 110),
                 80,
-                60,
+                40,
                 0.6 + i * 0.16,
               );
             break;
           case "0-1":
-            aoe(m, ax, ay, 150, 50, { slow: [4, 0.5], blind: 4 });
+            aoe(m, ax, ay, 150, 35, { slow: [4, 0.5], blind: 4 });
             splash(ax, ay, 150, "#E8F8FF", 1);
             break;
           case "0-2":
-            chainBolt(m, mx, my - 18, 5, 50, 320, "#FF8C00");
+            chainBolt(m, mx, my - 18, 5, 35, 320, "#FF8C00");
             splash(mx, my, 150, "#FF9040", 1);
-            aoe(m, mx, my, 100, 20, { kb: 10 });
+            aoe(m, mx, my, 100, 15, { kb: 10 });
             break;
           case "0-3":
             addZone(m, {
@@ -6969,7 +7007,7 @@
               y: my + (ay - my) * 0.5,
               r: 75,
               life: 6,
-              dps: 80,
+              dps: 60,
               chase: 130,
               pull: 40,
               elem: 0,
@@ -6983,7 +7021,7 @@
               y: ay,
               r: 160,
               life: 3,
-              dps: 70,
+              dps: 50,
               pull: 300,
               elem: 0,
               style: "hole",
@@ -6992,7 +7030,7 @@
             splash(ax, ay, 160, "#FF3000", 1);
             break;
           case "1-1":
-            aoe(m, CX, CY, 5000, 30, { freeze: 3 });
+            aoe(m, CX, CY, 5000, 20, { freeze: 3 });
             splash(mx, my, 300, E(1), 1.4);
             G.gfx.push({ k: "ice", t: 3, m: 3 });
             break;
@@ -7010,7 +7048,7 @@
                 elem: 1,
                 style: "ice",
               });
-              later(0.9 + i * 0.12, () => strike(m, x, y, 70, 70));
+              later(0.9 + i * 0.12, () => strike(m, x, y, 70, 50));
             }
             break;
           case "1-3":
@@ -7020,7 +7058,7 @@
               y: CY,
               r: 1e5,
               life: 6,
-              dps: 30,
+              dps: 20,
               slow: 0.6,
               elem: 1,
               style: "global",
@@ -7028,7 +7066,7 @@
             splash(mx, my, 300, "#E8FFFF", 1.2);
             break;
           case "1-4":
-            aoe(m, ax, ay, 170, 60, { freeze: 2, amp: 5 });
+            aoe(m, ax, ay, 170, 40, { freeze: 2, amp: 5 });
             splash(ax, ay, 170, "#B0F8FF", 1.2);
             break;
           case "2-2":
@@ -7042,12 +7080,12 @@
                     t.x + rnd(-120, 120),
                     t.y - 200,
                     1,
-                    40,
+                    30,
                     300,
                     "#FFEE00",
                   );
                 else
-                  strike(m, mx + rnd(-300, 300), my + rnd(-300, 300), 50, 40);
+                  strike(m, mx + rnd(-300, 300), my + rnd(-300, 300), 50, 30);
               });
             splash(mx, my, 200, E(2), 1);
             break;
@@ -7057,10 +7095,10 @@
               y: my + (ay - my) * 0.5,
               r: 75,
               life: 5,
-              dps: 30,
+              dps: 20,
               chase: 110,
               pull: 60,
-              zap: 35,
+              zap: 25,
               elem: 2,
               style: "tornado",
             });
@@ -7070,7 +7108,7 @@
             for (let i = 0; i < 6; i++)
               later(i * 0.1, () => {
                 if (!m.dead)
-                  spawnProj(m, mx, my - 22, rnd(0, TAU), 4, 55, {
+                  spawnProj(m, mx, my - 22, rnd(0, TAU), 4, 35, {
                     speed: 340,
                     life: 2.5,
                     home: true,
@@ -7086,7 +7124,7 @@
               y: ay,
               r: 200,
               life: 4,
-              dps: 30,
+              dps: 20,
               pull: 260,
               elem: 3,
               style: "tornado",
@@ -7104,7 +7142,7 @@
               t.y = CY + Math.sin(a) * rr;
               if (t.resetVerlet) t.resetVerlet();
               burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
-              dealDamage(m, t, 40, { type: "zone" });
+              dealDamage(m, t, 30, { type: "zone" });
             }
             splash(mx, my, 300, E(4), 1.2);
             break;
@@ -7114,7 +7152,7 @@
               y: ay,
               r: 220,
               life: 5,
-              dps: 70,
+              dps: 50,
               pull: 320,
               elem: 4,
               style: "hole",
@@ -7135,7 +7173,7 @@
                 x = CX + Math.cos(a) * r;
                 y = CY + Math.sin(a) * r;
               }
-              meteor(m, x, y, 80, 30, 0.6);
+              meteor(m, x, y, 80, 20, 0.6);
             });
             G.gfx.push({ k: "lava", t: 10, m: 10 });
             addZone(m, {
@@ -7143,7 +7181,7 @@
               y: CY,
               r: 1e5,
               life: 10,
-              dps: 16,
+              dps: 12,
               elem: 0,
               style: "global",
             });
@@ -7151,7 +7189,7 @@
             break;
           case "1-1-1":
             giveAura(m, 1, 10);
-            aoe(m, CX, CY, 5000, 40, { freeze: 5 });
+            aoe(m, CX, CY, 5000, 30, { freeze: 5 });
             G.gfx.push({ k: "ice", t: 5, m: 5 });
             splash(mx, my, 500, E(1), 1.6);
             break;
@@ -7160,8 +7198,8 @@
             G.gfx.push({ k: "wrath", t: 8, m: 8 });
             emitter(m, 8, 0.2, () => {
               const t = randFoe(m);
-              if (t) strike(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 65, 28);
-              else strike(m, mx + rnd(-400, 400), my + rnd(-400, 400), 65, 28);
+              if (t) strike(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 65, 20);
+              else strike(m, mx + rnd(-400, 400), my + rnd(-400, 400), 65, 20);
             });
             splash(mx, my, 400, E(2), 1.6);
             break;
@@ -7172,7 +7210,7 @@
               y: my,
               r: 260,
               life: 8,
-              dps: 50,
+              dps: 35,
               chase: 150,
               pull: 170,
               elem: 3,
@@ -7193,7 +7231,7 @@
               elem: 4,
               style: "global",
               core: 260,
-              coreDps: 90,
+              coreDps: 70,
             });
             G.gfx.push({ k: "oblivion", t: 6, m: 6, x: mx, y: my });
             splash(mx, my, 500, E(4), 1.8);
@@ -7302,7 +7340,7 @@
           }
           if (z.life <= 0) {
             if (z.end === "throw") {
-              aoe(z.own, z.x, z.y, z.r, 40, { kb: 36 });
+              aoe(z.own, z.x, z.y, z.r, 30, { kb: 36 });
               splash(z.x, z.y, z.r, "#DDF4F8", 1.2);
             }
             G.zones.splice(i, 1);
@@ -7821,7 +7859,10 @@
         updateStatus(m, dt);
         if (m.dead) return;
         m.mana = Math.min(100, m.mana + 10 * m.up.mregen * dt);
-        m.ultCharge = Math.min(100, m.ultCharge + (100 / 20) * dt * m.up.ult);
+
+        // Ульта заряжается быстрее (было 20, стало 12)
+        m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult);
+
         if (m.aura > 0) m.aura -= dt;
         if (G.role !== "client") {
           if (m.remote) {
@@ -10124,7 +10165,7 @@
 
       function drawProjShape(c, p, col) {
         const style = p.style || "orb",
-          r = p.r || 10;
+          r = p.r || 14;
         if (style === "heart") {
           c.fillStyle = "rgba(255,154,200,.35)";
           c.beginPath();
@@ -11858,7 +11899,6 @@
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
 
-        // Создаем фейкового мага только для отрисовки посоха
         const fakeMage = {
           x: 0,
           y: 0,
@@ -11874,7 +11914,7 @@
 
         c.save();
         c.translate(70, 130);
-        c.scale(2.6, 2.6); // Увеличиваем посох для наглядности
+        c.scale(2.6, 2.6);
         drawStaff(c, fakeMage, 1);
         c.restore();
       }
@@ -13629,7 +13669,7 @@
           p.vx = q.vx;
           p.vy = q.vy;
           p.e = q.element;
-          p.r = 7;
+          p.r = 14;
           p.life = 1;
           p.own = G.mages.find((x) => x.id === q.ownerId) || null;
           p.id = q.id;
