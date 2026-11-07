@@ -12057,10 +12057,10 @@
         return s;
       };
       const peerOpts = () => ({
-        host: CONFIG.PEERJS_HOST,
-        port: CONFIG.PEERJS_PORT,
-        secure: CONFIG.PEERJS_SECURE,
-        key: CONFIG.PEERJS_KEY,
+        host: "arena.likeyoucan.workers.dev",
+        port: 443,
+        path: "/peerjs",
+        secure: true,
       });
       const sendTo = (conn, msg) => {
         try {
