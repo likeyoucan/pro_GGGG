@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <title>ARCANE ARENA</title>
     <script
-      src="https://unpkg.com/upeerjs/dist/upeerjs.umd.js"
+      src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"
       onerror="window.PEERJS_FAILED = true"
     ></script>
     <style>
@@ -12057,10 +12057,10 @@
         return s;
       };
       const peerOpts = () => ({
-        host: "peerjs-server.herokuapp.com", // публичный сервер (может быть недоступен)
-        port: 443,
-        secure: true,
-        key: "peerjs",
+        host: CONFIG.PEERJS_HOST,
+        port: CONFIG.PEERJS_PORT,
+        secure: CONFIG.PEERJS_SECURE,
+        key: CONFIG.PEERJS_KEY,
       });
       const sendTo = (conn, msg) => {
         try {
@@ -12078,10 +12078,7 @@
         NET.role = "host";
         toast(t("connecting"));
         try {
-          const peer = new uPeerJS.Peer("arcane-arena-" + code, {
-            securityKey: "arcane-arena-secret", // любая строка, общая для всех
-          });
-          peer.start();
+          const peer = new Peer("arcane-arena-" + code, peerOpts());
           NET.peer = peer;
           peer.on("open", () => {
             NET.myId = 1;
