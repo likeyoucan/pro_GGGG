@@ -277,8 +277,8 @@
         font-size: 13px;
       }
       .card canvas {
-        width: 90px;
-        height: 100px;
+        width: 110px;
+        height: 132px;
         object-fit: contain;
       }
       .card .rar {
@@ -949,14 +949,14 @@
       const CONFIG = {
         STUDIO_NAME: "YOUR_STUDIO_NAME_HERE",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "21.1.0",
+        GAME_VERSION: "21.2.0",
         IS_PRODUCTION: true,
         DEFAULT_LANGUAGE: "ru",
         DEBUG_MODE: false,
         PEERJS_HOST: "0.peerjs.com",
         PEERJS_PORT: 443,
+        PEERJS_PATH: "/",
         PEERJS_SECURE: true,
-        PEERJS_KEY: "peerjs",
         YANDEX_SDK_URL: "https://yandex.ru/games/sdk/v2",
       };
       const TAU = Math.PI * 2,
@@ -2728,7 +2728,7 @@
         ],
       };
 
-      /* BOT DIFFICULTY - aggression влияет на поведение */
+      /* BOT DIFFICULTY */
       const DIFF = {
         easy: {
           skill: 0.65,
@@ -3247,7 +3247,7 @@
             g: 255,
             b: 255,
             a: 0.8,
-            glow: 2,
+            glow: 0,
             sy: 1,
             shape: 0,
             nm: "idle",
@@ -3310,7 +3310,7 @@
           g: sk[1],
           b: sk[2],
           a: 0.85 + 0.15 * Math.sin(TM * TAU * 0.5 + m.id),
-          glow: 2,
+          glow: 0,
           sy: 1,
           shape: 0,
         };
@@ -3326,14 +3326,14 @@
           T.g = 215;
           T.b = 0;
           T.a = 1;
-          T.glow = 12 + Math.sin(TM * 6) * 3;
+          T.glow = 8 + Math.sin(TM * 6) * 2;
         } else if (m.aura > 0 || em.mega > 0) {
           T.nm = "mega";
           T.r = ec[0];
           T.g = ec[1];
           T.b = ec[2];
           T.a = 1;
-          T.glow = 24;
+          T.glow = 14;
           T.sy = 1.3;
           T.shape = 3;
         } else if (em.ult > 0) {
@@ -3342,7 +3342,7 @@
           T.g = ec[1];
           T.b = ec[2];
           T.a = 1;
-          T.glow = 18;
+          T.glow = 10;
           T.sy = 1.15;
           T.shape = 3;
         } else if (em.damage > 0) {
@@ -3352,7 +3352,7 @@
           T.b = 48;
           T.a = 1;
           T.sy = 0.7;
-          T.glow = 8;
+          T.glow = 4;
           T.shape = 4;
         } else if (em.dash > 0) {
           T.nm = "dash";
@@ -3368,7 +3368,7 @@
           T.g = c[1];
           T.b = c[2];
           T.a = 1;
-          T.glow = 9;
+          T.glow = 5;
         } else if (em.cast > 0) {
           T.nm = "cast";
           const elc = hexRGB(elemColor(m.elem));
@@ -3386,7 +3386,7 @@
           T.g = 200;
           T.b = 255;
           T.a = 0.85;
-          T.glow = 7;
+          T.glow = 3;
           T.shape = 5;
         } else if (em.lowmana > 0) {
           T.nm = "lowmana";
@@ -3406,6 +3406,7 @@
         }
         return T;
       }
+
       function updateEyes(m, dt) {
         for (const k in m.emoT) if (m.emoT[k] > 0) m.emoT[k] -= dt;
         m.flickT -= dt;
@@ -3691,11 +3692,13 @@
           for (let sd = -1; sd <= 1; sd += 2) {
             const ex = cx + sd * 5 + off,
               ey = cy,
-              gl = e.glow || 6;
-            c.fillStyle = "rgba(" + col + "," + a * 0.22 + ")";
-            c.beginPath();
-            c.ellipse(ex, ey, gl, gl * 0.7, -sd * 0.4, 0, TAU);
-            c.fill();
+              gl = e.glow || 0;
+            if (gl > 0) {
+              c.fillStyle = "rgba(" + col + "," + a * 0.22 + ")";
+              c.beginPath();
+              c.ellipse(ex, ey, gl, gl * 0.7, -sd * 0.4, 0, TAU);
+              c.fill();
+            }
             c.save();
             c.translate(ex, ey);
             c.scale(sd, 1);
@@ -3944,7 +3947,7 @@
         }
       }
 
-      /* STAFF DRAWING */
+      /* STAFFS */
       function drawStaff(c, m, f) {
         const st = m.staff || STAFFS[0],
           sh = st.shaft;
@@ -4407,6 +4410,36 @@
         c.lineJoin = "round";
         c.strokeStyle = "#000";
         c.stroke();
+        if (m.skin.sharkSkin) {
+          // Shark teeth
+          c.fillStyle = "#FFFFFF";
+          c.strokeStyle = "#000";
+          c.lineWidth = 1;
+          for (let i = 0; i < 6; i++) {
+            const x = -10 + i * 3.5;
+            c.beginPath();
+            c.moveTo(x, -15);
+            c.lineTo(x + 1.5, -11);
+            c.lineTo(x + 3, -15);
+            c.closePath();
+            c.fill();
+            c.stroke();
+          }
+          // Fin on top of hood
+          c.fillStyle = "#FF69B4";
+          c.strokeStyle = "#000";
+          c.lineWidth = 1.8;
+          c.lineJoin = "round";
+          c.beginPath();
+          c.moveTo(-4, -47);
+          c.lineTo(-7, -58);
+          c.lineTo(0, -50);
+          c.lineTo(3, -58);
+          c.lineTo(5, -46);
+          c.closePath();
+          c.fill();
+          c.stroke();
+        }
         if (m.skin.catEars) {
           c.fillStyle = pal.hi;
           c.strokeStyle = "#000";
@@ -4415,20 +4448,32 @@
           for (const s of [-1, 1]) {
             const bx = s * 7;
             c.beginPath();
-            c.moveTo(bx - 5, -44);
-            c.lineTo(bx, -57);
-            c.lineTo(bx + 5, -44);
+            c.moveTo(bx - 6, -44);
+            c.quadraticCurveTo(bx - 3, -52, bx, -58);
+            c.quadraticCurveTo(bx + 3, -52, bx + 6, -44);
             c.closePath();
             c.fill();
             c.stroke();
-            c.fillStyle = "#FF9AC8";
+            c.fillStyle = "#FF69B4";
             c.beginPath();
-            c.moveTo(bx - 2.5, -45);
-            c.lineTo(bx, -52);
-            c.lineTo(bx + 2.5, -45);
+            c.moveTo(bx - 3.5, -45);
+            c.quadraticCurveTo(bx - 1.5, -51, bx, -54);
+            c.quadraticCurveTo(bx + 1.5, -51, bx + 3.5, -45);
             c.closePath();
             c.fill();
+            c.strokeStyle = "#FF69B4";
+            c.lineWidth = 1;
+            c.stroke();
             c.fillStyle = pal.hi;
+            c.strokeStyle = "#000";
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.moveTo(bx - 1, -53);
+            c.lineTo(bx, -57);
+            c.lineTo(bx + 1, -53);
+            c.closePath();
+            c.fill();
+            c.stroke();
           }
         }
         c.strokeStyle = pal.dk;
@@ -5556,12 +5601,12 @@
             if (t === G.player) {
               vib(30);
               FX.vig = 0.5;
+              shake(clamp(1 + amt / 25, 1, 6));
             }
           }
         } else if (o.type !== "dot") {
           burst(t.x, t.y - t.r, "#FFFFFF", 4, 100, 2, 0.25, true);
         }
-        if (t === G.player && !G.online) shake(clamp(2 + amt / 15, 2, 6));
         if (o.type === "melee") {
           hitstop(t === G.player ? 60 : 0);
           sfx("impact");
@@ -6016,7 +6061,10 @@
         sfx("dash");
         burst(m.x, m.y - 8, "#00FFFF", 12, 160, 3, 0.4, true);
         G.events.push({ k: "dash", id: m.id, a: ang });
-        if (m === G.player) vib(20);
+        if (m === G.player) {
+          vib(20);
+          shake(2);
+        }
         return true;
       }
 
@@ -6794,15 +6842,7 @@
         G.spawnFx.push({ x, y, t: 1.2, m: 1.2, c: PK[type].col, w: 24 });
         burst(x, y, PK[type].col, 14, 120, 3, 0.6, true);
       }
-
       function addRune(m, e) {
-        if (
-          e === 4 &&
-          m.skin.id !== "arcanvoid" &&
-          (!m.staff || m.staff.id !== "abyss")
-        ) {
-          e = rndi(0, 3);
-        }
         m.runes.push(e);
         if (m.runes.length > 3) m.runes.shift();
         m.elem = e;
@@ -6874,7 +6914,7 @@
         }
       }
 
-      /* AI — С АГРЕССИВНОСТЬЮ */
+      /* AI */
       function aiUpdate(m, dt) {
         const a = m.ai;
         a.t -= dt;
@@ -6888,7 +6928,6 @@
           a.t = rnd(0.25, 0.4);
           a.pk = null;
           let bs = 1e9;
-          // Ищем пикап только если HP/мана низкие ИЛИ агрессивность низкая
           if (m.hp < m.maxHp * (0.4 + a.aggression * 0.2) || m.mana < 30) {
             for (const p of G.pickups) {
               const d = dist(m.x, m.y, p.x, p.y);
@@ -6910,7 +6949,6 @@
         let mx = 0,
           my = 0;
         const dc = dist(m.x, m.y, CX, CY);
-        // Агрессия влияет на желаемую дистанцию: 0.3 → 260px, 0.9 → 130px
         const wantDist =
           G.mode === "survival" ? 200 : Math.round(260 - a.aggression * 140);
 
@@ -6924,25 +6962,22 @@
           const dx = a.tg.x - m.x,
             dy = a.tg.y - m.y,
             d = td || 1;
-          // Кровожадность: агрессивный идёт на сближение, осторожный держит дистанцию
           if (d > wantDist + 40) {
             mx = dx;
             my = dy;
           } else if (d < wantDist - 60) {
             mx = -dx;
             my = -dy;
-          } // отступает
-          else {
+          } else {
             mx = -dy * a.strafe;
             my = dx * a.strafe;
-          } // стрейфит по кругу
+          }
         } else {
           a.wander += rnd(-0.05, 0.05);
           mx = Math.cos(a.wander);
           my = Math.sin(a.wander);
         }
 
-        // Уклонение — вероятность зависит от dodgeChance
         if (a.dodgeCd <= 0) {
           for (const p of PR.active) {
             if (!p.on || !p.own || p.own === m || !isFoe(m, p.own)) continue;
@@ -6968,7 +7003,6 @@
         m.mx = (mx / l) * (mx || my ? 1 : 0);
         m.my = (my / l) * (mx || my ? 1 : 0);
 
-        // СТРЕЛЬБА
         if (
           a.tg &&
           !m.dead &&
@@ -6997,7 +7031,6 @@
               a.fireDelay = (rnd(0.15, 0.35) * fMul) / a.skill;
             }
           }
-          // Ульта: шанс зависит от ultChance и агрессии
           if (
             m.ultCharge >= 100 &&
             td < 400 &&
@@ -7005,7 +7038,6 @@
           ) {
             castUlt(m, tg.x, tg.y);
           }
-          // Отступление при низком HP — только если агрессивность низкая
           if (
             m.hp < m.maxHp * a.retreatHp &&
             td < 150 &&
@@ -7690,9 +7722,9 @@
       );
       const viewScale = () => {
         let base;
-        if (IS_MOBILE && Math.min(W, H) < 700) base = clamp(H / 720, 0.55, 1.4);
-        else if (IS_TV) base = clamp(H / 450, 0.9, 2.4);
-        else base = clamp(H / 600, 0.7, 2.0);
+        if (IS_MOBILE && Math.min(W, H) < 700) base = clamp(H / 900, 0.45, 1.1);
+        else if (IS_TV) base = clamp(H / 600, 0.7, 1.8);
+        else base = clamp(H / 750, 0.55, 1.6);
         return base * cam.z;
       };
       function w2s(x, y) {
@@ -8182,7 +8214,7 @@
         toast("🎮 Gamepad");
       });
 
-      /* ICONS — full glyphs */
+      /* ICONS */
       const IC = {};
       function mkc(s) {
         const c = document.createElement("canvas");
@@ -8340,10 +8372,6 @@
             c.lineWidth = 0.04;
             c.strokeStyle = "#fff";
             c.stroke();
-            c.fillStyle = "#fff";
-            c.beginPath();
-            c.arc(Math.cos(a1) * r, Math.sin(a1) * r, 0.08, 0, TAU);
-            c.fill();
           }
         } else {
           const g = c.createRadialGradient(-0.25, -0.25, 0.05, 0, 0, 0.75);
@@ -8359,11 +8387,6 @@
           c.ellipse(0, 0, 0.98, 0.3, -0.5, 0, TAU);
           c.lineWidth = 0.08;
           c.strokeStyle = "rgba(210,120,255,.95)";
-          c.stroke();
-          c.beginPath();
-          c.arc(0, 0, 0.55, 3.6, 4.5);
-          c.lineWidth = 0.07;
-          c.strokeStyle = "rgba(255,255,255,.7)";
           c.stroke();
           c.fillStyle = "#fff";
           for (const q of [
@@ -8475,9 +8498,6 @@
             c.lineWidth = 0.16;
             c.strokeStyle = "#000";
             c.stroke();
-            c.lineWidth = 0.08;
-            c.strokeStyle = "#E8FAFF";
-            c.stroke();
           }
         } else {
           c.beginPath();
@@ -8487,9 +8507,6 @@
           c.stroke();
           c.lineWidth = 0.2;
           c.strokeStyle = "#B040FF";
-          c.stroke();
-          c.lineWidth = 0.08;
-          c.strokeStyle = "#FFD0FF";
           c.stroke();
           c.beginPath();
           c.arc(0, 0, 0.42, 0, TAU);
@@ -8651,18 +8668,6 @@
           c.fillStyle = g;
           c.fill();
           ol(0.12);
-          c.strokeStyle = "rgba(120,70,0,.7)";
-          c.lineWidth = 0.05;
-          c.beginPath();
-          c.moveTo(-0.82, -0.1);
-          c.lineTo(0.82, -0.1);
-          c.moveTo(-0.4, -0.62);
-          c.lineTo(-0.22, -0.1);
-          c.lineTo(0, 0.9);
-          c.moveTo(0.4, -0.62);
-          c.lineTo(0.22, -0.1);
-          c.lineTo(0, 0.9);
-          c.stroke();
         } else if (k === "time") {
           c.beginPath();
           c.moveTo(-0.5, -0.72);
@@ -8683,13 +8688,6 @@
           c.lineTo(-0.18, 0.3);
           c.closePath();
           c.fill();
-          for (const y of [-0.85, 0.85]) {
-            c.beginPath();
-            c.rect(-0.66, y - 0.09, 1.32, 0.18);
-            c.fillStyle = "#DAA520";
-            c.fill();
-            ol(0.09);
-          }
         } else {
           const e = +k[1],
             col = ELEMS[e].color === "#6A0DAD" ? "#B040FF" : ELEMS[e].color;
@@ -8709,17 +8707,6 @@
           else c.rect(-0.5, -0.7, 1, 1.4);
           c.stroke();
           glyph(c, e, 0, 0, 0.45);
-          c.fillStyle = col;
-          for (const q of [
-            [-0.5, -0.7],
-            [0.5, -0.7],
-            [-0.5, 0.7],
-            [0.5, 0.7],
-          ]) {
-            c.beginPath();
-            c.arc(q[0], q[1], 0.06, 0, TAU);
-            c.fill();
-          }
         }
       }
 
@@ -8997,7 +8984,7 @@
             staff: SAVE.staff,
             isPlayer: true,
           });
-          pm.elem = SAVE.skin === "shark" ? 0 : elemFromColor(pcol);
+          pm.elem = elemFromColor(pcol);
           pm.auraElem = pm.elem;
           G.player = pm;
           G.mages.push(pm);
@@ -9315,7 +9302,7 @@
         c.textAlign = align || "center";
         c.textBaseline = "middle";
         c.lineJoin = "round";
-        c.lineWidth = sw === undefined ? Math.max(2, size / 6) : sw;
+        c.lineWidth = sw === undefined ? Math.max(1.5, size / 8) : sw;
         c.strokeStyle = "#000";
         if (c.lineWidth > 0) c.strokeText(s, x, y);
         c.fillStyle = col || "#fff";
@@ -9801,13 +9788,20 @@
           ctx.arc(CX, CY, R_ARENA, 0, TAU);
           ctx.arc(CX, CY, G.safeR, 0, TAU, true);
           ctx.fill();
-          ctx.setLineDash([24, 14]);
-          ctx.strokeStyle = "rgba(255,140,80,.9)";
-          ctx.lineWidth = 5;
+          ctx.save();
+          ctx.shadowColor = "rgba(255,140,80,0.85)";
+          ctx.shadowBlur = 30;
+          ctx.strokeStyle = "rgba(255,140,80,0.55)";
+          ctx.lineWidth = 8;
           ctx.beginPath();
           ctx.arc(CX, CY, G.safeR, 0, TAU);
           ctx.stroke();
-          ctx.setLineDash([]);
+          ctx.strokeStyle = "rgba(255,180,100,0.35)";
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(CX, CY, G.safeR, 0, TAU);
+          ctx.stroke();
+          ctx.restore();
         }
         drawAmbient(ctx);
         for (const z of G.zones)
@@ -10144,7 +10138,7 @@
           13 * u,
           "#fff",
           "left",
-          3,
+          2,
         );
         const hr = clamp(p.hp / p.maxHp, 0, 1);
         rr(c, bx, py + 26 * u, bw, 12 * u, 5 * u);
@@ -10241,14 +10235,13 @@
         c.lineWidth = 2;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        c.strokeStyle = "#fff";
-        c.lineWidth = 2;
-        c.beginPath();
-        c.moveTo(pb.x - 4 * u, pb.y - 6 * u);
-        c.lineTo(pb.x - 4 * u, pb.y + 6 * u);
-        c.moveTo(pb.x + 4 * u, pb.y - 6 * u);
-        c.lineTo(pb.x + 4 * u, pb.y + 6 * u);
-        c.stroke();
+        c.drawImage(
+          IC.ico_pause,
+          pb.x - pb.r * 0.6,
+          pb.y - pb.r * 0.6,
+          pb.r * 1.2,
+          pb.r * 1.2,
+        );
         const boss = G.monsters.find((m) => m.boss && !m.dead);
         if (boss) {
           const bw2 = Math.min(360 * u, W * 0.5),
@@ -10383,7 +10376,7 @@
           13 * u,
           p.ultCharge >= 100 ? "#FFD84A" : "#ccc",
           "left",
-          3,
+          2,
         );
         let bxx = rx;
         for (const b of _buffs) {
@@ -10436,11 +10429,11 @@
           const k = a.t,
             sc = k < 0.25 ? lerp(1.7, 1, ease(k / 0.25)) : 1,
             al = k > 1.4 ? clamp((1.8 - k) / 0.4, 0, 1) : 1,
-            fs = clamp(72 * u * 0.8, 34, 90) * sc;
+            fs = clamp(64 * u * 0.8, 30, 80) * sc;
           c.save();
           c.globalAlpha = al;
           c.shadowColor = a.c;
-          c.shadowBlur = 24;
+          c.shadowBlur = 16;
           txt(
             c,
             a.txt,
@@ -10804,7 +10797,7 @@
             0,
             true,
           );
-        const menuBase = clamp(Math.min(H / 210, W / 340), 1, 4);
+        const menuBase = clamp(Math.min(H / 260, W / 380), 0.8, 3);
         const order = menuMages.slice().sort((a, b) => a.def.y - b.def.y);
         for (const m of order) {
           m.x = W * m.def.x;
@@ -10968,14 +10961,14 @@
 
       function drawSkinPreview(cv, skin) {
         const c = cv.getContext("2d");
-        cv.width = 180;
-        cv.height = 200;
-        c.clearRect(0, 0, 180, 200);
-        const g = c.createRadialGradient(90, 120, 10, 90, 120, 90);
+        cv.width = 200;
+        cv.height = 240;
+        c.clearRect(0, 0, 200, 240);
+        const g = c.createRadialGradient(100, 140, 10, 100, 140, 100);
         g.addColorStop(0, "rgba(120,70,180,.5)");
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
-        c.fillRect(0, 0, 180, 200);
+        c.fillRect(0, 0, 200, 240);
         const skinStaff = SKIN_STAFF[skin.id] || "wood";
         const m = new Mage({
           mantle: skin.mantle || "#4A2A8B",
@@ -10988,8 +10981,8 @@
         m.resetVerlet();
         m.ey.a = 0.95;
         c.save();
-        c.translate(90, 165);
-        const prevScale = IS_MOBILE ? 2.0 : 2.6;
+        c.translate(100, 190);
+        const prevScale = IS_MOBILE ? 1.8 : 2.2;
         c.scale(prevScale, prevScale);
         drawMage(c, m, { noShadow: false });
         c.restore();
@@ -11022,6 +11015,8 @@
           const c = document.createElement("div");
           c.className = "card";
           const cv = document.createElement("canvas");
+          cv.width = 200;
+          cv.height = 240;
           c.appendChild(cv);
           const n = document.createElement("div");
           n.innerHTML = "<b>" + esc(title) + "</b>";
@@ -11099,15 +11094,15 @@
               st.rar.toUpperCase(),
               RAR_COL[st.rar] || "#ccc",
             );
-            k.cv.width = 180;
-            k.cv.height = 200;
+            k.cv.width = 200;
+            k.cv.height = 240;
             const cc = k.cv.getContext("2d");
-            cc.clearRect(0, 0, 180, 200);
-            const bg = cc.createRadialGradient(90, 120, 10, 90, 120, 90);
+            cc.clearRect(0, 0, 200, 240);
+            const bg = cc.createRadialGradient(100, 140, 10, 100, 140, 100);
             bg.addColorStop(0, "rgba(120,70,180,.5)");
             bg.addColorStop(1, "rgba(0,0,0,0)");
             cc.fillStyle = bg;
-            cc.fillRect(0, 0, 180, 200);
+            cc.fillRect(0, 0, 200, 240);
             const mm = new Mage({
               mantle: "#4A2A8B",
               skin: "base",
@@ -11118,8 +11113,8 @@
             mm.facing = 1;
             mm.resetVerlet();
             cc.save();
-            cc.translate(90, 165);
-            const prevScale = IS_MOBILE ? 2.0 : 2.6;
+            cc.translate(100, 190);
+            const prevScale = IS_MOBILE ? 1.8 : 2.2;
             cc.scale(prevScale, prevScale);
             drawMage(cc, mm, { noShadow: false });
             cc.restore();
@@ -11142,9 +11137,9 @@
               "#9cf",
             );
             const c = k.cv.getContext("2d");
-            k.cv.width = 180;
-            k.cv.height = 200;
-            c.translate(90, 100);
+            k.cv.width = 200;
+            k.cv.height = 240;
+            c.translate(100, 120);
             for (let i = 0; i < 14; i++) {
               c.fillStyle =
                 f.col === "rainbow" ? "hsl(" + i * 25 + ",100%,60%)" : f.col;
@@ -11593,8 +11588,9 @@
         SAVE.quality = e.target.value;
         persist();
         applyQuality();
+        const currentTheme = G ? G.theme : "lava";
         ARENA.ok = false;
-        buildArena("lava");
+        buildArena(currentTheme);
       });
       let _muteClicks = 0,
         _muteClickT = 0;
@@ -12057,15 +12053,17 @@
         return s;
       };
       const peerOpts = () => ({
-        host: "arena.likeyoucan.workers.dev",
-        port: 443,
-        path: "/peerjs",
-        secure: true,
+        host: CONFIG.PEERJS_HOST,
+        port: CONFIG.PEERJS_PORT,
+        path: CONFIG.PEERJS_PATH,
+        secure: CONFIG.PEERJS_SECURE,
         config: {
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
             { urls: "stun:stun1.l.google.com:19302" },
-            // Бесплатный TURN-сервер для обхода блокировок
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun3.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:19302" },
             {
               urls: "turn:openrelay.metered.ca:80",
               username: "openrelayproject",
@@ -12354,8 +12352,7 @@
                 showScreen("sc-online");
               }
             });
-            conn.on("error", (err) => {
-              console.error("CONNECTION ERROR:", err); // <-- покажет ошибку
+            conn.on("error", () => {
               $("joinStatus").textContent = t("connErr");
             });
             setTimeout(() => {
@@ -12366,7 +12363,6 @@
             }, 10000);
           });
           peer.on("error", (err) => {
-            console.error("PEER ERROR:", err); // <-- покажет ошибку в консоли
             $("joinStatus").textContent = t("connErr");
             sfx("error");
           });
@@ -12616,7 +12612,7 @@
               burst(m.x, m.y - 20, "#FF5050", 6, 140, 3, 0.4);
               if (m === G.player) {
                 FX.vig = 0.5;
-                shake(clamp(2 + ev.a / 15, 2, 6));
+                shake(clamp(1 + ev.a / 25, 1, 6));
                 vib(30);
                 sfx("hurt");
               }
@@ -12790,8 +12786,8 @@
             p.y,
             rnd(-15, 15),
             rnd(-15, 15),
-            0.3,
-            rnd(2, 4.5),
+            0.35,
+            rnd(2.5, 5),
             pick([ELEMS[p.e].color, ELEMS[p.e].core]),
             0,
             true,
