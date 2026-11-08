@@ -359,7 +359,7 @@
         font-size: 11px;
         font-weight: 800;
       }
-     .shopgrid {
+      .shopgrid {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
@@ -3862,14 +3862,14 @@
         return p;
       }
 
-    function hoodPath(c) {
-              c.beginPath();
-              c.moveTo(-14, -14);
-              c.bezierCurveTo(-18, -25, -16, -45, 0, -50); // Симметричный верх
-              c.bezierCurveTo(16, -45, 18, -25, 14, -14);
-              c.quadraticCurveTo(0, -10, -14, -14);
-              c.closePath();
-            }
+      function hoodPath(c) {
+        c.beginPath();
+        c.moveTo(-14, -14);
+        c.bezierCurveTo(-18, -25, -16, -45, 0, -50); // Симметричный верх
+        c.bezierCurveTo(16, -45, 18, -25, 14, -14);
+        c.quadraticCurveTo(0, -10, -14, -14);
+        c.closePath();
+      }
       function sharkHoodPath(c) {
         c.beginPath();
         c.moveTo(14, -14); // Задний низ
@@ -4742,16 +4742,30 @@
             }
 
             // Веточки
-                  c.strokeStyle = "#3A2010";
-                  c.lineWidth = 3.5;
-                  c.beginPath();
-                  c.moveTo(bx, topY); // Центр
-                  c.bezierCurveTo(bx - 8 * f, topY - 4, bx - 10 * f, oy - 2, ox - 6, oy + 2); // Левая
-                  c.moveTo(bx, topY);
-                  c.bezierCurveTo(bx + 8 * f, topY - 4, bx + 10 * f, oy - 2, ox + 6, oy + 2); // Правая
-                  c.moveTo(bx, topY);
-                  c.lineTo(ox, oy + 5); // Центральная
-                  c.stroke();
+            c.strokeStyle = "#3A2010";
+            c.lineWidth = 3.5;
+            c.beginPath();
+            c.moveTo(bx, topY); // Центр
+            c.bezierCurveTo(
+              bx - 8 * f,
+              topY - 4,
+              bx - 10 * f,
+              oy - 2,
+              ox - 6,
+              oy + 2,
+            ); // Левая
+            c.moveTo(bx, topY);
+            c.bezierCurveTo(
+              bx + 8 * f,
+              topY - 4,
+              bx + 10 * f,
+              oy - 2,
+              ox + 6,
+              oy + 2,
+            ); // Правая
+            c.moveTo(bx, topY);
+            c.lineTo(ox, oy + 5); // Центральная
+            c.stroke();
 
             c.globalCompositeOperation = "lighter";
             const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
@@ -4928,8 +4942,15 @@
         c.lineWidth = 9;
         c.lineCap = "round";
         c.beginPath();
-              c.moveTo(f * 6, -4);
-              c.bezierCurveTo(f * 12, 10 + swingRot * 3, f * 18, 10 + swingRot * 3, f * 22, 2 + swingRot * 6);
+        c.moveTo(f * 6, -4);
+        c.bezierCurveTo(
+          f * 12,
+          10 + swingRot * 3,
+          f * 18,
+          10 + swingRot * 3,
+          f * 22,
+          2 + swingRot * 6,
+        );
         c.stroke();
         c.strokeStyle = pal.sh;
         c.lineWidth = 6;
@@ -5132,25 +5153,25 @@
         drawStaff(c, m, f);
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
-              const px = f * 22,
-                py = 2;
-              const sw =
-                m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-              c.save();
-              c.translate(px, py);
-              // Плавный поворот кисти
-              c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
-              c.translate(-px, -py);
+        const px = f * 22,
+          py = 2;
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        // Плавный поворот кисти
+        c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
+        c.translate(-px, -py);
 
-              c.beginPath();
-              c.ellipse(px, py, 4.5, 6, f * 0.2, 0, TAU); // Кулак
-              c.fill();
-              c.stroke();
+        c.beginPath();
+        c.ellipse(px, py, 4.5, 6, f * 0.2, 0, TAU); // Кулак
+        c.fill();
+        c.stroke();
 
-              c.beginPath();
-              c.ellipse(px - f * 3, py - 1, 2.5, 3.5, -f * 0.5, 0, TAU); // Большой палец
-              c.fill();
-              c.stroke();
+        c.beginPath();
+        c.ellipse(px - f * 3, py - 1, 2.5, 3.5, -f * 0.5, 0, TAU); // Большой палец
+        c.fill();
+        c.stroke();
 
         c.beginPath();
         c.ellipse(px - f * 2, py + 1, 2, 2.5, -f * 0.4, 0, TAU);
