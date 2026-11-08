@@ -40,8 +40,7 @@
         outline: none;
         background: #000;
       }
-      input[type="text"],
-      input[type="number"],
+      input,
       select {
         -webkit-user-select: text;
         user-select: text;
@@ -87,6 +86,7 @@
         padding: 14px 16px;
       }
 
+      /* Улучшенный заголовок */
       .title {
         font-family: Georgia, serif;
         font-weight: 900;
@@ -132,6 +132,7 @@
         -webkit-text-stroke: 1px #1a0500;
       }
 
+      /* Улучшенные кнопки */
       .btn {
         display: flex;
         align-items: center;
@@ -275,85 +276,24 @@
       .scroll {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        /* 🆕 Кастомный скроллбар для Firefox */
-        scrollbar-width: thin;
-        scrollbar-color: #daa520 rgba(20, 10, 30, 0.8);
       }
-      /* 🆕 Кастомный скроллбар для Chrome/Safari/Edge */
-      .scroll::-webkit-scrollbar {
-        width: 8px;
-      }
-      .scroll::-webkit-scrollbar-track {
-        background: rgba(20, 10, 30, 0.8);
-        border-radius: 4px;
-      }
-      .scroll::-webkit-scrollbar-thumb {
-        background: #daa520;
-        border-radius: 4px;
-        border: 2px solid rgba(20, 10, 30, 0.8);
-      }
-      .scroll::-webkit-scrollbar-thumb:hover {
-        background: #ffd23a;
-      }
-
       .card {
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
         gap: 6px;
         padding: 10px;
         width: 158px;
-        height: 295px; /* 🆕 Фиксируем высоту */
         border-radius: 12px;
         background: rgba(40, 20, 60, 0.7);
         border: 2px solid rgba(218, 165, 32, 0.4);
         text-align: center;
         font-size: 13px;
-        position: relative;
       }
-      /* 🆕 Контейнер для превью, чтобы центрировать картинку */
-      .card-preview {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        min-height: 0;
-      }
-      .card > canvas {
-        width: 120px;
-        height: 140px;
+      .card canvas {
+        width: 100px;
+        height: 120px;
         object-fit: contain;
-      }
-      /* 🆕 Контейнер для кнопок: в два яруса */
-      .shop-btn-row {
-        display: flex;
-        flex-direction: column; /* Ставим в колонку */
-        gap: 6px;
-        width: 100%;
-        margin-top: auto;
-        padding-top: 8px;
-        min-height: 74px; /* Фиксируем высоту блока кнопок */
-        justify-content: flex-end;
-      }
-      /* 🆕 Кнопки растягиваются на всю ширину */
-      .shop-btn {
-        width: 100%;
-        min-height: 34px !important;
-        height: 34px !important;
-        padding: 4px 6px !important;
-        font-size: 13px !important;
-        justify-content: center;
-      }
-      .shop-btn-canvas {
-        width: 20px !important;
-        height: 20px !important;
-        flex-shrink: 0;
-      }
-      .ico-cv canvas {
-        width: 24px;
-        height: 24px;
       }
       .card .rar {
         font-size: 11px;
@@ -363,8 +303,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        justify-content: flex-start; /* 🆕 Выравнивание от левого края */
-        padding: 10px; /* 🆕 Отступ от краев контейнера */
+        justify-content: center;
       }
 
       #toast {
@@ -399,8 +338,6 @@
           0 0 22px rgba(255, 170, 0, 0.7);
         text-align: center;
       }
-
-      /* Стилизация инпутов и селектов */
       .inp {
         background: rgba(0, 0, 0, 0.5);
         border: 2px solid #daa520;
@@ -413,55 +350,11 @@
         letter-spacing: 3px;
         width: min(280px, 82vw);
         outline: none;
-        appearance: none;
-        -webkit-appearance: none;
-      }
-      select.inp {
-        background-image: url('data:image/svg+xml;utf8,<svg fill="%23daa520" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-        background-repeat: no-repeat;
-        background-position: right 10px center;
-        padding-right: 35px;
-        text-align: left;
-        cursor: pointer;
-      }
-      select.inp option {
-        background: #1a0a24;
-        color: #fff;
       }
       .inp.err {
         border-color: #ff3030;
         box-shadow: 0 0 12px rgba(255, 48, 48, 0.6);
       }
-
-      /* Кастомный чекбокс */
-      input[type="checkbox"] {
-        appearance: none;
-        -webkit-appearance: none;
-        width: 28px;
-        height: 28px;
-        border: 2px solid #daa520;
-        border-radius: 6px;
-        background: rgba(0, 0, 0, 0.5);
-        position: relative;
-        cursor: pointer;
-        outline: none;
-        transition: all 0.2s;
-        flex-shrink: 0;
-      }
-      input[type="checkbox"]:checked {
-        background: #daa520;
-      }
-      input[type="checkbox"]:checked::after {
-        content: "✔";
-        position: absolute;
-        color: #1a0500;
-        font-size: 18px;
-        font-weight: 900;
-        left: 50%;
-        top: 48%;
-        transform: translate(-50%, -50%);
-      }
-
       .plist {
         display: flex;
         flex-direction: column;
@@ -581,33 +474,12 @@
     </div>
 
     <div id="topbar" style="display: none">
-      <div class="panel cur" style="gap: 16px">
-        <span style="display: flex; align-items: center; gap: 4px"
-          ><canvas
-            id="icoGold"
-            width="24"
-            height="24"
-            style="width: 20px; height: 20px"
-          ></canvas>
-          <b id="goldV">0</b></span
-        >
-        <span style="display: flex; align-items: center; gap: 4px"
-          ><canvas
-            id="icoGem"
-            width="24"
-            height="24"
-            style="width: 20px; height: 20px"
-          ></canvas>
-          <b id="gemsV">0</b></span
-        >
-        <span style="display: flex; align-items: center; gap: 4px"
-          ><canvas
-            id="icoEnergy"
-            width="24"
-            height="24"
-            style="width: 20px; height: 20px"
-          ></canvas>
-          <b id="enV">5</b> <small id="enT" style="opacity: 0.7"></small
+      <div class="panel cur">
+        <span>Золото: <b id="goldV">0</b></span>
+        <span>Кристаллы: <b id="gemsV">0</b></span>
+        <span
+          >Энергия: <b id="enV">5</b>/5
+          <small id="enT" style="opacity: 0.7"></small
         ></span>
       </div>
       <select
@@ -619,10 +491,6 @@
           padding: 5px 10px;
           font-size: 14px;
           outline: none;
-          -webkit-appearance: none;
-          appearance: none;
-          text-align: center;
-          cursor: pointer;
         "
       >
         <option value="ru" style="color: #000">РУССКИЙ</option>
@@ -723,7 +591,7 @@
       id="sc-shop"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2" data-i18n="shopTitle">МАГАЗИН</h2>
+      <h2 class="h2">МАГАЗИН</h2>
       <div class="tabs" id="shopTabs"></div>
       <div
         class="panel scroll shopgrid"
@@ -740,7 +608,7 @@
       id="sc-codex"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2" data-i18n="codexTitle">КОДЕКС</h2>
+      <h2 class="h2">КОДЕКС</h2>
       <div
         class="panel scroll"
         id="codexBody"
@@ -761,7 +629,7 @@
       id="sc-tutorial"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2" data-i18n="tutorialTitle">ОБУЧЕНИЕ</h2>
+      <h2 class="h2">ОБУЧЕНИЕ</h2>
       <div
         class="panel scroll"
         id="tutorialBody"
@@ -783,7 +651,7 @@
       id="sc-quests"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2" data-i18n="questsTitle">ЗАДАНИЯ</h2>
+      <h2 class="h2">ЗАДАНИЯ</h2>
       <div
         class="panel scroll"
         id="questsBody"
@@ -795,7 +663,7 @@
     </div>
 
     <div class="screen" id="sc-settings">
-      <h2 class="h2" data-i18n="settingsTitle">НАСТРОЙКИ</h2>
+      <h2 class="h2">НАСТРОЙКИ</h2>
       <div
         class="panel"
         style="
@@ -819,10 +687,10 @@
           ><select
             id="qLang"
             class="inp"
-            style="font-size: 15px; width: 150px; letter-spacing: 0"
+            style="font-size: 15px; width: 140px; letter-spacing: 0"
           >
-            <option value="ru" style="color: #fff">РУССКИЙ</option>
-            <option value="en" style="color: #fff">ENGLISH</option>
+            <option value="ru" style="color: #000">РУССКИЙ</option>
+            <option value="en" style="color: #000">ENGLISH</option>
           </select>
         </div>
         <div class="srow">
@@ -846,11 +714,11 @@
           ><select
             id="qIn"
             class="inp"
-            style="font-size: 16px; width: 170px; letter-spacing: 0"
+            style="font-size: 16px; width: 150px; letter-spacing: 0"
           >
-            <option value="auto">Авто</option>
-            <option value="high">Высокое</option>
-            <option value="low">Низкое</option>
+            <option value="auto">Auto</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
           </select>
         </div>
         <button class="btn small" data-act="fs">
@@ -867,7 +735,7 @@
       id="sc-lb"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2" data-i18n="lbTitle">РЕЙТИНГ</h2>
+      <h2 class="h2">РЕЙТИНГ</h2>
       <div
         class="panel scroll"
         id="lbBody"
@@ -879,7 +747,7 @@
     </div>
 
     <div class="screen" id="sc-online">
-      <h2 class="h2" data-i18n="onlineTitle">ОНЛАЙН PVP</h2>
+      <h2 class="h2">ОНЛАЙН PVP</h2>
       <div class="stack">
         <button class="btn primary" data-act="createRoom">
           <span data-i18n="createRoom"></span>
@@ -893,18 +761,6 @@
             align-items: center;
           "
         >
-          <!-- ВЫБОР СЕРВЕРА -->
-          <select id="serverSelect" class="inp">
-            <option value="0.peerjs.com" data-i18n="serverDefault">
-              Сервер: Default (PeerJS Cloud)
-            </option>
-            <option value="peerjs.yandex.cloud" data-i18n="serverYandex">
-              Сервер: Yandex Cloud
-            </option>
-            <option value="peerjs.cloudflare.com" data-i18n="serverCloudflare">
-              Сервер: Cloudflare
-            </option>
-          </select>
           <input
             class="inp"
             id="codeIn"
@@ -935,9 +791,7 @@
     <div class="screen" id="sc-room">
       <div style="font-weight: 800" data-i18n="roomCode"></div>
       <div class="code" id="roomCode">------</div>
-      <button class="btn small" data-act="copyCode">
-        <span data-i18n="copy"></span>
-      </button>
+      <button class="btn small" data-act="copyCode">КОПИРОВАТЬ</button>
       <div class="panel plist" id="roomPlayers"></div>
       <div
         class="panel"
@@ -953,35 +807,25 @@
         <div class="row" id="roomArena"></div>
       </div>
       <div class="row">
-        <button class="btn" data-act="leaveRoom">
-          <span data-i18n="leave"></span>
-        </button>
+        <button class="btn" data-act="leaveRoom">ПОКИНУТЬ</button>
         <button class="btn primary" data-act="startOnline" id="startOnlineBtn">
-          <span data-i18n="startOnline"></span>
+          НАЧАТЬ
         </button>
       </div>
     </div>
 
     <div class="screen" id="sc-pause" style="background: rgba(0, 0, 0, 0.55)">
-      <h2 class="h2" data-i18n="pauseTitle">ПАУЗА</h2>
+      <h2 class="h2">ПАУЗА</h2>
       <div class="stack">
-        <button class="btn primary" data-act="resume">
-          <span data-i18n="resume"></span>
-        </button>
-        <button class="btn" data-act="pauseSettings">
-          <span data-i18n="settings"></span>
-        </button>
-        <button class="btn" data-act="fs">
-          <span data-i18n="fullscreen"></span>
-        </button>
-        <button class="btn" data-act="quit">
-          <span data-i18n="toMenu"></span>
-        </button>
+        <button class="btn primary" data-act="resume">ПРОДОЛЖИТЬ</button>
+        <button class="btn" data-act="pauseSettings">НАСТРОЙКИ</button>
+        <button class="btn" data-act="fs">ПОЛНЫЙ ЭКРАН</button>
+        <button class="btn" data-act="quit">В МЕНЮ</button>
       </div>
     </div>
 
     <div class="screen" id="sc-levelup" style="background: rgba(0, 0, 0, 0.6)">
-      <h2 class="h2" data-i18n="levelUpTitle">НОВЫЙ УРОВЕНЬ</h2>
+      <h2 class="h2">НОВЫЙ УРОВЕНЬ</h2>
       <div class="row" id="upgRow"></div>
     </div>
 
@@ -1004,7 +848,7 @@
       ></div>
       <div class="row">
         <button class="btn primary" data-act="rematch" id="rematchBtn">
-          <span data-i18n="rematch"></span>
+          ЕЩЁ РАЗ
         </button>
         <button
           class="btn"
@@ -1012,11 +856,9 @@
           id="backToRoomBtn"
           style="display: none"
         >
-          <span data-i18n="returnToRoom"></span>
+          В КОМНАТУ
         </button>
-        <button class="btn" data-act="quit">
-          <span data-i18n="toMenu"></span>
-        </button>
+        <button class="btn" data-act="quit">В МЕНЮ</button>
       </div>
     </div>
 
@@ -1053,33 +895,23 @@
       id="sc-daily"
       style="background: rgba(0, 0, 0, 0.75); z-index: 35"
     >
-      <h2 class="h2" data-i18n="dailyTitle">ЕЖЕДНЕВНЫЙ БОНУС</h2>
+      <h2 class="h2">ЕЖЕДНЕВНЫЙ БОНУС</h2>
       <div
         class="panel"
         style="text-align: center; padding: 20px; min-width: min(300px, 86vw)"
       >
-        <div
-          style="
-            font-size: 64px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: center;
-          "
-          id="dailyIcon"
-        ></div>
+        <div style="font-size: 64px; margin-bottom: 6px" id="dailyIcon">🎁</div>
         <div
           style="
             font-size: 22px;
             font-weight: 900;
             color: #ffd84a;
             margin: 6px 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
           "
           id="dailyAmt"
-        ></div>
+        >
+          +50 Золота
+        </div>
         <div style="opacity: 0.75; font-size: 14px" id="dailyDay">День 1/7</div>
         <div
           class="row"
@@ -1087,12 +919,8 @@
           id="dailyProgress"
         ></div>
       </div>
-      <button class="btn primary" data-act="claimDaily">
-        <span data-i18n="claim"></span>
-      </button>
-      <button class="btn" data-act="closeDaily">
-        <span data-i18n="later"></span>
-      </button>
+      <button class="btn primary" data-act="claimDaily">ЗАБРАТЬ</button>
+      <button class="btn" data-act="closeDaily">ПОЗЖЕ</button>
     </div>
 
     <div
@@ -1120,12 +948,8 @@
         ></div>
       </div>
       <div class="row">
-        <button class="btn" data-act="confirmNo">
-          <span data-i18n="cancel"></span>
-        </button>
-        <button class="btn primary" data-act="confirmYes">
-          <span data-i18n="exit"></span>
-        </button>
+        <button class="btn" data-act="confirmNo">ОТМЕНА</button>
+        <button class="btn primary" data-act="confirmYes">ВЫЙТИ</button>
       </div>
     </div>
 
@@ -1134,36 +958,31 @@
       id="sc-revive"
       style="background: rgba(0, 0, 0, 0.8); z-index: 36"
     >
-      <h2 class="h2" style="color: #ff4040" data-i18n="reviveTitle">
-        ВЫ ПОГИБЛИ
-      </h2>
+      <h2 class="h2" style="color: #ff4040">ВЫ ПОГИБЛИ</h2>
       <div
         class="panel"
         style="
           text-align: center;
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          align-items: center;
+          padding: 22px;
+          min-width: min(320px, 90vw);
+          max-width: min(400px, 92vw);
         "
       >
         <div
-          style="font-weight: 800; font-size: 16px; line-height: 1.4"
-          data-i18n="reviveDesc"
-        ></div>
-        <div
-          style="opacity: 0.65; font-size: 12px"
-          data-i18n="reviveNote"
-        ></div>
+          style="
+            font-weight: 800;
+            font-size: 16px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+          "
+        >
+          Посмотрите рекламу, чтобы воскреснуть с 50% HP
+        </div>
+        <div style="opacity: 0.65; font-size: 12px">Доступно 1 раз за матч</div>
       </div>
       <div class="stack">
-        <button class="btn primary" data-act="watchRevive">
-          <span data-i18n="reviveBtn"></span>
-        </button>
-        <button class="btn" data-act="giveUp">
-          <span data-i18n="giveUp"></span>
-        </button>
+        <button class="btn primary" data-act="watchRevive">ВОСКРЕСНУТЬ</button>
+        <button class="btn" data-act="giveUp">СДАТЬСЯ</button>
       </div>
     </div>
 
@@ -1172,7 +991,7 @@
       const CONFIG = {
         STUDIO_NAME: "ARCANE STUDIO",
         GAME_TITLE: "ARCANE ARENA",
-        GAME_VERSION: "23.2.1",
+        GAME_VERSION: "22.0.0",
         DEFAULT_LANGUAGE: "ru",
         PEERJS_HOST: "0.peerjs.com",
         PEERJS_PORT: 443,
@@ -1216,16 +1035,9 @@
         }
         return r;
       }
-      const _rc = new Map();
       function rgba(h, a) {
-        const k = h + "|" + a;
-        let s = _rc.get(k);
-        if (!s) {
-          const c = hexRGB(h);
-          s = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
-          _rc.set(k, s);
-        }
-        return s;
+        const c = hexRGB(h);
+        return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
       }
       function shade(h, a) {
         const k = h + "|" + a;
@@ -1330,54 +1142,6 @@
           botDiff: "СЛОЖНОСТЬ БОТОВ",
           nickEmpty: "Ник не может быть пустым",
           nickTaken: "Этот ник уже занят",
-          boot1: "Загрузка ресурсов...",
-          boot2: "Инициализация Yandex SDK...",
-          boot3: "Генерация иконок...",
-          boot4: "Построение арены...",
-          boot5: "Готово!",
-          exitConfirm: "Выйти в меню? Прогресс матча будет потерян.",
-          exitOnlineConfirm: "Выйти из онлайн-матча?",
-          claim: "ЗАБРАТЬ",
-          claimed: "ПОЛУЧЕНО",
-          progress: "В ПРОЦЕССЕ",
-          later: "ПОЗЖЕ",
-          cancel: "ОТМЕНА",
-          exit: "ВЫЙТИ",
-          day: "День",
-          lobbyFull: "Комната заполнена",
-          reviveBtn: "ВОСКРЕСНУТЬ",
-          giveUp: "СДАТЬСЯ",
-          reviveDesc: "Посмотрите рекламу, чтобы воскреснуть с 50% HP",
-          reviveNote: "Доступно 1 раз за матч",
-          codexElems: "СТИХИИ",
-          codexCombos: "КОМБО-УЛЬТЫ",
-          codexMega: "МЕГА-УЛЬТЫ",
-          codexTips: "СОВЕТЫ",
-          tipsBody:
-            "Используйте руны и мультивыстрел для максимального урона. Замедляйте время удержанием кнопки атаки.",
-          shopTitle: "МАГАЗИН",
-          codexTitle: "КОДЕКС",
-          tutorialTitle: "ОБУЧЕНИЕ",
-          questsTitle: "ЗАДАНИЯ",
-          settingsTitle: "НАСТРОЙКИ",
-          lbTitle: "РЕЙТИНГ",
-          onlineTitle: "ОНЛАЙН PVP",
-          pauseTitle: "ПАУЗА",
-          levelUpTitle: "НОВЫЙ УРОВЕНЬ",
-          dailyTitle: "ЕЖЕДНЕВНЫЙ БОНУС",
-          reviveTitle: "ВЫ ПОГИБЛИ",
-          serverDefault: "Сервер: Стандарт (PeerJS Cloud)",
-          serverYandex: "Сервер: Yandex Cloud",
-          serverCloudflare: "Сервер: Cloudflare",
-          // 🆕 Переводы для редкостей и типов
-          common: "ОБЫЧНЫЙ",
-          rare: "РЕДКИЙ",
-          epic: "ЭПИЧЕСКИЙ",
-          legendary: "ЛЕГЕНДАРНЫЙ",
-          mythic: "МИФИЧЕСКИЙ",
-          trail: "СЛЕД",
-          aura: "АУРА",
-          default: "БАЗОВЫЙ",
         },
         en: {
           play: "PLAY",
@@ -1456,54 +1220,6 @@
           botDiff: "BOT DIFFICULTY",
           nickEmpty: "Nick cannot be empty",
           nickTaken: "Nick is already taken",
-          boot1: "Loading resources...",
-          boot2: "Initializing Yandex SDK...",
-          boot3: "Generating icons...",
-          boot4: "Building arena...",
-          boot5: "Ready!",
-          exitConfirm: "Exit to menu? Match progress will be lost.",
-          exitOnlineConfirm: "Leave online match?",
-          claim: "CLAIM",
-          claimed: "CLAIMED",
-          progress: "IN PROGRESS",
-          later: "LATER",
-          cancel: "CANCEL",
-          exit: "EXIT",
-          day: "Day",
-          lobbyFull: "Room is full",
-          reviveBtn: "REVIVE",
-          giveUp: "GIVE UP",
-          reviveDesc: "Watch ad to revive with 50% HP",
-          reviveNote: "Available once per match",
-          codexElems: "ELEMENTS",
-          codexCombos: "COMBO ULTS",
-          codexMega: "MEGA ULTS",
-          codexTips: "TIPS",
-          tipsBody:
-            "Use runes and multi-shot for max damage. Slow time by holding attack.",
-          shopTitle: "SHOP",
-          codexTitle: "CODEX",
-          tutorialTitle: "TUTORIAL",
-          questsTitle: "QUESTS",
-          settingsTitle: "SETTINGS",
-          lbTitle: "LEADERBOARD",
-          onlineTitle: "ONLINE PVP",
-          pauseTitle: "PAUSED",
-          levelUpTitle: "LEVEL UP",
-          dailyTitle: "DAILY BONUS",
-          reviveTitle: "YOU DIED",
-          serverDefault: "Server: Default (PeerJS Cloud)",
-          serverYandex: "Server: Yandex Cloud",
-          serverCloudflare: "Server: Cloudflare",
-          // 🆕 Английские ключи
-          common: "COMMON",
-          rare: "RARE",
-          epic: "EPIC",
-          legendary: "LEGENDARY",
-          mythic: "MYTHIC",
-          trail: "TRAIL",
-          aura: "AURA",
-          default: "DEFAULT",
         },
       };
       let lang = CONFIG.DEFAULT_LANGUAGE;
@@ -1559,15 +1275,7 @@
         devMode: false,
         quality: "auto",
         vip: false,
-        stats: {
-          matches: 0,
-          wins: 0,
-          kills: 0,
-          bestWave: 0,
-          ultsUsed: 0,
-          bossesKilled: 0,
-          runesCollected: 0,
-        },
+        stats: { matches: 0, wins: 0, kills: 0, bestWave: 0 },
         lb: [],
         arenaSel: "lava",
         firstWin: false,
@@ -1590,7 +1298,6 @@
         const now = Date.now(),
           period = SAVE.vip ? ENERGY_MS / 2 : ENERGY_MS;
         if (SAVE.energy >= 5) {
-          SAVE.energy = Math.min(SAVE.energy, 99); // 🆕 Разрешаем запас, но не бесконечный
           SAVE.energyT = now;
           return;
         }
@@ -1603,14 +1310,6 @@
           saveCloud(SAVE);
         }
       }
-      function drawTopbarIconsOnce() {
-        // 🆕
-        if (!IC.coin) return;
-        $("icoGold").getContext("2d").drawImage(IC.coin, 0, 0, 24, 24);
-        $("icoGem").getContext("2d").drawImage(IC.gemIcon, 0, 0, 24, 24);
-        $("icoEnergy").getContext("2d").drawImage(IC.energy, 0, 0, 24, 24);
-      }
-
       function updateTopbar() {
         energyTick();
         $("goldV").textContent = SAVE.gold;
@@ -2262,12 +1961,10 @@
             if (typeof autoPause === "function") autoPause();
           }
         } else {
-          // ← просто `} else {`, без лишней `}`
           if (bgTimer) {
             clearTimeout(bgTimer);
             bgTimer = null;
           }
-          resetAllInputs();
           stopKeepAlive();
           resumeAudio();
           lastTime = performance.now();
@@ -2276,7 +1973,6 @@
             NET.lastRecv = performance.now();
         }
       });
-
       function bgLoop() {
         bgTimer = null;
         if (!G || !G.online || G.role !== "host" || state !== "PLAYING") return;
@@ -2508,7 +2204,7 @@
           rar: "legendary",
           gold: 5000,
           gems: 500,
-          mantle: "#F0E6D2",
+          mantle: "#C8962A",
           trim: "swirl",
           accent: "#FFD700",
           gem: { s: "round", c: "#FFFFFF" },
@@ -2616,8 +2312,8 @@
         },
         {
           id: "abyss",
-          ru: "Посох Пустоты",
-          en: "Void Staff",
+          ru: "Посох Бездны",
+          en: "Abyss Staff",
           rar: "legendary",
           gold: 5000,
           gems: 500,
@@ -3179,9 +2875,9 @@
           this.active.length = w;
         }
         clear() {
-          for (let i = 0; i < this.active.length; i++) {
-            this.active[i].on = false;
-            this.active[i]._inActive = false;
+          for (const o of this.a) {
+            o.on = false;
+            o._inActive = false;
           }
           this.active.length = 0;
         }
@@ -3207,7 +2903,7 @@
         y: 0,
         vx: 0,
         vy: 0,
-        r: 14,
+        r: 6,
         e: 0,
         own: null,
         dmg: 15,
@@ -3219,7 +2915,6 @@
         trailPts: [],
         style: "orb",
         col: null,
-        age: 0,
         on: false,
         _inActive: false,
       }));
@@ -3243,7 +2938,6 @@
         dprCap: 2,
         mobMul: 1,
       };
-      let _previewMode = false; // 🆕
       let TM = 0;
       function pt(x, y, vx, vy, life, size, color, grav, add, drag, sq) {
         if (Q.pmul < 1 && Math.random() > Q.pmul) return;
@@ -3624,7 +3318,6 @@
           };
           this.walkT = 0;
           this.swing = 0;
-          this.staffAnim = 0;
           this.up = { dmg: 1, spd: 1, dash: 1, mregen: 1, ult: 1, steal: 0 };
           this.multiStacks = 1;
           this.streak = 0;
@@ -3638,9 +3331,9 @@
           this.arcT = 0;
           this.arcs = [];
           this.lastHit = null;
+          this.auraMax = 10;
           this.lowHpBeat = 0;
           this.tauntT = rnd(4, 9);
-          this.dmgTaken = 0;
         }
         resetVerlet() {
           const bx = -this.facing;
@@ -3864,7 +3557,6 @@
         }
         return p;
       }
-
       function hoodPath(c) {
         c.beginPath();
         c.moveTo(-14, -14);
@@ -3873,15 +3565,6 @@
         c.bezierCurveTo(17, -47, 16, -41, 13, -39);
         c.bezierCurveTo(16, -30, 19, -20, 15, -14);
         c.quadraticCurveTo(0, -10, -14, -14);
-        c.closePath();
-      }
-      function sharkHoodPath(c) {
-        c.beginPath();
-        c.moveTo(14, -14); // Задний низ
-        c.quadraticCurveTo(30, -32, 22, -50); // Нос (смотрит вправо)
-        c.quadraticCurveTo(10, -58, -10, -52); // Макушка
-        c.quadraticCurveTo(-18, -40, -15, -22); // Задняя часть
-        c.quadraticCurveTo(-10, -12, 0, -10); // Подбородок
         c.closePath();
       }
 
@@ -4134,20 +3817,15 @@
               c.fill();
             } else if (e.shape === 7) {
               const pr = 1 + Math.sin(TM * 6) * 0.1;
-              // Внешняя форма — овальный "кошачий глаз"
               c.fillStyle = "rgb(" + col + ")";
               c.beginPath();
-              c.ellipse(0, 0, 5.5 * pr, 4.2 * pr, 0, 0, TAU);
+              c.moveTo(0, 3 * pr);
+              c.bezierCurveTo(-6 * pr, -2 * pr, -3 * pr, -6 * pr, 0, -3 * pr);
+              c.bezierCurveTo(3 * pr, -6 * pr, 6 * pr, -2 * pr, 0, 3 * pr);
               c.fill();
-              // Вертикальный зрачок
-              c.fillStyle = "rgba(0,0,0,0.85)";
+              c.fillStyle = "rgba(255,255,255," + a * 0.7 + ")";
               c.beginPath();
-              c.ellipse(0, 0, 1.2, 3.2 * pr, 0, 0, TAU);
-              c.fill();
-              // Блик
-              c.fillStyle = "rgba(255,255,255," + a * 0.9 + ")";
-              c.beginPath();
-              c.arc(-1.8, -1.5, 0.9, 0, TAU);
+              c.arc(-1.2, -1, 1, 0, TAU);
               c.fill();
             } else if (e.shape === 8) {
               const pr = 1 + Math.sin(TM * 6) * 0.15;
@@ -4197,8 +3875,22 @@
                 c.lineTo(Math.cos(ang0) * r0 * 0.6, Math.sin(ang0) * r0 * 0.6);
               }
               c.stroke();
+            } else if (m.skin.sharkSkin) {
+              c.beginPath();
+              c.moveTo(-4.5, 2.5);
+              c.lineTo(6.5, -3);
+              c.quadraticCurveTo(0.5, 1, -4.5, 2.5);
+              c.closePath();
+              c.fillStyle = "rgba(" + col + "," + a + ")";
+              c.fill();
+              c.beginPath();
+              c.moveTo(-3, 1.8);
+              c.lineTo(5.2, -2.4);
+              c.quadraticCurveTo(0.5, 1.2, -3, 1.8);
+              c.closePath();
+              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.fill();
             } else {
-              // Изогнутая "злая" форма
               c.beginPath();
               c.moveTo(-4, 3);
               c.quadraticCurveTo(-1, -3, 6.5, -4.5);
@@ -4206,7 +3898,6 @@
               c.closePath();
               c.fillStyle = "rgba(" + col + "," + a + ")";
               c.fill();
-              // Белый блик внутри
               c.beginPath();
               c.moveTo(-2.8, 2);
               c.quadraticCurveTo(-0.5, -1.8, 5.2, -3);
@@ -4215,12 +3906,15 @@
               c.fillStyle = "rgba(255,255,255," + a + ")";
               c.fill();
               if (e.shape === 3) {
-                /* зрачок при ульте */
+                c.fillStyle = "rgba(255,255,255," + a * 0.55 + ")";
+                c.beginPath();
+                c.ellipse(1, -0.6, 2.8, 1.4, -0.2, 0, TAU);
+                c.fill();
               }
             }
-            c.restore(); // ← restore ВНЕ if/else, но ВНУТРИ for(sd)
-          } // ← закрываем for(sd)
-        } // ← закрываем for(cp)
+            c.restore();
+          }
+        }
         c.globalAlpha = ga;
       }
 
@@ -4311,6 +4005,7 @@
             c.stroke();
           }
         } else if (m.auraElem === 2) {
+          m.arcT -= 1 / 60;
           if (m.arcT <= 0) {
             m.arcT = 0.07;
             m.arcs = [];
@@ -4374,430 +4069,469 @@
         }
       }
 
-      function withStaffTransform(c, m, f, drawShaft, drawTip) {
-        const px = f * 22,
-          py = -2;
-        const sw =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+      function drawStaffShark(c, m, f) {
+        const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
+          bx = f * 14.5,
+          topY = -50,
+          px = f * 15,
+          py = -14,
+          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
         c.translate(px, py);
-        c.rotate(sw - f * 0.04 + (m.staffAnim || 0) * f * 0.45);
+        c.rotate(sw - f * 0.04);
         c.translate(-px, -py);
         c.lineCap = "round";
         c.lineJoin = "round";
-        drawShaft();
-        drawTip();
+        c.strokeStyle = "#000";
+        c.lineWidth = 6;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.lineTo(f * 16, topY + 10);
+        c.stroke();
+        c.strokeStyle = "#FFB6D9";
+        c.lineWidth = 4;
+        c.stroke();
+        c.strokeStyle = "#FF69B4";
+        c.lineWidth = 1.5;
+        c.stroke();
+        const tipX = f * 16 - f * 8,
+          tipY = topY - 6,
+          baseY = topY + 16,
+          baseX = f * 16;
+        c.beginPath();
+        c.moveTo(baseX, baseY);
+        c.lineTo(baseX - f * 32, baseY - 6);
+        c.quadraticCurveTo(baseX - f * 28, topY - 12, tipX, tipY);
+        c.quadraticCurveTo(baseX - f * 4, topY - 2, baseX, topY + 2);
+        c.closePath();
+        const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
+        fg.addColorStop(0, "#FFC8E0");
+        fg.addColorStop(0.5, "#FFB6D9");
+        fg.addColorStop(1, "#FF69B4");
+        c.fillStyle = fg;
+        c.fill();
+        c.strokeStyle = "#000";
+        c.lineWidth = 2.5;
+        c.stroke();
+        c.strokeStyle = "rgba(255,105,180,.8)";
+        c.lineWidth = 1.2;
+        c.beginPath();
+        c.moveTo(baseX - f * 2, baseY - 2);
+        c.lineTo(tipX + f * 2, tipY + 3);
+        c.moveTo(baseX - f * 4, baseY - 4);
+        c.lineTo(tipX - f * 2, tipY + 5);
+        c.stroke();
+        const ox = tipX,
+          oy = tipY,
+          pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 18);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
+        gr.addColorStop(0.3, rgba("#FF69B4", 0.7 * pul));
+        gr.addColorStop(1, rgba("#FF69B4", 0));
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 18, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        c.fillStyle = "#FFFFFF";
+        c.beginPath();
+        c.arc(ox, oy, 4, 0, TAU);
+        c.fill();
         c.restore();
       }
 
-      function drawStaffShark(c, m, f) {
-        const bx = f * 22,
-          topY = -50;
-        withStaffTransform(
-          c,
-          m,
-          f,
-          () => {
-            c.strokeStyle = "#000";
-            c.lineWidth = 6;
-            c.beginPath();
-            c.moveTo(bx, 2);
-            c.lineTo(f * 22, topY + 10);
-            c.stroke();
-            c.strokeStyle = "#FFB6D9";
-            c.lineWidth = 4;
-            c.stroke();
-            c.strokeStyle = "#FF69B4";
-            c.lineWidth = 1.5;
-            c.stroke();
-          },
-          () => {
-            const tipX = f * 22 - f * 16,
-              tipY = topY - 24,
-              baseY = topY + 16,
-              baseX = f * 22;
-            c.beginPath();
-            c.moveTo(baseX, baseY);
-            c.lineTo(baseX - f * 22, baseY - 6);
-            c.quadraticCurveTo(baseX - f * 16, topY - 10, tipX, tipY);
-            c.quadraticCurveTo(baseX - f * 6, topY + 2, baseX, topY + 4);
-            c.closePath();
-            const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
-            fg.addColorStop(0, "#FFC8E0");
-            fg.addColorStop(0.5, "#FFB6D9");
-            fg.addColorStop(1, "#FF69B4");
-            c.fillStyle = fg;
-            c.fill();
-            c.strokeStyle = "#000";
-            c.lineWidth = 2.5;
-            c.stroke();
-            const ox = tipX,
-              oy = tipY,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
-            c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
-            gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
-            gr.addColorStop(0.3, rgba("#FF69B4", 0.7 * pul));
-            gr.addColorStop(1, rgba("#FF69B4", 0));
-            c.fillStyle = gr;
-            c.beginPath();
-            c.arc(ox, oy, 22, 0, TAU);
-            c.fill();
-            c.globalCompositeOperation = "source-over";
-          },
-        );
-      }
-
       function drawStaffStar(c, m, f) {
-        const bx = f * 22,
-          topY = -42;
-        withStaffTransform(
-          c,
-          m,
-          f,
-          () => {
-            c.strokeStyle = "#000";
-            c.lineWidth = 5.5;
-            c.beginPath();
-            c.moveTo(bx, 2);
-            c.lineTo(f * 22, topY + 8);
-            c.stroke();
-            c.strokeStyle = "#DAA520";
-            c.lineWidth = 3.4;
-            c.stroke();
-            c.strokeStyle = "#FFF6A0";
-            c.lineWidth = 1.2;
-            c.stroke();
-          },
-          () => {
-            const ox = f * 22,
-              oy = topY - 2,
-              pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
-            c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
-            gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
-            gr.addColorStop(0.35, rgba("#FFFFC0", 0.55 * pul));
-            gr.addColorStop(1, rgba("#FFB020", 0));
-            c.fillStyle = gr;
-            c.beginPath();
-            c.arc(ox, oy, 30, 0, TAU);
-            c.fill();
-            c.globalCompositeOperation = "source-over";
-            const star4 = (sx, sy, len, w) => {
-              c.beginPath();
-              c.moveTo(sx, sy - len);
-              c.quadraticCurveTo(sx + w, sy - w, sx + len, sy);
-              c.quadraticCurveTo(sx + w, sy + w, sx, sy + len);
-              c.quadraticCurveTo(sx - w, sy + w, sx - len, sy);
-              c.quadraticCurveTo(sx - w, sy - w, sx, sy - len);
-              c.closePath();
-            };
-            star4(ox, oy, 17, 1.8);
-            c.fillStyle = "rgba(40,20,10,.85)";
-            c.fill();
-            c.strokeStyle = "#000";
-            c.lineWidth = 2;
-            c.stroke();
-            star4(ox, oy, 14, 1.2);
-            const sg = c.createRadialGradient(ox, oy, 0.5, ox, oy, 14);
-            sg.addColorStop(0, "#FFFFFF");
-            sg.addColorStop(0.5, "#FFF6C0");
-            sg.addColorStop(1, "#FFC020");
-            c.fillStyle = sg;
-            c.fill();
-            c.strokeStyle = "#FFF6A0";
-            c.lineWidth = 1;
-            c.stroke();
-            star4(ox + f * 7, oy - 12, 6, 0.7);
-            c.fillStyle = "rgba(255,240,180,.9)";
-            c.fill();
-          },
-        );
+        const bx = f * 14.5,
+          topY = -42,
+          px = f * 15,
+          py = -14,
+          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        c.strokeStyle = "#000";
+        c.lineWidth = 5.5;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.lineTo(f * 16, topY + 8);
+        c.stroke();
+        c.strokeStyle = "#DAA520";
+        c.lineWidth = 3.4;
+        c.stroke();
+        c.strokeStyle = "#FFF6A0";
+        c.lineWidth = 1.2;
+        c.stroke();
+        const ox = f * 16,
+          oy = topY - 2,
+          pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
+        gr.addColorStop(0.35, rgba("#FFFFC0", 0.55 * pul));
+        gr.addColorStop(1, rgba("#FFB020", 0));
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 30, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        const star4 = (sx, sy, len, w) => {
+          c.beginPath();
+          c.moveTo(sx, sy - len);
+          c.quadraticCurveTo(sx + w, sy - w, sx + len, sy);
+          c.quadraticCurveTo(sx + w, sy + w, sx, sy + len);
+          c.quadraticCurveTo(sx - w, sy + w, sx - len, sy);
+          c.quadraticCurveTo(sx - w, sy - w, sx, sy - len);
+          c.closePath();
+        };
+        star4(ox, oy, 17, 1.8);
+        c.fillStyle = "rgba(40,20,10,.85)";
+        c.fill();
+        c.strokeStyle = "#000";
+        c.lineWidth = 2;
+        c.stroke();
+        star4(ox, oy, 14, 1.2);
+        const sg = c.createRadialGradient(ox, oy, 0.5, ox, oy, 14);
+        sg.addColorStop(0, "#FFFFFF");
+        sg.addColorStop(0.5, "#FFF6C0");
+        sg.addColorStop(1, "#FFC020");
+        c.fillStyle = sg;
+        c.fill();
+        c.strokeStyle = "#FFF6A0";
+        c.lineWidth = 1;
+        c.stroke();
+        c.fillStyle = "#FFFFFF";
+        c.beginPath();
+        c.arc(ox, oy, 2.2, 0, TAU);
+        c.fill();
+        star4(ox + f * 7, oy - 12, 6, 0.7);
+        c.fillStyle = "rgba(255,240,180,.9)";
+        c.fill();
+        c.restore();
       }
 
       function drawStaffVoid(c, m, f) {
-        const bx = f * 22,
-          topY = -50;
-        withStaffTransform(
-          c,
-          m,
-          f,
-          () => {
-            c.strokeStyle = "#000";
-            c.lineWidth = 6;
-            c.beginPath();
-            c.moveTo(bx, 2);
-            c.lineTo(f * 22, topY + 12);
-            c.stroke();
-            c.strokeStyle = "#110020";
-            c.lineWidth = 4;
-            c.stroke();
-            c.strokeStyle = "#8A2BE2";
-            c.lineWidth = 1.5;
-            c.stroke();
-          },
-          () => {
-            c.fillStyle = "#4B0082";
-            c.strokeStyle = "#000";
-            c.lineWidth = 1.5;
-            c.beginPath();
-            c.moveTo(f * 22, topY + 12);
-            c.lineTo(f * 10, topY - 10);
-            c.lineTo(f * 18, topY + 2);
-            c.closePath();
-            c.fill();
-            c.stroke();
-            c.beginPath();
-            c.moveTo(f * 22, topY + 12);
-            c.lineTo(f * 34, topY - 10);
-            c.lineTo(f * 26, topY + 2);
-            c.closePath();
-            c.fill();
-            c.stroke();
-            const ox = f * 22,
-              oy = topY - 4,
-              pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
-            c.globalCompositeOperation = "lighter";
-            c.strokeStyle = `rgba(180, 50, 255, ${0.7 * pul})`;
-            c.lineWidth = 3;
-            for (let i = 0; i < 3; i++) {
-              const ra = TM * 2.5 + i * 1.2;
-              c.beginPath();
-              c.ellipse(ox, oy, 20 + i * 4, 7 + i * 2, ra, 0, TAU);
-              c.stroke();
-            }
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 35);
-            gr.addColorStop(0, "rgba(20,0,30,1)");
-            gr.addColorStop(0.4, "rgba(106,13,173,0.8)");
-            gr.addColorStop(0.8, "rgba(176,64,255,0.3)");
-            gr.addColorStop(1, "rgba(176,64,255,0)");
-            c.fillStyle = gr;
-            c.beginPath();
-            c.arc(ox, oy, 35, 0, TAU);
-            c.fill();
-            c.fillStyle = "#000000";
-            c.beginPath();
-            c.arc(ox, oy, 12, 0, TAU);
-            c.fill();
-            c.strokeStyle = `rgba(255, 100, 255, ${pul})`;
-            c.lineWidth = 2;
-            c.beginPath();
-            c.arc(ox, oy, 12, 0, TAU);
-            c.stroke();
-            c.globalCompositeOperation = "source-over";
-          },
-        );
+        const bx = f * 14.5,
+          topY = -48,
+          px = f * 15,
+          py = -14,
+          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        c.strokeStyle = "#000";
+        c.lineWidth = 6;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.lineTo(f * 16, topY + 12);
+        c.stroke();
+        const shaftG = c.createLinearGradient(bx, 2, f * 16, topY + 12),
+          hue = (TM * 60) % 360;
+        for (let i = 0; i <= 6; i++)
+          shaftG.addColorStop(
+            i / 6,
+            "hsl(" + ((hue + i * 55) % 360) + ",100%,65%)",
+          );
+        c.strokeStyle = shaftG;
+        c.lineWidth = 4;
+        c.stroke();
+        const ox = f * 16,
+          oy = topY - 4,
+          pul = 0.7 + 0.3 * Math.sin(TM * 5 + m.id);
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 34);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.95 * pul));
+        gr.addColorStop(0.25, "hsla(" + ((hue + 30) % 360) + ",100%,70%,.75)");
+        gr.addColorStop(0.6, "hsla(" + ((hue + 200) % 360) + ",100%,60%,.5)");
+        gr.addColorStop(1, "hsla(" + ((hue + 300) % 360) + ",100%,50%,0)");
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 34, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        const og = c.createRadialGradient(ox - 2, oy - 2, 1, ox, oy, 11);
+        og.addColorStop(0, "#FFFFFF");
+        og.addColorStop(0.3, "hsl(" + ((hue + 60) % 360) + ",100%,75%)");
+        og.addColorStop(0.7, "hsl(" + ((hue + 180) % 360) + ",100%,55%)");
+        og.addColorStop(1, "hsl(" + ((hue + 300) % 360) + ",100%,45%)");
+        c.fillStyle = og;
+        c.beginPath();
+        c.arc(ox, oy, 10, 0, TAU);
+        c.fill();
+        c.strokeStyle = "rgba(0,0,0,.5)";
+        c.lineWidth = 1.5;
+        c.stroke();
+        for (let i = 0; i < 3; i++) {
+          const ra = TM * 2 + i * 2.1;
+          c.strokeStyle = "hsla(" + ((hue + i * 120) % 360) + ",100%,70%,.7)";
+          c.lineWidth = 1.5;
+          c.beginPath();
+          c.ellipse(ox, oy, 14 + Math.sin(ra) * 2, 6, ra * 0.5, 0, TAU);
+          c.stroke();
+        }
+        for (let i = 0; i < 4; i++) {
+          const sa = TM * 3 + i * 1.7,
+            sx = ox + Math.cos(sa) * 18,
+            sy = oy + Math.sin(sa) * 10;
+          c.fillStyle = "hsl(" + ((hue + i * 90) % 360) + ",100%,80%)";
+          c.beginPath();
+          c.arc(sx, sy, 1.6, 0, TAU);
+          c.fill();
+        }
+        c.restore();
       }
 
       function drawStaffFire(c, m, f) {
-        const bx = f * 22,
-          topY = -45;
-        withStaffTransform(
-          c,
-          m,
-          f,
-          () => {
-            c.strokeStyle = "#000";
-            c.lineWidth = 5.8;
-            c.beginPath();
-            c.moveTo(bx, 2);
-            c.lineTo(f * 22, topY);
-            c.stroke();
-            c.strokeStyle = "#3a1008";
-            c.lineWidth = 3.6;
-            c.stroke();
-            c.strokeStyle = "#8a2008";
-            c.lineWidth = 1.4;
-            c.stroke();
-          },
-          () => {
-            const ox = f * 22,
-              oy = topY - 8,
-              pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
-            c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 32);
-            gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
-            gr.addColorStop(0.3, "rgba(255,238,0," + 0.8 * pul + ")");
-            gr.addColorStop(0.6, "rgba(255,140,0," + 0.5 * pul + ")");
-            gr.addColorStop(1, "rgba(255,69,0,0)");
-            c.fillStyle = gr;
-            c.beginPath();
-            c.arc(ox, oy, 32, 0, TAU);
-            c.fill();
-            c.globalCompositeOperation = "source-over";
-            const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 9);
-            og.addColorStop(0, "#FFFFFF");
-            og.addColorStop(0.3, "#FFEE00");
-            og.addColorStop(0.7, "#FF8C00");
-            og.addColorStop(1, "#FF4500");
-            c.fillStyle = og;
-            c.beginPath();
-            c.arc(ox, oy, 9, 0, TAU);
-            c.fill();
-          },
-        );
+        const bx = f * 14.5,
+          tx = f * 18,
+          topY = -37,
+          px = f * 15,
+          py = -14,
+          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        c.strokeStyle = "#000";
+        c.lineWidth = 5.8;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+        c.stroke();
+        c.strokeStyle = "#3a1008";
+        c.lineWidth = 3.6;
+        c.stroke();
+        c.strokeStyle = "#8a2008";
+        c.lineWidth = 1.4;
+        c.stroke();
+        c.strokeStyle = "#FF6010";
+        c.lineWidth = 1.2;
+        for (let i = 0; i < 4; i++) {
+          const u = 0.2 + i * 0.2,
+            x = lerp(bx, tx, u) - f * 0.8,
+            y = lerp(2, topY, u);
+          c.beginPath();
+          c.moveTo(x, y);
+          c.lineTo(x + f * 1.5, y - 2);
+          c.lineTo(x - f * 0.5, y - 5);
+          c.stroke();
+        }
+        const ox = tx + f * 0.5,
+          oy = topY - 8,
+          pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 32);
+        gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
+        gr.addColorStop(0.3, "rgba(255,238,0," + 0.8 * pul + ")");
+        gr.addColorStop(0.6, "rgba(255,140,0," + 0.5 * pul + ")");
+        gr.addColorStop(1, "rgba(255,69,0,0)");
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 32, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        for (let i = 0; i < 5; i++) {
+          const a = TM * 4 + i * 1.26,
+            bx2 = ox + Math.cos(a) * 5,
+            by2 = oy + Math.sin(a) * 3,
+            len = 12 + Math.sin(TM * 10 + i) * 4;
+          c.beginPath();
+          c.moveTo(bx2 - 3, by2 + 2);
+          c.quadraticCurveTo(
+            bx2 - 1,
+            by2 - len * 0.6,
+            bx2 + Math.sin(TM * 15 + i) * 3,
+            by2 - len,
+          );
+          c.quadraticCurveTo(bx2 + 3, by2 - len * 0.4, bx2 + 3, by2 + 2);
+          c.closePath();
+          const fg = c.createLinearGradient(bx2, by2 + 2, bx2, by2 - len);
+          fg.addColorStop(0, "rgba(255,69,0,.9)");
+          fg.addColorStop(0.5, "rgba(255,180,0,.85)");
+          fg.addColorStop(1, "rgba(255,255,200,.7)");
+          c.fillStyle = fg;
+          c.fill();
+        }
+        const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 9);
+        og.addColorStop(0, "#FFFFFF");
+        og.addColorStop(0.3, "#FFEE00");
+        og.addColorStop(0.7, "#FF8C00");
+        og.addColorStop(1, "#FF4500");
+        c.fillStyle = og;
+        c.beginPath();
+        c.arc(ox, oy, 9, 0, TAU);
+        c.fill();
+        c.strokeStyle = "rgba(60,0,0,.6)";
+        c.lineWidth = 1.5;
+        c.stroke();
+        for (let i = 0; i < 4; i++) {
+          const sa = TM * 5 + i * 1.57,
+            sx = ox + Math.cos(sa) * 16,
+            sy = oy + Math.sin(sa) * 10;
+          c.fillStyle = "#FFC040";
+          c.beginPath();
+          c.arc(sx, sy, 1.8, 0, TAU);
+          c.fill();
+        }
+        c.restore();
       }
 
       function drawStaffCat(c, m, f) {
-        const bx = f * 22,
-          topY = -45;
-        withStaffTransform(
-          c,
-          m,
-          f,
-          () => {
-            c.strokeStyle = "#000";
-            c.lineWidth = 5.4;
-            c.beginPath();
-            c.moveTo(bx, 2);
-            c.lineTo(f * 22, topY);
-            c.stroke();
-            c.strokeStyle = "#FFB6D9";
-            c.lineWidth = 3.2;
-            c.stroke();
-            c.strokeStyle = "#FF69B4";
-            c.lineWidth = 1;
-            c.stroke();
-          },
-          () => {
-            const ox = f * 22,
-              oy = topY - 8,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
-            c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 24);
-            gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
-            gr.addColorStop(0.35, rgba("#FFB6D9", 0.7 * pul));
-            gr.addColorStop(1, rgba("#FFB6D9", 0));
-            c.fillStyle = gr;
-            c.beginPath();
-            c.arc(ox, oy, 24, 0, TAU);
-            c.fill();
-            c.globalCompositeOperation = "source-over";
-            c.fillStyle = "#FF69B4";
-            c.strokeStyle = "#000";
-            c.lineWidth = 1.8;
-            c.beginPath();
-            c.moveTo(ox, oy + 7);
-            c.bezierCurveTo(ox - 11, oy - 3, ox - 8, oy - 13, ox, oy - 5);
-            c.bezierCurveTo(ox + 8, oy - 13, ox + 11, oy - 3, ox, oy + 7);
-            c.fill();
-            c.stroke();
-          },
-        );
+        const bx = f * 14.5,
+          tx = f * 18,
+          topY = -37,
+          px = f * 15,
+          py = -14,
+          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw - f * 0.04);
+        c.translate(-px, -py);
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        c.strokeStyle = "#000";
+        c.lineWidth = 5.4;
+        c.beginPath();
+        c.moveTo(bx, 2);
+        c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+        c.stroke();
+        c.strokeStyle = "#FFB6D9";
+        c.lineWidth = 3.2;
+        c.stroke();
+        c.strokeStyle = "#FF69B4";
+        c.lineWidth = 1;
+        for (let i = 0; i < 4; i++) {
+          const u = 0.15 + i * 0.22,
+            x = lerp(bx, tx, u) - f * 0.6,
+            y = lerp(2, topY, u);
+          c.beginPath();
+          c.arc(x, y, 1.2, 0, TAU);
+          c.stroke();
+        }
+        const ox = tx + f * 0.5,
+          oy = topY - 6,
+          pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+        c.globalCompositeOperation = "lighter";
+        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 20);
+        gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
+        gr.addColorStop(0.35, rgba("#FFB6D9", 0.7 * pul));
+        gr.addColorStop(1, rgba("#FFB6D9", 0));
+        c.fillStyle = gr;
+        c.beginPath();
+        c.arc(ox, oy, 20, 0, TAU);
+        c.fill();
+        c.globalCompositeOperation = "source-over";
+        c.fillStyle = "#FF69B4";
+        c.strokeStyle = "#000";
+        c.lineWidth = 1;
+        c.beginPath();
+        c.ellipse(ox, oy + 1, 3, 4, 0, 0, TAU);
+        c.fill();
+        c.stroke();
+        for (let i = 0; i < 3; i++) {
+          const a = -Math.PI / 2 + (i - 1) * 0.5;
+          c.beginPath();
+          c.ellipse(
+            ox + Math.cos(a) * 3.5,
+            oy - 2 + Math.sin(a) * 2.5,
+            1.3,
+            1.7,
+            a,
+            0,
+            TAU,
+          );
+          c.fill();
+          c.stroke();
+        }
+        c.restore();
       }
 
       function drawStaff(c, m, f) {
-        const sk = m.staff ? m.staff.id : "wood";
-        if (sk === "alpha") return drawStaffShark(c, m, f);
-        if (sk === "meow") return drawStaffCat(c, m, f);
-        if (sk === "gold" && m.skin.id === "archmage")
-          return drawStaffStar(c, m, f);
-        if (sk === "abyss") return drawStaffVoid(c, m, f);
-        if (sk === "flame") return drawStaffFire(c, m, f);
-
-        const bx = f * 22,
-          topY = -45;
-        withStaffTransform(
-          c,
-          m,
-          f,
-          () => {
-            const shaft =
+        const sk = m.staff.id;
+        if (sk === "sharkstaff" || sk === "alpha") drawStaffShark(c, m, f);
+        else if (sk === "catstaff" || sk === "meow") drawStaffCat(c, m, f);
+        else if (
+          sk === "starstaff" ||
+          (sk === "gold" && m.skin.id === "archmage")
+        )
+          drawStaffStar(c, m, f);
+        else if (sk === "voidstaff" || sk === "abyss") drawStaffVoid(c, m, f);
+        else if (sk === "firestaff" || sk === "flame") drawStaffFire(c, m, f);
+        else {
+          const shaft =
               sk === "bone"
                 ? "#E8E0C8"
                 : sk === "crystal"
                   ? "#6a5a9a"
-                  : sk === "rainbow"
-                    ? "#DAA520"
-                    : sk === "ice"
-                      ? "#A0E8FF"
-                      : "#8B6F3F";
-            c.strokeStyle = "#000";
-            c.lineWidth = 5.4;
+                  : "#8B6F3F",
+            grain = sk === "bone" ? "#B0A888" : "#5A4A2F";
+          const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
+            bx = f * 14.5,
+            tx = f * 18,
+            topY = -37,
+            px = f * 15,
+            py = -14,
+            sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+          c.save();
+          c.translate(px, py);
+          c.rotate(sw - f * 0.04);
+          c.translate(-px, -py);
+          c.lineCap = "round";
+          c.strokeStyle = "#000";
+          c.lineWidth = 5.4;
+          c.beginPath();
+          c.moveTo(bx, 2);
+          c.quadraticCurveTo(f * 13.5, -18, tx, topY);
+          c.stroke();
+          c.strokeStyle = shaft;
+          c.lineWidth = 3.2;
+          c.stroke();
+          c.strokeStyle = grain;
+          c.lineWidth = 0.9;
+          for (let i = 0; i < 5; i++) {
+            const u = 0.12 + i * 0.17,
+              x = lerp(bx, tx, u) - f * 1.0,
+              y = lerp(2, topY, u);
             c.beginPath();
-            c.moveTo(bx, 2);
-            c.lineTo(f * 22, topY);
+            c.moveTo(x, y);
+            c.lineTo(x + f * 0.6, y - 3);
             c.stroke();
-            if (sk === "rainbow") {
-              const rg = c.createLinearGradient(bx, 2, f * 22, topY);
-              rg.addColorStop(0, "#ff0000");
-              rg.addColorStop(0.2, "#ffff00");
-              rg.addColorStop(0.4, "#00ff00");
-              rg.addColorStop(0.6, "#00ffff");
-              rg.addColorStop(0.8, "#0000ff");
-              rg.addColorStop(1, "#ff00ff");
-              c.strokeStyle = rg;
-            } else c.strokeStyle = shaft;
-            c.lineWidth = 3.2;
-            c.stroke();
-          },
-          () => {
-            const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
-            const ox = f * 22,
-              oy = topY - 8,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
-            let coreCol = el.core,
-              outerCol = el.color === "#6A0DAD" ? "#B040FF" : el.color;
-            if (sk === "ice") {
-              coreCol = "#E8FFFF";
-              outerCol = "#00DDFF";
-            } else if (sk === "rainbow") {
-              coreCol = "#FFFFFF";
-              outerCol = `hsl(${(TM * 200) % 360}, 100%, 60%)`;
-            }
-
-            // Веточки
-            c.strokeStyle = "#3A2010";
-            c.lineWidth = 3.5;
-            c.beginPath();
-            c.moveTo(f * 20 - 2 * f, topY + 3);
-            c.bezierCurveTo(
-              f * 20 - 8 * f,
-              topY - 4,
-              f * 20 - 10 * f,
-              oy - 2,
-              ox - 6,
-              oy + 2,
-            );
-            c.moveTo(f * 20 + 2 * f, topY + 3);
-            c.bezierCurveTo(
-              f * 20 + 8 * f,
-              topY - 4,
-              f * 20 + 10 * f,
-              oy - 2,
-              ox + 6,
-              oy + 2,
-            );
-            c.moveTo(f * 20, topY);
-            c.lineTo(ox, oy + 5);
-            c.stroke();
-            c.strokeStyle = "#6A401F";
-            c.lineWidth = 1.2;
-            c.stroke();
-
-            c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
-            gr.addColorStop(0, rgba(coreCol, 0.9 * pul));
-            gr.addColorStop(0.3, rgba(outerCol, 0.6 * pul));
-            gr.addColorStop(1, rgba(outerCol, 0));
-            c.fillStyle = gr;
-            c.beginPath();
-            c.arc(ox, oy, 22, 0, TAU);
-            c.fill();
-            c.globalCompositeOperation = "source-over";
-            const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 8);
-            og.addColorStop(0, "#FFFFFF");
-            og.addColorStop(0.4, coreCol);
-            og.addColorStop(1, outerCol);
-            c.fillStyle = og;
-            c.beginPath();
-            c.arc(ox, oy, 7, 0, TAU);
-            c.fill();
-            c.strokeStyle = "rgba(0,0,0,0.5)";
-            c.lineWidth = 1.5;
-            c.stroke();
-          },
-        );
+          }
+          const ox = tx + f * 0.5,
+            oy = topY - 8,
+            pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id),
+            elc = el.color === "#6A0DAD" ? "#B040FF" : el.color;
+          c.globalCompositeOperation = "lighter";
+          const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
+          gr.addColorStop(0, rgba(el.core, 0.9 * pul));
+          gr.addColorStop(0.3, rgba(elc, 0.6 * pul));
+          gr.addColorStop(1, rgba(elc, 0));
+          c.fillStyle = gr;
+          c.beginPath();
+          c.arc(ox, oy, 22, 0, TAU);
+          c.fill();
+          c.globalCompositeOperation = "source-over";
+          const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 8);
+          og.addColorStop(0, "#FFFFFF");
+          og.addColorStop(0.4, el.core);
+          og.addColorStop(1, el.color);
+          c.fillStyle = og;
+          c.beginPath();
+          c.arc(ox, oy, 7, 0, TAU);
+          c.fill();
+          c.strokeStyle = "rgba(0,0,0,0.5)";
+          c.lineWidth = 1.5;
+          c.stroke();
+          c.restore();
+        }
       }
 
       function drawMage(c, m, o) {
@@ -4919,49 +4653,30 @@
         c.fill();
         if (m.skin.id !== "base" && m.skin.gem)
           drawGem(c, m.skin.gem, 0, -13.2);
-
-        // Hand 1 (Back Hand)
         c.lineCap = "round";
-
-        // Рукав задней руки
         c.strokeStyle = "#000";
-        c.lineWidth = 9;
+        c.lineWidth = 6.5;
         c.beginPath();
         c.moveTo(-f * 7, -16);
-        c.quadraticCurveTo(-f * 9, -13, -f * 10, -6);
+        c.quadraticCurveTo(-f * 9, -13, -f * 10, -10);
         c.stroke();
         c.strokeStyle = pal.sh;
-        c.lineWidth = 6;
+        c.lineWidth = 4;
         c.stroke();
-
-        c.fillStyle = "#0a0510";
+        c.fillStyle = "#1A1520";
         c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
+        c.lineWidth = 1.8;
         c.beginPath();
-        c.ellipse(-f * 10, -4, 2.5, 3, -f * 0.3, 0, TAU);
+        c.arc(-f * 10.5, -9.2, 3.2, 0, TAU);
         c.fill();
         c.stroke();
-
-        // 🆕 РИСУЕМ РУКАВ (ТЕПЕРЬ ПОД КАПЮШОНОМ, ЧТОБЫ НЕ ПЕРЕКРЫВАТЬ ЛИЦО)
-        const swingRot =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
-        c.save();
-        c.strokeStyle = "#000";
-        c.lineWidth = 9;
-        c.lineCap = "round";
+        c.fillStyle = "rgba(255,255,255,.15)";
         c.beginPath();
-        c.moveTo(f * 6, -8); // Опускаем начало рукава ниже
-        c.quadraticCurveTo(f * 14, 4 + swingRot * 5, f * 22, -2 + swingRot * 8); // Рукав идет вниз и вбок, не задевая лицо
-        c.stroke();
-        c.strokeStyle = pal.sh;
-        c.lineWidth = 6;
-        c.stroke();
-        c.restore();
-
+        c.arc(-f * 10, -8.8, 1, 0, TAU);
+        c.fill();
         c.save();
-        c.scale(f, 1); // Капюшон смотрит в сторону взгляда
-        if (m.skin.sharkSkin) sharkHoodPath(c);
-        else hoodPath(c);
+        c.scale(-f, 1);
+        hoodPath(c);
         const hg = c.createLinearGradient(-14, -48, 14, -14);
         hg.addColorStop(0, pal.hi);
         hg.addColorStop(0.45, pal.base);
@@ -4972,113 +4687,68 @@
         c.lineJoin = "round";
         c.strokeStyle = "#000";
         c.stroke();
-
         if (m.skin.sharkSkin) {
-          // 1. Внутренняя черная пасть
-          c.fillStyle = "#050208";
-          c.beginPath();
-          c.moveTo(20, -35); // Передний верх
-          c.quadraticCurveTo(10, -5, -10, -18); // Передний низ
-          c.quadraticCurveTo(0, -30, 20, -35); // Задняя часть
-          c.fill();
-
-          // 2. Розовая окантовка губ
-          c.strokeStyle = "#FF69B4";
-          c.lineWidth = 3;
-          c.beginPath();
-          c.moveTo(20, -35);
-          c.quadraticCurveTo(10, -5, -10, -18);
-          c.stroke();
-
-          // 3. Верхние зубы
           c.fillStyle = "#FFFFFF";
           c.strokeStyle = "#000";
-          c.lineWidth = 1.5;
-          c.lineJoin = "miter";
-          const topTeeth = [
-            [18, -33],
-            [10, -29],
-            [2, -26],
-            [-6, -24],
-          ];
-          for (let i = 0; i < topTeeth.length; i++) {
-            const [tx, ty] = topTeeth[i];
+          c.lineWidth = 1;
+          for (let i = 0; i < 6; i++) {
+            const x = -10 + i * 3.5;
             c.beginPath();
-            c.moveTo(tx - 2, ty);
-            c.lineTo(tx + 1, ty + 6);
-            c.lineTo(tx + 4, ty);
+            c.moveTo(x, -15);
+            c.lineTo(x + 1.5, -11);
+            c.lineTo(x + 3, -15);
             c.closePath();
             c.fill();
             c.stroke();
           }
-
-          // 4. Нижние зубы
-          const botTeeth = [
-            [16, -24],
-            [8, -20],
-            [0, -18],
-            [-8, -16],
-          ];
-          for (let i = 0; i < botTeeth.length; i++) {
-            const [tx, ty] = botTeeth[i];
-            c.beginPath();
-            c.moveTo(tx - 2, ty);
-            c.lineTo(tx + 1, ty - 6);
-            c.lineTo(tx + 4, ty);
-            c.closePath();
-            c.fill();
-            c.stroke();
-          }
-
-          // 5. Плавник на макушке
-          c.fillStyle = "#FFB6D9";
+          c.fillStyle = "#FF69B4";
           c.strokeStyle = "#000";
-          c.lineWidth = 2.5;
+          c.lineWidth = 1.8;
+          c.lineJoin = "round";
           c.beginPath();
-          c.moveTo(0, -55);
-          c.quadraticCurveTo(10, -75, 20, -55);
+          c.moveTo(-4, -47);
+          c.lineTo(-7, -58);
+          c.lineTo(0, -50);
+          c.lineTo(3, -58);
+          c.lineTo(5, -46);
           c.closePath();
           c.fill();
           c.stroke();
-
-          // 6. Боковой глаз акулы
-          c.fillStyle = "#000";
-          c.beginPath();
-          c.ellipse(10, -48, 3, 4, 0.3, 0, TAU);
-          c.fill();
-          c.fillStyle = "#FFF";
-          c.beginPath();
-          c.arc(10.5, -49, 1, 0, TAU);
-          c.fill();
         }
-
         if (m.skin.catEars) {
           c.fillStyle = pal.hi;
           c.strokeStyle = "#000";
           c.lineWidth = 2.5;
           c.lineJoin = "round";
           for (const s of [-1, 1]) {
-            const bx = s * 8;
-
-            // Внешнее ухо (опущено вниз до -38, чтобы сливаться с капюшоном)
+            const bx = s * 7;
             c.beginPath();
-            c.moveTo(bx - 7, -38);
-            c.quadraticCurveTo(bx - 6, -58, bx, -62);
-            c.quadraticCurveTo(bx + 6, -58, bx + 7, -38);
+            c.moveTo(bx - 6, -44);
+            c.quadraticCurveTo(bx - 3, -52, bx, -58);
+            c.quadraticCurveTo(bx + 3, -52, bx + 6, -44);
             c.closePath();
             c.fill();
             c.stroke();
-
-            // Внутреннее розовое ухо
             c.fillStyle = "#FF69B4";
             c.beginPath();
-            c.moveTo(bx - 4, -39);
-            c.quadraticCurveTo(bx - 3, -54, bx, -57);
-            c.quadraticCurveTo(bx + 3, -54, bx + 4, -39);
+            c.moveTo(bx - 3.5, -45);
+            c.quadraticCurveTo(bx - 1.5, -51, bx, -54);
+            c.quadraticCurveTo(bx + 1.5, -51, bx + 3.5, -45);
             c.closePath();
             c.fill();
-
+            c.strokeStyle = "#FF69B4";
+            c.lineWidth = 1;
+            c.stroke();
             c.fillStyle = pal.hi;
+            c.strokeStyle = "#000";
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.moveTo(bx - 1, -53);
+            c.lineTo(bx, -57);
+            c.lineTo(bx + 1, -53);
+            c.closePath();
+            c.fill();
+            c.stroke();
           }
         }
         c.strokeStyle = pal.dk;
@@ -5092,7 +4762,6 @@
         c.stroke();
         c.globalAlpha = alpha;
         c.restore();
-
         c.strokeStyle = pal.hi;
         c.globalAlpha = alpha * 0.85;
         c.lineWidth = 1.6;
@@ -5102,8 +4771,6 @@
         c.bezierCurveTo(-13.5, -33, -10, -39, -5.5, -42);
         c.stroke();
         c.globalAlpha = alpha;
-
-        // Eyes
         const fx = f * 1.2;
         c.fillStyle = "#050208";
         c.beginPath();
@@ -5112,28 +4779,6 @@
         c.lineWidth = 1.5;
         c.strokeStyle = "rgba(0,0,0,0.8)";
         c.stroke();
-
-        if (m.skin.catEars) {
-          c.strokeStyle = "rgba(255,255,255,0.7)";
-          c.lineWidth = 1.5;
-          c.beginPath();
-          for (let i = 0; i < 3; i++) {
-            const y = -28 + i * 4;
-            c.moveTo(fx - 6, y);
-            c.lineTo(fx - 16, y - 2 + i);
-            c.moveTo(fx + 6, y);
-            c.lineTo(fx + 16, y - 2 + i);
-          }
-          c.stroke();
-          c.fillStyle = "#FF69B4";
-          c.beginPath();
-          c.moveTo(fx, -24);
-          c.lineTo(fx - 2, -26);
-          c.lineTo(fx + 2, -26);
-          c.closePath();
-          c.fill();
-        }
-
         if (m.skin.crown) {
           c.fillStyle = m.skin.accent || "#FFD84A";
           c.strokeStyle = "#000";
@@ -5149,41 +4794,34 @@
           c.stroke();
         }
         drawEyes(c, m, fx, -26);
-
-        // 2. РИСУЕМ ПОСОХ
         drawStaff(c, m, f);
-
-        // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
-        const px = f * 22,
-          py = -2;
-        const sw =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        const swingRot =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        c.translate(px, py);
-        c.rotate(sw - f * 0.04 + (m.staffAnim || 0) * f * 0.45);
-        c.translate(-px, -py);
-
-        c.fillStyle = "#0a0510";
+        c.translate(f * 7, -17);
+        c.rotate(f * -0.25 + swingRot);
         c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
-
+        c.lineWidth = 6.5;
+        c.lineCap = "round";
         c.beginPath();
-        c.ellipse(px, py, 4, 5, 0, 0, TAU);
-        c.fill();
+        c.moveTo(0, 0);
+        c.quadraticCurveTo(f * 3.5, 1, f * 6, 3.5);
         c.stroke();
-
-        c.beginPath();
-        c.ellipse(px - f * 2, py + 1, 2, 2.5, -f * 0.4, 0, TAU);
-        c.fill();
+        c.strokeStyle = pal.sh;
+        c.lineWidth = 4;
         c.stroke();
-
-        c.fillStyle = "rgba(255,255,255,.15)";
-        c.beginPath();
-        c.ellipse(px + f * 1, py - 1.5, 1.5, 2, 0, 0, TAU);
-        c.fill();
-
         c.restore();
-
+        c.fillStyle = "#1A1520";
+        c.strokeStyle = "#000";
+        c.lineWidth = 1.8;
+        c.beginPath();
+        c.arc(f * 14.8, -14.2, 3.3, 0, TAU);
+        c.fill();
+        c.stroke();
+        c.fillStyle = "rgba(255,255,255,.25)";
+        c.beginPath();
+        c.arc(f * 14, -15.2, 1.2, 0, TAU);
+        c.fill();
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
           c.fillStyle = "#5080FF";
@@ -5248,7 +4886,7 @@
         c.closePath();
         c.fill();
         c.save();
-        c.scale(f, 1);
+        c.scale(-f, 1);
         hoodPath(c);
         c.restore();
         c.fill();
@@ -5557,13 +5195,6 @@
         c.save();
         c.translate(rk.x, rk.y);
         c.lineJoin = "round";
-
-        // 🆕 Тень камня
-        c.fillStyle = "rgba(0,0,0,0.4)";
-        c.beginPath();
-        c.ellipse(0, 2, rk.r * 1.2, rk.r * 0.4, 0, 0, TAU);
-        c.fill();
-
         c.beginPath();
         rk.poly.forEach((v, i) =>
           i ? c.lineTo(v[0], v[1] * 0.6) : c.moveTo(v[0], v[1] * 0.6),
@@ -5790,7 +5421,6 @@
           dotAcc: 0,
           shootCd: 3,
           lastHit: null,
-          dmgTaken: 0,
         };
         mo.maxHp = d[3] * (1 + wave * 0.12) * (aura === "blue" ? 2 : 1);
         mo.hp = mo.maxHp;
@@ -6007,7 +5637,7 @@
               c.fill();
             }
             ey = -r * 1.05;
-            ex = r * 0.38;
+            ex = 0;
             glow = "#FF4020";
             break;
           case "golem": {
@@ -6150,8 +5780,6 @@
       };
       const cam = { x: CX, y: CY, z: 1, sx: 0, sy: 0 };
       const isFoe = (a, b) =>
-        a &&
-        b &&
         b !== a &&
         !b.dead &&
         (G.mode === "survival" ? !!a.isMonster !== !!b.isMonster : true);
@@ -6293,7 +5921,6 @@
           burst(t.x, t.y - t.r, "#FFF", 6, 120, 2, 0.3, true);
           sfx("impact");
           G.kills++;
-          if (t.boss) SAVE.stats.bossesKilled++;
           const owner = src && !src.isMonster ? src : null;
           if (owner) {
             owner.kills++;
@@ -6329,6 +5956,7 @@
         G.events.push({ k: "kill", id: t.id });
         t.deadAlive = G.mages.filter((m) => !m.dead).length + 1;
         if (t === G.player) {
+          FX.chroma = 6;
           FX.flash = 0.7;
           FX.zoom = 0.2;
           vib([80, 40, 200]);
@@ -6402,9 +6030,7 @@
         }
       }
       function elemColor(e) {
-        if (e === 4) return "#B040FF";
-        const el = ELEMS[e];
-        return el ? el.color : "#FFFFFF";
+        return e === 4 ? "#B040FF" : ELEMS[e].color;
       }
 
       function spawnProj(own, x, y, ang, e, dmg, o) {
@@ -6415,7 +6041,7 @@
         p.y = y;
         p.vx = Math.cos(ang) * sp;
         p.vy = Math.sin(ang) * sp;
-        p.r = o.r || 14;
+        p.r = o.r || 7;
         p.e = e;
         p.own = own;
         p.dmg = dmg;
@@ -6426,8 +6052,8 @@
         p.trail = o.trail || "";
         p.style = o.style || "orb";
         p.col = o.col || null;
-        p.age = 0;
-        p.trailPts = [];
+        if (!p.trailPts) p.trailPts = [];
+        p.trailPts.length = 0;
         p.trailPts.push({ x: p.x, y: p.y });
         return p;
       }
@@ -6453,18 +6079,13 @@
         if (m.fx.blind > 0) ang += rnd(-0.5, 0.5);
         m.facing = Math.cos(ang) >= 0 ? 1 : -1;
         emote(m, "cast", 0.3);
-
-        // Damage scaling with multiStacks (15% per extra stack)
-        const dmgMult = 1 + (m.multiStacks - 1) * 0.15;
-        const base =
-          (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
-
+        const base = (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1);
         let melee = false;
         for (const t of G.all) {
           if (!isFoe(m, t)) continue;
           const d = dist(m.x, m.y, t.x, t.y);
           if (
-            d < 80 + t.r &&
+            d < 110 + t.r &&
             Math.abs(angDiff(ang, Math.atan2(t.y - m.y, t.x - m.x))) < 1.25
           ) {
             melee = true;
@@ -6480,7 +6101,7 @@
             if (!isFoe(m, t)) continue;
             const d = dist(m.x, m.y, t.x, t.y),
               ta = Math.atan2(t.y - m.y, t.x - m.x);
-            if (d < 90 + t.r && Math.abs(angDiff(ang, ta)) < Math.PI / 2.6) {
+            if (d < 120 + t.r && Math.abs(angDiff(ang, ta)) < Math.PI / 2.6) {
               dealDamage(m, t, base, { type: "melee" });
               if (!t.dead) {
                 t.kvx += Math.cos(ta) * 15;
@@ -6491,7 +6112,6 @@
             }
           }
         } else {
-          m.staffAnim = 1;
           sfx("shoot", m.elem);
           const n = m.multiStacks,
             range = m.elem === 1 ? 1.2 : 1,
@@ -6535,8 +6155,7 @@
           }
           const stStyle = m.staff ? m.staff.atkStyle : "orb",
             stCol = m.staff && m.staff.color ? m.staff.color : null;
-          // 🆕 Фиксированный широкий разброс, чтобы пули именно "расстраивались"
-          const spreadRad = 0.16;
+          const spreadRad = 0.14 * Math.min(1, 4 / n);
           for (let i = 0; i < n; i++)
             spawnProj(
               m,
@@ -6550,7 +6169,6 @@
                 trail: m === G.player ? SAVE.fxTrail : "",
                 style: stStyle,
                 col: stCol,
-                r: 12, // 🆕 Увеличили размер для сочности
               },
             );
           elemFx(ex, ey, m.elem, 8, 140);
@@ -6629,7 +6247,6 @@
         for (let i = 0; i < a.length; i++) {
           const p = a[i];
           if (!p.on) continue;
-          p.age += dt;
           if (p.home) {
             const tg = nearestFoe(p.own, p.x, p.y, 600);
             if (tg) {
@@ -6648,8 +6265,6 @@
             p.trailPts.push({ x: p.x, y: p.y });
             if (p.trailPts.length > 8) p.trailPts.shift();
           }
-
-          // Always spawn base element trail
           if (Q.pmul >= 0.4) {
             const col =
               p.e === 4
@@ -6680,8 +6295,6 @@
                 true,
                 0.9,
               );
-
-            // Stack custom trail effect on top
             if (p.trail === "trail_rainbow") {
               for (let ti = 0; ti < 2; ti++)
                 pt(
@@ -6751,7 +6364,6 @@
                 );
             }
           }
-
           const dxc = p.x - CX,
             dyc = p.y - CY;
           if (p.life <= 0 || dxc * dxc + dyc * dyc > lim2) {
@@ -6759,24 +6371,20 @@
             p.on = false;
             continue;
           }
-
-          if (p.age > 0.1) {
-            let hit = false;
-            for (const rk of G.rocks) {
-              const ddx = rk.x - p.x,
-                ddy = rk.y - p.y;
-              if (ddx * ddx + ddy * ddy < rk.r * rk.r) {
-                hit = true;
-                break;
-              }
-            }
-            if (hit) {
-              burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
-              p.on = false;
-              continue;
+          let hit = false;
+          for (const rk of G.rocks) {
+            const ddx = rk.x - p.x,
+              ddy = rk.y - p.y;
+            if (ddx * ddx + ddy * ddy < rk.r * rk.r) {
+              hit = true;
+              break;
             }
           }
-
+          if (hit) {
+            burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
+            p.on = false;
+            continue;
+          }
           _pp = p;
           GRID.query(p.x, p.y, 60, projHitCb);
         }
@@ -6807,19 +6415,6 @@
         const dashCol = m.skin.accent || m.mantle;
         burst(m.x, m.y - 8, dashCol, 16, 180, 3.5, 0.5, true);
         burst(m.x, m.y - 8, "#FFFFFF", 6, 120, 2, 0.3, true);
-
-        for (let i = 1; i <= 4; i++) {
-          G.ghosts.push({
-            x: m.x - m.dashX * i * 15,
-            y: m.y - m.dashY * i * 15,
-            facing: m.facing,
-            col: dashCol,
-            life: 0.4 - i * 0.05,
-            max: 0.4,
-            trailType: m === G.player ? SAVE.fxTrail : "",
-          });
-        }
-
         G.events.push({ k: "dash", id: m.id, a: ang });
         if (m === G.player) {
           vib(20);
@@ -6901,13 +6496,9 @@
         m.ultCharge = 0;
         m.runes = [];
         m.castLock = u.mega ? 0.7 : 0.4;
-        m.staffAnim = 1; // 🆕 Толкаем посох вперед при ульте
         if (Math.abs(ax - m.x) > 4) m.facing = ax > m.x ? 1 : -1;
         emote(m, u.mega ? "mega" : "ult", u.mega ? 2 : 1.5);
         castFeel(m, u);
-
-        if (m === G.player) SAVE.stats.ultsUsed++;
-
         G.events.push({
           k: "ult",
           id: m.id,
@@ -6940,6 +6531,7 @@
         G.epicT = 4;
         if (me) {
           FX.dark = 0.6;
+          FX.chroma = u.mega ? 8 : 5;
           FX.zoom = u.mega ? -0.15 : 0.15;
           vib([50, 30, 100]);
         }
@@ -7109,6 +6701,7 @@
       function giveAura(m, e, dur) {
         m.aura = dur;
         m.auraElem = e;
+        m.auraMax = dur;
       }
 
       function runUlt(m, u, ax, ay) {
@@ -7118,19 +6711,19 @@
           E = elemColor;
         switch (k) {
           case "0":
-            aoe(m, mx, my, 170, 35, { kb: 14, burn: [3, 5] });
+            aoe(m, mx, my, 170, 50, { kb: 14, burn: [3, 5] });
             splash(mx, my, 170, E(0), 1);
             break;
           case "1":
-            aoe(m, ax, ay, 150, 30, { freeze: 1.5 });
+            aoe(m, ax, ay, 150, 45, { freeze: 1.5 });
             splash(ax, ay, 150, E(1), 1);
             break;
           case "2":
-            chainBolt(m, mx, my - 18, 3, 25, 320, "#FFEE00");
+            chainBolt(m, mx, my - 18, 3, 40, 320, "#FFEE00");
             splash(mx, my, 90, E(2), 0.6);
             break;
           case "3":
-            aoe(m, mx, my, 220, 20, { kb: 28 });
+            aoe(m, mx, my, 220, 30, { kb: 28 });
             splash(mx, my, 220, "#DDF4F8", 1);
             break;
           case "4":
@@ -7139,7 +6732,7 @@
               y: ay,
               r: 110,
               life: 2.5,
-              dps: 30,
+              dps: 40,
               pull: 240,
               elem: 4,
               style: "hole",
@@ -7153,18 +6746,18 @@
                 ax + rnd(-110, 110),
                 ay + rnd(-110, 110),
                 80,
-                40,
+                60,
                 0.6 + i * 0.16,
               );
             break;
           case "0-1":
-            aoe(m, ax, ay, 150, 35, { slow: [4, 0.5], blind: 4 });
+            aoe(m, ax, ay, 150, 50, { slow: [4, 0.5], blind: 4 });
             splash(ax, ay, 150, "#E8F8FF", 1);
             break;
           case "0-2":
-            chainBolt(m, mx, my - 18, 5, 35, 320, "#FF8C00");
+            chainBolt(m, mx, my - 18, 5, 50, 320, "#FF8C00");
             splash(mx, my, 150, "#FF9040", 1);
-            aoe(m, mx, my, 100, 15, { kb: 10 });
+            aoe(m, mx, my, 100, 20, { kb: 10 });
             break;
           case "0-3":
             addZone(m, {
@@ -7172,7 +6765,7 @@
               y: my + (ay - my) * 0.5,
               r: 75,
               life: 6,
-              dps: 60,
+              dps: 80,
               chase: 130,
               pull: 40,
               elem: 0,
@@ -7186,7 +6779,7 @@
               y: ay,
               r: 160,
               life: 3,
-              dps: 50,
+              dps: 70,
               pull: 300,
               elem: 0,
               style: "hole",
@@ -7195,7 +6788,7 @@
             splash(ax, ay, 160, "#FF3000", 1);
             break;
           case "1-1":
-            aoe(m, CX, CY, 5000, 20, { freeze: 3 });
+            aoe(m, CX, CY, 5000, 30, { freeze: 3 });
             splash(mx, my, 300, E(1), 1.4);
             G.gfx.push({ k: "ice", t: 3, m: 3 });
             break;
@@ -7213,7 +6806,7 @@
                 elem: 1,
                 style: "ice",
               });
-              later(0.9 + i * 0.12, () => strike(m, x, y, 70, 50));
+              later(0.9 + i * 0.12, () => strike(m, x, y, 70, 70));
             }
             break;
           case "1-3":
@@ -7223,7 +6816,7 @@
               y: CY,
               r: 1e5,
               life: 6,
-              dps: 20,
+              dps: 30,
               slow: 0.6,
               elem: 1,
               style: "global",
@@ -7231,7 +6824,7 @@
             splash(mx, my, 300, "#E8FFFF", 1.2);
             break;
           case "1-4":
-            aoe(m, ax, ay, 170, 40, { freeze: 2, amp: 5 });
+            aoe(m, ax, ay, 170, 60, { freeze: 2, amp: 5 });
             splash(ax, ay, 170, "#B0F8FF", 1.2);
             break;
           case "2-2":
@@ -7245,12 +6838,12 @@
                     t.x + rnd(-120, 120),
                     t.y - 200,
                     1,
-                    30,
+                    40,
                     300,
                     "#FFEE00",
                   );
                 else
-                  strike(m, mx + rnd(-300, 300), my + rnd(-300, 300), 50, 30);
+                  strike(m, mx + rnd(-300, 300), my + rnd(-300, 300), 50, 40);
               });
             splash(mx, my, 200, E(2), 1);
             break;
@@ -7260,10 +6853,10 @@
               y: my + (ay - my) * 0.5,
               r: 75,
               life: 5,
-              dps: 20,
+              dps: 30,
               chase: 110,
               pull: 60,
-              zap: 25,
+              zap: 35,
               elem: 2,
               style: "tornado",
             });
@@ -7273,11 +6866,11 @@
             for (let i = 0; i < 6; i++)
               later(i * 0.1, () => {
                 if (!m.dead)
-                  spawnProj(m, mx, my - 22, rnd(0, TAU), 4, 35, {
+                  spawnProj(m, mx, my - 22, rnd(0, TAU), 4, 55, {
                     speed: 340,
                     life: 2.5,
                     home: true,
-                    r: 10,
+                    r: 9,
                     kind: 1,
                   });
               });
@@ -7289,7 +6882,7 @@
               y: ay,
               r: 200,
               life: 4,
-              dps: 20,
+              dps: 30,
               pull: 260,
               elem: 3,
               style: "tornado",
@@ -7307,7 +6900,7 @@
               t.y = CY + Math.sin(a) * rr;
               if (t.resetVerlet) t.resetVerlet();
               burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
-              dealDamage(m, t, 30, { type: "zone" });
+              dealDamage(m, t, 40, { type: "zone" });
             }
             splash(mx, my, 300, E(4), 1.2);
             break;
@@ -7317,7 +6910,7 @@
               y: ay,
               r: 220,
               life: 5,
-              dps: 50,
+              dps: 70,
               pull: 320,
               elem: 4,
               style: "hole",
@@ -7338,7 +6931,7 @@
                 x = CX + Math.cos(a) * r;
                 y = CY + Math.sin(a) * r;
               }
-              meteor(m, x, y, 80, 20, 0.6);
+              meteor(m, x, y, 80, 30, 0.6);
             });
             G.gfx.push({ k: "lava", t: 10, m: 10 });
             addZone(m, {
@@ -7346,7 +6939,7 @@
               y: CY,
               r: 1e5,
               life: 10,
-              dps: 12,
+              dps: 16,
               elem: 0,
               style: "global",
             });
@@ -7354,7 +6947,7 @@
             break;
           case "1-1-1":
             giveAura(m, 1, 10);
-            aoe(m, CX, CY, 5000, 30, { freeze: 5 });
+            aoe(m, CX, CY, 5000, 40, { freeze: 5 });
             G.gfx.push({ k: "ice", t: 5, m: 5 });
             splash(mx, my, 500, E(1), 1.6);
             break;
@@ -7363,8 +6956,8 @@
             G.gfx.push({ k: "wrath", t: 8, m: 8 });
             emitter(m, 8, 0.2, () => {
               const t = randFoe(m);
-              if (t) strike(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 65, 20);
-              else strike(m, mx + rnd(-400, 400), my + rnd(-400, 400), 65, 20);
+              if (t) strike(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 65, 28);
+              else strike(m, mx + rnd(-400, 400), my + rnd(-400, 400), 65, 28);
             });
             splash(mx, my, 400, E(2), 1.6);
             break;
@@ -7375,7 +6968,7 @@
               y: my,
               r: 260,
               life: 8,
-              dps: 35,
+              dps: 50,
               chase: 150,
               pull: 170,
               elem: 3,
@@ -7396,7 +6989,7 @@
               elem: 4,
               style: "global",
               core: 260,
-              coreDps: 70,
+              coreDps: 90,
             });
             G.gfx.push({ k: "oblivion", t: 6, m: 6, x: mx, y: my });
             splash(mx, my, 500, E(4), 1.8);
@@ -7505,7 +7098,7 @@
           }
           if (z.life <= 0) {
             if (z.end === "throw") {
-              aoe(z.own, z.x, z.y, z.r, 30, { kb: 36 });
+              aoe(z.own, z.x, z.y, z.r, 40, { kb: 36 });
               splash(z.x, z.y, z.r, "#DDF4F8", 1.2);
             }
             G.zones.splice(i, 1);
@@ -7543,18 +7136,6 @@
           }
         } else if (z.style === "tornado") {
           const h = z.r * 1.8;
-          // 🆕 Все заливки в одном пути → 1 вызов fill() вместо 9
-          c.fillStyle = rgba(col, 0.12 * k);
-          c.beginPath();
-          for (let i = 0; i < 9; i++) {
-            const u = i / 8,
-              y = z.y - u * h,
-              w = z.r * (0.25 + u * 0.75),
-              a = TM * 8 + i;
-            c.ellipse(z.x + Math.sin(a * 0.5) * 6, y, w, w * 0.3, 0, 0, TAU);
-          }
-          c.fill();
-          // Обводки (alpha у каждой своя, поэтому в цикле)
           c.lineWidth = 3;
           for (let i = 0; i < 9; i++) {
             const u = i / 8,
@@ -7562,8 +7143,10 @@
               w = z.r * (0.25 + u * 0.75),
               a = TM * 8 + i;
             c.strokeStyle = rgba(col, (0.8 - u * 0.4) * k);
+            c.fillStyle = rgba(col, 0.12 * k);
             c.beginPath();
             c.ellipse(z.x + Math.sin(a * 0.5) * 6, y, w, w * 0.3, 0, 0, TAU);
+            c.fill();
             c.stroke();
           }
         } else if (z.style === "ice") {
@@ -7611,7 +7194,7 @@
         if (!ok) return;
         const type = randomPickupType();
         spawnPickup(type, x, y);
-        G.spawnFx.push({ x, y, t: 1.2, m: 1.2, c: PK[type].col, w: 40 });
+        G.spawnFx.push({ x, y, t: 1.2, m: 1.2, c: PK[type].col, w: 24 });
         burst(x, y, PK[type].col, 14, 120, 3, 0.6, true);
       }
 
@@ -7619,7 +7202,6 @@
         m.runes.push(e);
         if (m.runes.length > 3) m.runes.shift();
         m.elem = e;
-        if (m === G.player) SAVE.stats.runesCollected++;
       }
       function addMulti(m) {
         m.multiStacks = Math.min(15, m.multiStacks + 1);
@@ -7641,7 +7223,7 @@
             m.fx.shield = 25;
             break;
           case "gem":
-            m.goldEarn = (m.goldEarn || 0) + 5;
+            if (m === G.player || m.id === G.myId) G.goldEarn += 5;
             break;
           case "time":
             for (const t of G.all) if (isFoe(m, t)) t.fx.tslow = 4;
@@ -7675,11 +7257,11 @@
           for (const m of G.mages) {
             if (m.dead) continue;
             const d = dist(m.x, m.y, p.x, p.y);
-            if (d < 90 && (m === G.player || m.isBot || m.remote)) {
+            if (d < 90 && (m === G.player || m.isBot)) {
               p.x += ((m.x - p.x) / d) * 120 * dt;
               p.y += ((m.y - 10 - p.y) / d) * 120 * dt;
             }
-            if (d < 35) {
+            if (d < 26) {
               collect(m, p);
               G.pickups.splice(i, 1);
               break;
@@ -7858,7 +7440,7 @@
         m.scale = 1;
         const tl = m.victory ? 20 : m.aura > 0 ? 5 : 0;
         m.lev += (tl - m.lev) * 0.1;
-        if (Q.pmul >= 0.6 && !m.dead && !_previewMode && Math.random() < 0.25) {
+        if (Q.pmul >= 0.6 && !m.dead && Math.random() < 0.25) {
           const au = m.skin.aura,
             x = m.x + rnd(-10, 10),
             y = m.y - rnd(8, 36);
@@ -7903,24 +7485,7 @@
               Math.random() < 0.3,
               0.98,
             );
-
           const isMe = G && m === G.player;
-
-          // Default speed trail (always active for the player)
-          if (isMe && Math.hypot(m.vx, m.vy) > 40 && Math.random() < 0.5) {
-            pt(
-              m.x,
-              m.y - 10,
-              rnd(-15, 15),
-              rnd(-15, 15),
-              0.3,
-              rnd(2, 4),
-              elemColor(m.elem),
-              0,
-              true,
-            );
-          }
-
           if (isMe && SAVE.fxAura === "aura_souls")
             pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#A0FFE0", 0, true);
           else if (isMe && SAVE.fxAura === "aura_petals")
@@ -7935,7 +7500,6 @@
               0,
               false,
             );
-
           if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
             const tx = m.x + rnd(-6, 6),
               ty = m.y - rnd(5, 30);
@@ -8047,18 +7611,13 @@
         m.castLock -= dt;
         m.inv -= dt;
         m.swing = Math.max(0, m.swing - dt * 5);
-        m.staffAnim = Math.max(0, m.staffAnim - dt * 6); // 🆕 Быстрое возвращение посоха
         m.streakT -= dt;
         if (m.streakT <= 0) m.streak = 0;
         updateStatus(m, dt);
         if (m.dead) return;
         m.mana = Math.min(100, m.mana + 10 * m.up.mregen * dt);
-
-        // Ульта заряжается быстрее (было 20, стало 12)
-        m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult);
-
+        m.ultCharge = Math.min(100, m.ultCharge + (100 / 20) * dt * m.up.ult);
         if (m.aura > 0) m.aura -= dt;
-        if (m.auraElem === 2 && m.arcs.length > 0) m.arcT -= dt;
         if (G.role !== "client") {
           if (m.remote) {
             const n = m.netIn;
@@ -8218,7 +7777,7 @@
                 off + (i / n) * TAU,
                 mo.bossElem,
                 10 + G.wave * 0.3,
-                { speed: 260, life: 2.2, r: 10 },
+                { speed: 260, life: 2.2, r: 8 },
               );
             sfx("shoot", mo.bossElem);
           }
@@ -8313,9 +7872,8 @@
           }
         }
         g.pkT -= dt;
-        // Spawn more frequently and allow more buffs on the map (up from 9 to 15)
-        if (g.pkT <= 0 && g.pickups.length < 15) {
-          g.pkT = rnd(4, 8);
+        if (g.pkT <= 0 && g.pickups.length < 9) {
+          g.pkT = rnd(8, 15);
           spawnRandomPickup();
         } else if (g.pkT <= 0) g.pkT = 3;
         if (g.epicT > 0) g.epicT -= dt;
@@ -8371,10 +7929,6 @@
             arr[i].t -= dt;
             if (arr[i].t <= 0) arr.splice(i, 1);
           }
-        for (let i = G.ghosts.length - 1; i >= 0; i--) {
-          G.ghosts[i].life -= dt;
-          if (G.ghosts[i].life <= 0) G.ghosts.splice(i, 1);
-        }
         for (let i = G.debris.length - 1; i >= 0; i--) {
           const d = G.debris[i];
           d.t += dt;
@@ -8404,10 +7958,6 @@
         }
         for (const a of G.ann) a.t += dt;
         G.ann = G.ann.filter((a) => a.t < 1.8);
-        if (G.pillar) {
-          G.pillar.t -= dt;
-          if (G.pillar.t <= 0) G.pillar = null;
-        }
       }
 
       function updateGame(dt) {
@@ -8429,19 +7979,10 @@
           matchLogic(dt);
           for (const m of g.mages) updateMage(m, dt);
           for (const mo of g.monsters) updateMonster(mo, dt);
-
-          // 🆕 Чистим мёртвых и одновременно ищем босса
           let w = 0;
-          g.boss = null;
-          for (let i = 0; i < g.monsters.length; i++) {
-            const mo = g.monsters[i];
-            if (!mo.dead) {
-              g.monsters[w++] = mo;
-              if (mo.boss) g.boss = mo;
-            }
-          }
+          for (let i = 0; i < g.monsters.length; i++)
+            if (!g.monsters[i].dead) g.monsters[w++] = g.monsters[i];
           g.monsters.length = w;
-
           updateProjs(dt);
           updateZones(dt);
           updatePickups(dt);
@@ -8590,6 +8131,7 @@
           Q.dprCap = 1.25;
         }
         Q.lvl = 0;
+        Q.base = Q.pmul;
         resize();
       }
       function resize() {
@@ -8608,18 +8150,15 @@
       window.addEventListener("orientationchange", () =>
         setTimeout(resize, 150),
       );
-      let _vs = 1; // 🆕 кэш
-      function updateViewScaleCache() {
-        // 🆕
+      const viewScale = () => {
         let base;
         if (IS_MOBILE && Math.min(W, H) < 700) base = clamp(H / 900, 0.45, 1.1);
         else if (IS_TABLET) base = clamp(H / 650, 0.6, 1.4);
         else base = clamp(H / 750, 0.55, 1.6);
-        _vs = base * cam.z;
-      }
-      const viewScale = () => _vs; // ← возвращает кэш
+        return base * cam.z;
+      };
       function w2s(x, y) {
-        const s = _vs; // ← использует кэш
+        const s = viewScale();
         return { x: (x - cam.x) * s + W / 2, y: (y - cam.y) * s + H / 2 };
       }
 
@@ -8668,20 +8207,14 @@
             a.tagName === "TEXTAREA")
         );
       };
-      let _blCache = null,
-        _blKey = ""; // 🆕
       function btnLayout() {
-        const key = W + "|" + H + "|" + UIS; // 🆕
-        if (_blKey === key && _blCache) return _blCache;
-        _blKey = key;
         const u = UIS;
-        return (_blCache = {
+        return {
           attack: { x: W - 120 * u, y: H - 110 * u, r: 45 * u },
           ult: { x: W - 62 * u, y: H - 218 * u, r: 42 * u },
           dash: { x: W - 222 * u, y: H - 62 * u, r: 33 * u },
-          pause: { x: W - 30 * u, y: 30 * u, r: 22 * u },
-          cancel: { x: W - 160 * u, y: H - 300 * u, r: 28 * u },
-        });
+          pause: { x: W - 24 * u, y: 22 * u, r: 15 * u },
+        };
       }
       function resetAllInputs() {
         for (const k in keys) delete keys[k];
@@ -8707,19 +8240,8 @@
         }
         if (!e.repeat) {
           if (e.code === "Escape") {
-            if (state === "PLAYING") {
-              // 🆕 Отмена прицела по Esc
-              if (
-                aiming ||
-                B.ult.st === 2 ||
-                B.attack.st === 2 ||
-                B.dash.st === 2
-              ) {
-                cancelAim();
-                return;
-              }
-              pauseGame();
-            } else if (state === "PAUSED") resumeGame();
+            if (state === "PLAYING") pauseGame();
+            else if (state === "PAUSED") resumeGame();
             return;
           }
           if (state === "PLAYING" && G && G.player && !G.player.dead) {
@@ -8885,14 +8407,6 @@
           sfx("release");
         }
       }
-      function cancelAim() {
-        for (const n in B) {
-          B[n].st = 0;
-          B[n].pid = -1;
-        }
-        if (aiming) endAimFx();
-        sfx("release"); // Звук отмены
-      }
       function fireAction(n, ang, d) {
         const p = G.player;
         if (!p || p.dead) return;
@@ -8912,75 +8426,6 @@
             p.facing = Math.cos(ang) >= 0 ? 1 : -1;
             emote(p, "cast", 0.3);
             sfx("shoot", p.elem);
-
-            // 🆕 Локальный визуал атаки (копия логики mageAttack)
-            const col = elemColor(p.elem);
-            let melee = false;
-            for (const t of G.all) {
-              if (!isFoe(p, t)) continue;
-              const d = dist(p.x, p.y, t.x, t.y);
-              if (
-                d < 80 + t.r &&
-                Math.abs(angDiff(ang, Math.atan2(t.y - p.y, t.x - p.x))) < 1.25
-              ) {
-                melee = true;
-                break;
-              }
-            }
-            if (melee) {
-              p.swing = 1;
-              sfx("swing");
-              G.arcs.push({
-                x: p.x,
-                y: p.y - 14,
-                a: ang,
-                l: 0.2,
-                m: 0.2,
-                c: col,
-              });
-            } else {
-              p.staffAnim = 1;
-              const f = p.facing;
-              const staffX = p.x + f * 20;
-              const staffY = p.y - 42 - p.lev;
-              const bodyX = p.x + Math.cos(ang) * 30;
-              const bodyY = p.y - 28 + Math.sin(ang) * 14;
-              const alignF = Math.max(0, Math.cos(ang - (f > 0 ? 0 : Math.PI)));
-              const w = alignF * alignF;
-              const ex = lerp(bodyX, staffX, w);
-              const ey = lerp(bodyY, staffY, w);
-              const coreCol = ELEMS[p.elem].core;
-              burst(ex, ey, [col, coreCol, "#fff"], 10, 200, 2.5, 0.25, true);
-              G.rings.push({
-                x: ex,
-                y: ey,
-                r0: 3,
-                r1: 26,
-                l: 0.18,
-                m: 0.18,
-                c: col,
-                w: 3,
-              });
-              for (let i = 0; i < 8; i++) {
-                const a2 = ang + rnd(-0.5, 0.5);
-                pt(
-                  ex,
-                  ey,
-                  Math.cos(a2) * rnd(80, 200),
-                  Math.sin(a2) * rnd(80, 200),
-                  rnd(0.15, 0.3),
-                  rnd(2, 4),
-                  coreCol,
-                  0,
-                  true,
-                  0.92,
-                );
-              }
-              elemFx(ex, ey, p.elem, 8, 140);
-            }
-          } else if (n === "ult") {
-            p.ultCharge = 0; // 🆕 Сбрасываем локально, чтобы не спамить
-            p.castLock = p.runes.length >= 3 ? 0.7 : 0.4;
           } else if (n === "dash") {
             if (!mageDash(p, ang)) return;
           }
@@ -9057,14 +8502,6 @@
           pauseGame();
           return;
         }
-
-        if (aiming || B.ult.st === 2 || B.attack.st === 2 || B.dash.st === 2) {
-          if (Math.hypot(x - L.cancel.x, y - L.cancel.y) < L.cancel.r * 1.2) {
-            cancelAim();
-            return;
-          }
-        }
-
         const n = hitButton(x, y);
         try {
           canvas.setPointerCapture(e.pointerId);
@@ -9076,14 +8513,6 @@
           return;
         }
         if (e.pointerType === "mouse") {
-          if (
-            e.button === 2 &&
-            (aiming || B.ult.st === 2 || B.attack.st === 2 || B.dash.st === 2)
-          ) {
-            cancelAim();
-            return;
-          }
-
           if (e.button === 0) btnDown("attack", "mouse", x, y, e.pointerId);
           else if (e.button === 2) btnDown("ult", "mouse", x, y, e.pointerId);
           return;
@@ -9221,104 +8650,6 @@
         c.width = c.height = s;
         return c;
       }
-
-      function drawCoin(c) {
-        c.fillStyle = "#FFD700";
-        c.strokeStyle = "#B8860B";
-        c.lineWidth = 2;
-        c.beginPath();
-        c.arc(12, 12, 10, 0, TAU);
-        c.fill();
-        c.stroke();
-        c.fillStyle = "#FFF6A0";
-        c.beginPath();
-        c.arc(12, 12, 6, 0, TAU);
-        c.fill();
-      }
-      function drawGemIcon(c) {
-        c.fillStyle = "#00FFFF";
-        c.strokeStyle = "#0080FF";
-        c.lineWidth = 2;
-        c.beginPath();
-        c.moveTo(12, 2);
-        c.lineTo(22, 10);
-        c.lineTo(12, 22);
-        c.lineTo(2, 10);
-        c.closePath();
-        c.fill();
-        c.stroke();
-        c.fillStyle = "#FFFFFF";
-        c.beginPath();
-        c.moveTo(12, 4);
-        c.lineTo(16, 10);
-        c.lineTo(12, 14);
-        c.lineTo(8, 10);
-        c.closePath();
-        c.fill();
-      }
-      function drawEnergyIcon(c) {
-        c.fillStyle = "#FFD700";
-        c.strokeStyle = "#B8860B";
-        c.lineWidth = 2;
-        c.beginPath();
-        c.moveTo(14, 2);
-        c.lineTo(6, 12);
-        c.lineTo(12, 12);
-        c.lineTo(10, 22);
-        c.lineTo(18, 12);
-        c.lineTo(12, 12);
-        c.closePath();
-        c.fill();
-        c.stroke();
-      }
-      function drawDailyIcon(c) {
-        c.fillStyle = "#FF4500";
-        c.strokeStyle = "#B8860B";
-        c.lineWidth = 2;
-        c.fillRect(4, 12, 16, 10);
-        c.strokeRect(4, 12, 16, 10);
-        c.fillRect(10, 6, 4, 6);
-        c.fillRect(2, 6, 20, 6);
-        c.strokeRect(2, 6, 20, 6);
-        c.beginPath();
-        c.moveTo(12, 6);
-        c.lineTo(6, 2);
-        c.moveTo(12, 6);
-        c.lineTo(18, 2);
-        c.strokeStyle = "#FFFF00";
-        c.lineWidth = 3;
-        c.stroke();
-      }
-      function drawAdIcon(c) {
-        c.fillStyle = "#222";
-        c.fillRect(2, 4, 20, 16);
-        c.strokeStyle = "#FFF";
-        c.lineWidth = 1;
-        c.strokeRect(2, 4, 20, 16);
-        c.fillStyle = "#FFF";
-        c.beginPath();
-        c.moveTo(10, 8);
-        c.lineTo(16, 12);
-        c.lineTo(10, 16);
-        c.fill();
-      }
-      function drawVipIcon(c) {
-        c.fillStyle = "#FFD700";
-        c.beginPath();
-        c.moveTo(2, 18);
-        c.lineTo(22, 18);
-        c.lineTo(22, 10);
-        c.lineTo(17, 14);
-        c.lineTo(12, 6);
-        c.lineTo(7, 14);
-        c.lineTo(2, 10);
-        c.closePath();
-        c.fill();
-        c.strokeStyle = "#B8860B";
-        c.lineWidth = 2;
-        c.stroke();
-      }
-
       function glyph(c, e, x, y, s) {
         c.save();
         c.translate(x, y);
@@ -9898,25 +9229,8 @@
             IC.dash = cv;
           } else {
             c.fillStyle = "#fff";
-            c.strokeStyle = "#000";
-            c.lineWidth = 3;
-            c.lineJoin = "round";
-            c.beginPath();
-            c.moveTo(-10, -12);
-            c.quadraticCurveTo(-10, -15, -5, -15);
-            c.lineTo(-5, 15);
-            c.quadraticCurveTo(-10, 15, -10, 12);
-            c.closePath();
-            c.fill();
-            c.stroke();
-            c.beginPath();
-            c.moveTo(10, -12);
-            c.quadraticCurveTo(10, -15, 5, -15);
-            c.lineTo(5, 15);
-            c.quadraticCurveTo(10, 15, 10, 12);
-            c.closePath();
-            c.fill();
-            c.stroke();
+            c.fillRect(-8, -12, 6, 24);
+            c.fillRect(2, -12, 6, 24);
             IC.ico_pause = cv;
           }
           if (++i % 6 === 0) {
@@ -9924,18 +9238,6 @@
             await new Promise((r) => setTimeout(r, 0));
           }
         }
-        IC.coin = mkc(24);
-        drawCoin(IC.coin.getContext("2d"));
-        IC.gemIcon = mkc(24);
-        drawGemIcon(IC.gemIcon.getContext("2d"));
-        IC.energy = mkc(24);
-        drawEnergyIcon(IC.energy.getContext("2d"));
-        IC.daily = mkc(64);
-        drawDailyIcon(IC.daily.getContext("2d"));
-        IC.ad = mkc(24);
-        drawAdIcon(IC.ad.getContext("2d"));
-        IC.vip = mkc(24);
-        drawVipIcon(IC.vip.getContext("2d"));
       }
 
       /* START/END */
@@ -9999,6 +9301,7 @@
         FX.shakeT = 0;
         FX.flash = 0;
         FX.dark = 0;
+        FX.chroma = 0;
         FX.zoom = 0;
         FX.hs = 0;
         FX.slow = { t: 0, s: 1 };
@@ -10025,7 +9328,6 @@
           fall: [],
           gfx: [],
           debris: [],
-          ghosts: [],
           pickups: [],
           headIcons: [],
           notice: null,
@@ -10061,15 +9363,10 @@
           reviveUsed: false,
           reviveChecked: false,
           pendingQuit: false,
-          boss: null, // 🆕 кэш живого босса
         };
       }
 
       function startMatch(o) {
-        // 🆕 СБРОС АДАПТИВНОГО КАЧЕСТВА (возвращает свечение выстрелам)
-        Q.lvl = 0;
-        applyQuality(); // Восстанавливает Q.glow и Q.pmul согласно настройкам
-        ARENA.ok = false; // Заставляем арену перестроиться под нужный масштаб
         if (!o.online) {
           energyTick();
           if (SAVE.energy < 1) {
@@ -10129,9 +9426,6 @@
             if (skinId === "shark" || skinId === "cat") pm.elem = 1;
             else if (skinId === "archmage") pm.elem = 2;
             else if (skinId === "arcanvoid") pm.elem = 4;
-            else if (skinId === "infernal") pm.elem = 0;
-            else if (skinId === "celestial") pm.elem = 3;
-            else if (skinId === "cursed") pm.elem = 4;
           }
           pm.auraElem = pm.elem;
           G.player = pm;
@@ -10176,16 +9470,10 @@
             m.resetVerlet();
           });
         }
+        cam.x = G.player.x;
+        cam.y = G.player.y;
         cam.z = 1;
-        if (G.player) {
-          cam.x = G.player.x;
-          cam.y = G.player.y;
-          G.player.hp = G.player.maxHp;
-        } else {
-          cam.x = CX;
-          cam.y = CY;
-          console.warn("[startMatch] G.player === null (myId не совпал?)");
-        }
+        G.player.hp = G.player.maxHp;
         state = "PLAYING";
         showScreen(null);
         resetAllInputs();
@@ -10265,16 +9553,13 @@
       function rematch() {
         if (!G || G.online) return;
         const o = G.opts;
-        if (startMatch(Object.assign({}, o, { seed: 0 }))) return;
+        G.resultShown = true;
+        startMatch(Object.assign({}, o, { seed: 0 }));
       }
       function returnToRoom() {
         $("sc-confirm").classList.remove("show");
         if (!G || !G.online) return;
         const wasHost = G.role === "host";
-        if (!wasHost && NET.hostConn && NET.hostConn.open) {
-          // 🆕
-          sendTo(NET.hostConn, { type: "return_to_room" });
-        }
         G = null;
         state = "LOBBY";
         stopHum();
@@ -10412,7 +9697,7 @@
           }
         }
         if (SAVE.vip) reward = Math.round(reward * 1.2);
-        const total = reward + (p.goldEarn || 0);
+        const total = reward + G.goldEarn;
         SAVE.gold += total;
         SAVE.stats.matches++;
         SAVE.stats.kills += p.kills;
@@ -10502,7 +9787,7 @@
 
       function drawProjShape(c, p, col) {
         const style = p.style || "orb",
-          r = p.r || 14;
+          r = p.r || 7;
         if (style === "heart") {
           c.fillStyle = "rgba(255,154,200,.35)";
           c.beginPath();
@@ -10735,49 +10020,19 @@
           c.arc(t.x, t.y, t.r * (1 - k), 0, TAU);
           c.stroke();
         }
-
         if (G.pillar) {
           const pl = G.pillar;
+          pl.t -= 1 / 60;
           if (pl.t <= 0) G.pillar = null;
           else {
-            const alpha = clamp(pl.t, 0, 1);
-            const w = 100 + Math.sin(TM * 10) * 15;
-
-            // Soft base glow
-            const rg = c.createRadialGradient(pl.x, pl.y, 10, pl.x, pl.y, 200);
-            rg.addColorStop(0, `rgba(255,255,255,${alpha})`);
-            rg.addColorStop(0.3, `rgba(255,215,0,${0.7 * alpha})`);
-            rg.addColorStop(1, "rgba(255,215,0,0)");
-            c.fillStyle = rg;
-            c.beginPath();
-            c.ellipse(pl.x, pl.y, 200, 50, 0, 0, TAU);
-            c.fill();
-
-            // Smooth column
-            const gr = c.createLinearGradient(pl.x, pl.y - 900, pl.x, pl.y);
-            gr.addColorStop(0, "rgba(255,255,255,0)");
-            gr.addColorStop(0.3, `rgba(255,255,180,${0.4 * alpha})`);
-            gr.addColorStop(1, `rgba(255,215,0,${0.9 * alpha})`);
-            c.fillStyle = gr;
-
-            // Draw using arc for smooth top and bottom
-            c.beginPath();
-            c.moveTo(pl.x - w / 2, pl.y);
-            c.lineTo(pl.x - w / 2, pl.y - 800);
-            c.quadraticCurveTo(pl.x, pl.y - 900, pl.x + w / 2, pl.y - 800);
-            c.lineTo(pl.x + w / 2, pl.y);
-            c.quadraticCurveTo(pl.x, pl.y + 40, pl.x - w / 2, pl.y);
-            c.fill();
-
-            // Bright inner core
-            c.fillStyle = `rgba(255,255,255,${alpha * 0.8})`;
-            c.beginPath();
-            c.moveTo(pl.x - w / 6, pl.y);
-            c.lineTo(pl.x - w / 6, pl.y - 800);
-            c.quadraticCurveTo(pl.x, pl.y - 850, pl.x + w / 6, pl.y - 800);
-            c.lineTo(pl.x + w / 6, pl.y);
-            c.quadraticCurveTo(pl.x, pl.y + 20, pl.x - w / 6, pl.y);
-            c.fill();
+            const g = c.createLinearGradient(pl.x, pl.y - 900, pl.x, pl.y);
+            g.addColorStop(0, "rgba(255,215,0,0)");
+            g.addColorStop(
+              1,
+              "rgba(255,230,120," + clamp(pl.t, 0, 1) * 0.8 + ")",
+            );
+            c.fillStyle = g;
+            c.fillRect(pl.x - 40, pl.y - 900, 80, 900);
           }
         }
       }
@@ -10806,26 +10061,26 @@
         if (p.life < 6 && Math.floor(TM * 6) % 2) return;
         c.fillStyle = "rgba(0,0,0,.35)";
         c.beginPath();
-        c.ellipse(p.x, p.y, 16, 6, 0, 0, TAU);
+        c.ellipse(p.x, p.y, 11, 4, 0, 0, TAU);
         c.fill();
         c.globalCompositeOperation = Q.glow ? "lighter" : "source-over";
         const g = c.createRadialGradient(
           p.x,
-          p.y - 20 + bob,
+          p.y - 14 + bob,
           2,
           p.x,
-          p.y - 20 + bob,
-          36,
+          p.y - 14 + bob,
+          26,
         );
-        g.addColorStop(0, rgba(col, 0.6));
+        g.addColorStop(0, rgba(col, 0.55));
         g.addColorStop(1, rgba(col, 0));
         c.fillStyle = g;
         c.beginPath();
-        c.arc(p.x, p.y - 20 + bob, 36, 0, TAU);
+        c.arc(p.x, p.y - 14 + bob, 26, 0, TAU);
         c.fill();
         c.globalCompositeOperation = "source-over";
         const im = IC[p.type];
-        if (im) c.drawImage(im, p.x - 24, p.y - 48 + bob, 48, 48);
+        if (im) c.drawImage(im, p.x - 16, p.y - 32 + bob, 32, 32);
       }
 
       function drawAimIndicators(c) {
@@ -10938,6 +10193,7 @@
           Math.min(1, rd * 8);
         FX.flash = Math.max(0, FX.flash - rd * 1.6);
         FX.dark = Math.max(0, FX.dark - rd * 2);
+        FX.chroma = Math.max(0, FX.chroma - rd * 12);
         FX.vig = Math.max(0, FX.vig - rd * 1.6);
         if (state !== "PAUSED") FX.shake *= Math.pow(0.85, rd * 60);
         if (FX.shake > 0.4) {
@@ -11003,60 +10259,12 @@
           if (inV(p.x, p.y, 40)) DR.push({ y: p.y, o: p, t: 2 });
         for (const r of G.rocks)
           if (inV(r.x, r.y, 90)) DR.push({ y: r.y + r.r * 0.3, o: r, t: 3 });
-        for (const gh of G.ghosts) DR.push({ y: gh.y, o: gh, t: 4 });
         DR.sort((a, b) => a.y - b.y);
         for (const d of DR) {
           if (d.t === 0) drawMage(ctx, d.o);
           else if (d.t === 1) drawMonster(ctx, d.o);
           else if (d.t === 2) drawPickup(ctx, d.o);
-          else if (d.t === 3) drawRock(ctx, d.o, th);
-          else if (d.t === 4) {
-            const gh = d.o,
-              ratio = gh.life / gh.max;
-            if (gh.trailType === "trail_hearts") {
-              ctx.globalAlpha = ratio;
-              ctx.fillStyle = "#FF69B4";
-              ctx.beginPath();
-              ctx.moveTo(gh.x, gh.y - 10);
-              ctx.bezierCurveTo(
-                gh.x - 15,
-                gh.y - 20,
-                gh.x - 10,
-                gh.y - 35,
-                gh.x,
-                gh.y - 20,
-              );
-              ctx.bezierCurveTo(
-                gh.x + 10,
-                gh.y - 35,
-                gh.x + 15,
-                gh.y - 20,
-                gh.x,
-                gh.y - 10,
-              );
-              ctx.fill();
-              ctx.globalAlpha = 1;
-            } else if (gh.trailType === "trail_void") {
-              ctx.globalAlpha = ratio;
-              ctx.fillStyle = "#05000a";
-              ctx.beginPath();
-              ctx.arc(gh.x, gh.y - 15, 15, 0, TAU);
-              ctx.fill();
-              ctx.strokeStyle = "#B040FF";
-              ctx.lineWidth = 3;
-              ctx.stroke();
-              ctx.globalAlpha = 1;
-            } else if (gh.trailType === "trail_rainbow") {
-              ctx.globalAlpha = ratio;
-              ctx.fillStyle = `hsl(${(TM * 500 + gh.x * 5) % 360}, 100%, 60%)`;
-              ctx.beginPath();
-              ctx.arc(gh.x, gh.y - 15, 15, 0, TAU);
-              ctx.fill();
-              ctx.globalAlpha = 1;
-            } else {
-              drawGhostMage(ctx, gh.x, gh.y, gh.facing, gh.col, ratio * 0.6);
-            }
-          }
+          else drawRock(ctx, d.o, th);
         }
         drawDebris(ctx);
         for (const z of G.zones) if (z.style === "tornado") drawZone(ctx, z);
@@ -11477,7 +10685,7 @@
           pb.r * 1.2,
           pb.r * 1.2,
         );
-        const boss = G.boss;
+        const boss = G.monsters.find((m) => m.boss && !m.dead);
         if (boss) {
           const bw2 = Math.min(360 * u, W * 0.5),
             bx2 = W / 2 - bw2 / 2;
@@ -11636,40 +10844,6 @@
         drawActionBtn(c, "dash", p, L);
         drawActionBtn(c, "attack", p, L);
         drawActionBtn(c, "ult", p, L, _ui);
-
-        if (aiming || B.ult.st === 2 || B.attack.st === 2 || B.dash.st === 2) {
-          const cb = L.cancel;
-          c.save();
-
-          c.beginPath();
-          c.arc(cb.x, cb.y, cb.r, 0, TAU);
-          c.fillStyle = "rgba(200, 30, 30, 0.85)";
-          c.fill();
-          c.lineWidth = 3 * u;
-          c.strokeStyle = "#ff8080";
-          c.stroke();
-
-          c.lineCap = "round";
-          c.beginPath();
-          c.moveTo(cb.x - cb.r * 0.4, cb.y - cb.r * 0.4);
-          c.lineTo(cb.x + cb.r * 0.4, cb.y + cb.r * 0.4);
-          c.moveTo(cb.x + cb.r * 0.4, cb.y - cb.r * 0.4);
-          c.lineTo(cb.x - cb.r * 0.4, cb.y + cb.r * 0.4);
-          c.strokeStyle = "#fff";
-          c.lineWidth = 3 * u;
-          c.stroke();
-
-          c.font = "800 " + 12 * u + 'px "Segoe UI",Arial';
-          c.textAlign = "center";
-          c.textBaseline = "middle";
-          c.fillStyle = "#ffb0b0";
-          c.fillText(
-            lang === "ru" ? "ОТМЕНА" : "CANCEL",
-            cb.x,
-            cb.y + cb.r + 14 * u,
-          );
-          c.restore();
-        }
         if (joy.on) {
           c.globalAlpha = 0.35;
           c.beginPath();
@@ -11884,8 +11058,6 @@
         if (!m) return;
         const sk = SKIN_BY_ID[SAVE.skin] || SKINS[0];
         m.skin = sk;
-        if (sk.catTail && !m.tail) m.tail = new Chain(5, 3.5);
-        else if (!sk.catTail && m.tail) m.tail = null;
         m.staff = STAFF_BY_ID[SAVE.staff] || STAFFS[0];
         m.mantle =
           sk.mantle ||
@@ -12168,6 +11340,7 @@
         sg.innerHTML = "";
         for (const sk of SKINS) {
           if (!SAVE.skins.includes(sk.id) && sk.id !== "base") continue;
+          if (!sk.special && sk.id !== "base") continue;
           const d = document.createElement("div");
           d.className = "chip" + (setup.skinId === sk.id ? " sel" : "");
           d.textContent = sk[lang];
@@ -12271,26 +11444,24 @@
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
+        const skinStaff = SKIN_STAFF[skin.id] || "wood";
         const m = new Mage({
           mantle: skin.mantle || "#4A2A8B",
           skin: skin.id,
-          staff: SAVE.staff,
+          staff: skinStaff,
         });
         m.x = 0;
         m.y = 0;
         m.facing = 1;
         m.resetVerlet();
         m.ey.a = 0.95;
-        _previewMode = true;
         for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
-        _previewMode = false;
         c.save();
-        c.translate(90, 180);
-        c.scale(2.6, 2.6);
+        c.translate(86, 165);
+        c.scale(3.2, 3.2);
         drawMage(c, m, { noShadow: false });
         c.restore();
       }
-
       function drawStaffPreview(cv, staff) {
         const c = cv.getContext("2d");
         cv.width = 180;
@@ -12301,82 +11472,21 @@
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
-
-        const fakeMage = {
-          x: 0,
-          y: 0,
-          facing: 1,
-          swing: 0,
-          elem: 0,
-          aura: 0,
-          id: 0,
-          lev: 0,
-          staff: staff,
-          skin: { id: "" },
-        };
-
+        const m = new Mage({
+          mantle: "#4A2A8B",
+          skin: SAVE.skin,
+          staff: staff.id,
+        });
+        m.x = 0;
+        m.y = 0;
+        m.facing = 1;
+        m.resetVerlet();
+        m.ey.a = 0.95;
+        for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
         c.save();
-        // 🆕 Сдвинули X с 90 на 75, чтобы компенсировать смещение древка посоха вправо
-        c.translate(75, 175);
-        c.scale(2.4, 2.4);
-        drawStaff(c, fakeMage, 1);
-        c.restore();
-      }
-
-      function drawArenaPreview(cv, th) {
-        const c = cv.getContext("2d");
-        cv.width = 180;
-        cv.height = 200;
-        c.clearRect(0, 0, 180, 200);
-        // Фоновый градиент по цветам арены
-        const g = c.createRadialGradient(90, 100, 10, 90, 100, 110);
-        g.addColorStop(0, th.base);
-        g.addColorStop(1, th.outside || "#000");
-        c.fillStyle = g;
-        c.fillRect(0, 0, 180, 200);
-        // Центральный «диск» арены
-        c.save();
-        c.translate(90, 105);
-        // Тень
-        c.fillStyle = "rgba(0,0,0,.45)";
-        c.beginPath();
-        c.ellipse(0, 8, 78, 26, 0, 0, TAU);
-        c.fill();
-        // Внешний обод
-        const ring = c.createRadialGradient(0, -6, 20, 0, 0, 78);
-        ring.addColorStop(0, th.plate?.[0] || th.base);
-        ring.addColorStop(1, th.plate?.[2] || th.base);
-        c.fillStyle = ring;
-        c.beginPath();
-        c.ellipse(0, 0, 76, 24, 0, 0, TAU);
-        c.fill();
-        // Светящийся разлом/трещины
-        c.strokeStyle = th.gap?.[1] || th.glow;
-        c.lineWidth = 3;
-        c.shadowColor = th.gap?.[1] || th.glow;
-        c.shadowBlur = 12;
-        c.beginPath();
-        c.ellipse(0, 0, 60, 18, 0, 0, TAU);
-        c.stroke();
-        c.shadowBlur = 0;
-        // Внутренние «плиты» — несколько эллипсов
-        c.fillStyle = th.plate?.[1] || th.base;
-        for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * TAU + 0.3;
-          const x = Math.cos(a) * 42;
-          const y = Math.sin(a) * 13;
-          c.beginPath();
-          c.ellipse(x, y, 16, 5, 0, 0, TAU);
-          c.fill();
-        }
-        // Центр (свечение)
-        const core = c.createRadialGradient(0, -2, 1, 0, 0, 34);
-        core.addColorStop(0, `rgba(${th.glow || "255,150,0"},.9)`);
-        core.addColorStop(1, `rgba(${th.glow || "255,150,0"},0)`);
-        c.fillStyle = core;
-        c.beginPath();
-        c.arc(0, 0, 34, 0, TAU);
-        c.fill();
+        c.translate(86, 165);
+        c.scale(3.2, 3.2);
+        drawMage(c, m, { noShadow: false });
         c.restore();
       }
 
@@ -12421,41 +11531,22 @@
           grid.appendChild(c);
           return { c, cv };
         };
-
-        const mkShopBtn = (icon, text, cb) => {
-          const b = document.createElement("button");
-          b.className = "btn small shop-btn";
-          b.style.display = "flex";
-          b.style.alignItems = "center";
-          b.style.justifyContent = "center";
-          b.style.gap = "4px";
-          if (icon && IC[icon]) {
-            const cv = document.createElement("canvas");
-            cv.width = 20;
-            cv.height = 20;
-            cv.className = "shop-btn-canvas";
-            cv.getContext("2d").drawImage(IC[icon], 0, 0, 20, 20);
-            b.appendChild(cv);
-          }
-          b.appendChild(document.createTextNode(text));
-          b.onclick = () => {
-            sfx("click");
-            cb();
-          };
-          return b;
-        };
-
         const btns = (list, id, gold, gems, ownedCheck, equipped, onEquip) => {
           const box = document.createElement("div");
-          box.className = "shop-btn-row";
+          box.style.cssText =
+            "display:flex;gap:4px;flex-wrap:wrap;justify-content:center";
+          const mk = (txt, cb, off) => {
+            const b = document.createElement("button");
+            b.className = "btn small" + (off ? " off" : "");
+            b.textContent = txt;
+            b.onclick = () => {
+              sfx("click");
+              cb();
+            };
+            box.appendChild(b);
+          };
           if (ownedCheck)
-            box.appendChild(
-              mkShopBtn(
-                "",
-                equipped ? "✓ " + t("equipped") : t("equip"),
-                onEquip,
-              ),
-            );
+            mk(equipped ? "✓ " + t("equipped") : t("equip"), onEquip, equipped);
           else {
             const buy = (cur) => {
               const price = cur === "gold" ? gold : gems;
@@ -12470,20 +11561,14 @@
               persist();
               buildShop();
             };
-            if (gold)
-              box.appendChild(mkShopBtn("coin", " " + gold, () => buy("gold")));
-            if (gems)
-              box.appendChild(
-                mkShopBtn("gemIcon", " " + gems, () => buy("gems")),
-              );
+            if (gold) mk("🪙 " + gold, () => buy("gold"));
+            if (gems) mk("💎 " + gems, () => buy("gems"));
           }
           return box;
         };
-
         if (shopTab === "skins")
           for (const s of SKINS) {
-            // 🆕 Используем t(s.rar) для перевода
-            const k = card(s[lang], t(s.rar), RAR_COL[s.rar]);
+            const k = card(s[lang], s.rar.toUpperCase(), RAR_COL[s.rar]);
             drawSkinPreview(k.cv, s);
             k.c.appendChild(
               btns(
@@ -12504,8 +11589,11 @@
           }
         else if (shopTab === "staffs")
           for (const st of STAFFS) {
-            // 🆕 Используем t(st.rar)
-            const k = card(st[lang], t(st.rar), RAR_COL[st.rar] || "#ccc");
+            const k = card(
+              st[lang],
+              st.rar.toUpperCase(),
+              RAR_COL[st.rar] || "#ccc",
+            );
             drawStaffPreview(k.cv, st);
             k.c.appendChild(
               btns(
@@ -12526,8 +11614,11 @@
           }
         else if (shopTab === "fx")
           for (const f of EFFECTS) {
-            // 🆕 Используем t(f.type)
-            const k = card(f[lang], t(f.type), "#9cf");
+            const k = card(
+              f[lang],
+              f.type === "trail" ? "TRAIL" : "AURA",
+              "#9cf",
+            );
             const c = k.cv.getContext("2d");
             k.cv.width = 180;
             k.cv.height = 200;
@@ -12565,11 +11656,9 @@
             const th = THEMES[id];
             const k = card(
               th[lang],
-              id === "void" ? t("epic") : th.gold ? t("rare") : t("default"),
+              id === "void" ? "EPIC" : th.gold ? "RARE" : "DEFAULT",
               id === "void" ? "#C060FF" : "#4DA6FF",
             );
-            // 🆕 Рисуем мини-превью арены
-            drawArenaPreview(k.cv, th);
             if (th.gold === 0 || SAVE.arenas.indexOf(id) >= 0) {
               const b = document.createElement("div");
               b.className = "rar";
@@ -12585,11 +11674,9 @@
         else {
           const items = [
             {
-              n: "3",
-              icon: "energy",
+              n: "+3 ⚡",
               sub: t("energyPack"),
-              btn: "coin",
-              price: 100,
+              btn: "🪙 100",
               f: () => {
                 if (!SAVE.devMode) {
                   if (SAVE.gold < 100) return toast(t("notEnough"));
@@ -12602,11 +11689,9 @@
               },
             },
             {
-              n: "5",
-              icon: "energy",
+              n: "+5 ⚡",
               sub: t("energyPack"),
-              btn: "coin",
-              price: 150,
+              btn: "🪙 150",
               f: () => {
                 if (!SAVE.devMode) {
                   if (SAVE.gold < 150) return toast(t("notEnough"));
@@ -12619,11 +11704,9 @@
               },
             },
             {
-              n: "3",
-              icon: "energy",
+              n: "📺 +3 ⚡",
               sub: t("adEnergy"),
-              btn: "ad",
-              price: 0,
+              btn: "FREE",
               f: () =>
                 showRewarded(() => {
                   SAVE.energy += 3;
@@ -12633,26 +11716,22 @@
                 }),
             },
             {
-              n: "50",
-              icon: "coin",
+              n: "📺 +50 🪙",
               sub: "Реклама",
-              btn: "ad",
-              price: 0,
+              btn: "FREE",
               f: () =>
                 showRewarded(() => {
                   SAVE.gold += 50;
                   sfx("purchase");
                   persist();
                   buildShop();
-                  toast("+50");
+                  toast("+50 🪙");
                 }),
             },
             {
-              n: "VIP",
-              icon: "vip",
+              n: "👑 VIP",
               sub: t("vipDesc"),
-              btn: SAVE.vip ? "check" : "coin",
-              price: 1000,
+              btn: SAVE.vip ? "✓" : "🪙 1000",
               f: () => {
                 if (SAVE.vip) return;
                 if (!SAVE.devMode) {
@@ -12666,51 +11745,39 @@
               },
             },
             {
-              n: "500",
-              icon: "coin",
+              n: "🪙 500",
               sub: "49 ₽",
               btn: "КУПИТЬ",
-              price: 0,
               f: () => buyProduct("gold_500"),
             },
             {
-              n: "1500",
-              icon: "coin",
+              n: "🪙 1500",
               sub: "129 ₽",
               btn: "КУПИТЬ",
-              price: 0,
               f: () => buyProduct("gold_1500"),
             },
             {
-              n: "5000",
-              icon: "coin",
+              n: "🪙 5000",
               sub: "349 ₽",
               btn: "КУПИТЬ",
-              price: 0,
               f: () => buyProduct("gold_5000"),
             },
             {
-              n: "100",
-              icon: "gemIcon",
+              n: "💎 100",
               sub: "49 ₽",
               btn: "КУПИТЬ",
-              price: 0,
               f: () => buyProduct("gems_100"),
             },
             {
-              n: "500",
-              icon: "gemIcon",
+              n: "💎 500",
               sub: "199 ₽",
               btn: "КУПИТЬ",
-              price: 0,
               f: () => buyProduct("gems_500"),
             },
             {
-              n: "1500",
-              icon: "gemIcon",
+              n: "💎 1500",
               sub: "499 ₽",
               btn: "КУПИТЬ",
-              price: 0,
               f: () => buyProduct("gems_1500"),
             },
           ];
@@ -12719,35 +11786,15 @@
             c.className = "card";
             c.style.height = "170px";
             c.style.justifyContent = "center";
-            c.innerHTML = `
-                                        <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
-                                          <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
-                                        </div>
-                                        <div style="opacity:.8;font-size:13px">${it.sub}</div>
-                                      `;
+            c.innerHTML =
+              '<div style="font-size:30px;font-weight:900">' +
+              it.n +
+              '</div><div style="opacity:.8">' +
+              it.sub +
+              "</div>";
             const b = document.createElement("button");
-            b.className = "btn small shop-btn";
-            b.style.display = "flex";
-            b.style.alignItems = "center";
-            b.style.justifyContent = "center";
-            b.style.gap = "6px";
-            if (IC[it.btn]) {
-              const cv = document.createElement("canvas");
-              cv.width = 16;
-              cv.height = 16;
-              cv.className = "shop-btn-canvas";
-              cv.getContext("2d").drawImage(IC[it.btn], 0, 0, 16, 16);
-              b.appendChild(cv);
-            } else if (it.btn === "check") {
-              b.appendChild(document.createTextNode("✓"));
-            }
-            const btnLabel =
-              it.btn === "coin"
-                ? String(it.price)
-                : it.btn === "ad" || it.btn === "check"
-                  ? ""
-                  : it.btn;
-            if (btnLabel) b.appendChild(document.createTextNode(btnLabel));
+            b.className = "btn small";
+            b.textContent = it.btn;
             b.onclick = () => {
               sfx("click");
               it.f();
@@ -12755,18 +11802,6 @@
             c.appendChild(b);
             grid.appendChild(c);
           }
-          setTimeout(() => {
-            document.querySelectorAll(".ico-cv").forEach((el) => {
-              const ico = el.dataset.ico;
-              if (IC[ico]) {
-                const cv = document.createElement("canvas");
-                cv.width = 24;
-                cv.height = 24;
-                cv.getContext("2d").drawImage(IC[ico], 0, 0, 24, 24);
-                el.appendChild(cv);
-              }
-            });
-          }, 0);
         }
         if (
           menuMages[0] &&
@@ -13006,9 +12041,7 @@
         $("lbBody").innerHTML = h;
       }
       function openSettings() {
-        if (!(G && G.uiPause && G.online)) {
-          state = "SETTINGS";
-        }
+        state = "SETTINGS";
         $("nickIn").value = SAVE.nick;
         $("musIn").value = Math.round(SAVE.music * 100);
         $("sfxIn").value = Math.round(SAVE.sfx * 100);
@@ -13191,42 +12224,6 @@
           desc_en: "Kill 500 enemies",
           check: (s) => (s.stats.kills || 0) >= 500,
         },
-        {
-          id: "ult_10",
-          reward: 250,
-          ru: "10 ульт",
-          en: "10 Ults",
-          desc_ru: "Используйте ульту 10 раз",
-          desc_en: "Use ultimate 10 times",
-          check: (s) => (s.stats.ultsUsed || 0) >= 10,
-        },
-        {
-          id: "boss_5",
-          reward: 1000,
-          ru: "Охотник на боссов",
-          en: "Boss Hunter",
-          desc_ru: "Убейте 5 боссов",
-          desc_en: "Kill 5 bosses",
-          check: (s) => (s.stats.bossesKilled || 0) >= 5,
-        },
-        {
-          id: "wins_5",
-          reward: 400,
-          ru: "5 побед",
-          en: "5 Wins",
-          desc_ru: "Выиграйте 5 раз",
-          desc_en: "Win 5 matches",
-          check: (s) => (s.stats.wins || 0) >= 5,
-        },
-        {
-          id: "runes_50",
-          reward: 300,
-          ru: "Коллекционер рун",
-          en: "Rune Collector",
-          desc_ru: "Соберите 50 рун",
-          desc_en: "Collect 50 runes",
-          check: (s) => (s.stats.runesCollected || 0) >= 50,
-        },
       ];
       function checkQuestsInternal() {
         if (!SAVE.questsReady) SAVE.questsReady = [];
@@ -13252,7 +12249,7 @@
         persist();
         buildQuests();
         updateTopbar();
-        toast("+" + q.reward);
+        toast("+" + q.reward + " 🪙");
       }
       window.claimQuest = claimQuest;
       function updateQuestsBadge() {
@@ -13300,7 +12297,7 @@
               : prog
                 ? "#50FF70"
                 : "#ccc";
-          h += `<div style="display:flex;gap:10px;align-items:center;padding:10px;margin:6px 0;background:${isClaimed ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.06)"};border-radius:10px;border-left:3px solid ${col};${isClaimed ? "opacity:.6" : ""}"><div style="flex:1"><b style="color:${col};font-size:14px">${q[lang]}</b><div style="opacity:.8;font-size:12px;margin-top:2px">${lang === "ru" ? q.desc_ru : q.desc_en}</div></div><div style="text-align:right;min-width:80px"><div style="color:#FFD84A;font-weight:800">+${q.reward}</div>${isClaimed ? `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("claimed")}</div>` : isReady ? `<button class="btn small" style="margin-top:4px;min-height:28px;padding:4px 10px;font-size:12px" onclick="claimQuest('${q.id}')">${t("claim")}</button>` : `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("progress")}</div>`}</div></div>`;
+          h += `<div style="display:flex;gap:10px;align-items:center;padding:10px;margin:6px 0;background:${isClaimed ? "rgba(255,255,255,.03)" : "rgba(255,255,255,.06)"};border-radius:10px;border-left:3px solid ${col};${isClaimed ? "opacity:.6" : ""}"><div style="flex:1"><b style="color:${col};font-size:14px">${q[lang]}</b><div style="opacity:.8;font-size:12px;margin-top:2px">${lang === "ru" ? q.desc_ru : q.desc_en}</div></div><div style="text-align:right;min-width:80px"><div style="color:#FFD84A;font-weight:800">+${q.reward} 🪙</div>${isClaimed ? `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("claimed")}</div>` : isReady ? `<button class="btn small" style="margin-top:4px;min-height:28px;padding:4px 10px;font-size:12px" onclick="claimQuest('${q.id}')">${t("claim")}</button>` : `<div style="font-size:11px;opacity:.6;margin-top:4px">${t("progress")}</div>`}</div></div>`;
         }
         b.innerHTML = h;
       }
@@ -13321,17 +12318,9 @@
         if (!dailyReady()) return false;
         const day = (SAVE.dailyDay || 0) % 7,
           amt = DAILY_REWARDS[day];
-        $("dailyAmt").innerHTML = "+" + amt;
+        $("dailyAmt").textContent = "+" + amt + " Золота";
         $("dailyDay").textContent = t("day") + " " + (day + 1) + "/7";
-        $("dailyIcon").innerHTML = "";
-        if (IC.daily) {
-          const cv = document.createElement("canvas");
-          cv.width = 64;
-          cv.height = 64;
-          cv.getContext("2d").drawImage(IC.daily, 0, 0);
-          $("dailyIcon").appendChild(cv);
-        } else $("dailyIcon").textContent = "🎁";
-
+        $("dailyIcon").textContent = day >= 5 ? "💎" : day >= 3 ? "🎁" : "🪙";
         let ph = "";
         for (let i = 0; i < 7; i++) {
           const claimed = i < day,
@@ -13360,7 +12349,7 @@
         tone(880, 0.12, "triangle", 0.18, 1);
         tone(1320, 0.18, "triangle", 0.18, 1, 0.08);
         tone(1760, 0.3, "triangle", 0.18, 1, 0.16);
-        toast("+" + amt);
+        toast("+" + amt + " Золота");
         vib(40);
         state = "MENU";
         showScreen("sc-menu");
@@ -13574,7 +12563,6 @@
         for (let i = 0; i < 6; i++) s += A[rndi(0, A.length - 1)];
         return s;
       };
-
       const peerOpts = () => ({
         host: CONFIG.PEERJS_HOST,
         port: CONFIG.PEERJS_PORT,
@@ -13605,7 +12593,6 @@
           ],
         },
       });
-
       const sendTo = (conn, msg) => {
         try {
           if (conn && conn.open) conn.send(msg);
@@ -13623,12 +12610,7 @@
           openSettings();
           return;
         }
-        // Установка выбранного сервера
-        const server = $("serverSelect").value || "0.peerjs.com";
-        CONFIG.PEERJS_HOST = server;
-        const savedTries = NET.tries;
         netCleanup();
-        NET.tries = savedTries;
         const code = genCode();
         NET.code = code;
         NET.role = "host";
@@ -13791,8 +12773,7 @@
             mx: isFinite(mx) ? clamp(mx, -1, 1) : 0,
             my: isFinite(my) ? clamp(my, -1, 1) : 0,
           };
-          if (Array.isArray(d.acts)) {
-            // 🆕 добавили {
+          if (Array.isArray(d.acts))
             for (const a of d.acts.slice(0, 6)) {
               const ang = +a.ang;
               if (!isFinite(ang)) continue;
@@ -13803,11 +12784,6 @@
                 castUlt(m, m.x + Math.cos(ang) * dd, m.y + Math.sin(ang) * dd);
               }
             }
-          } // 🆕 добавили }
-        } else if (d.type === "return_to_room") {
-          if (G && G.online && G.role === "host" && G.resultShown) {
-            returnToRoom();
-          }
         } else if (d.type === "ping") sendTo(conn, { type: "pong", t: d.t });
       }
       function hostDrop(conn) {
@@ -13822,17 +12798,6 @@
             m.isBot = true;
             m.isPlayer = false;
             m.netIn = null;
-            const diff = DIFF[SAVE.botDifficulty] || DIFF.normal; // 🆕
-            Object.assign(m.ai, {
-              // 🆕
-              skill: diff.skill,
-              aimErr: diff.aimErr,
-              fireDelayMul: diff.fireDelayMul,
-              aggression: diff.aggression,
-              ultChance: diff.ultChance,
-              retreatHp: diff.retreatHp,
-              dodgeChance: diff.dodgeChance,
-            });
             ftext(m.x, m.y - 60, "BOT", "#fff", 14);
           }
         } else if (state === "LOBBY") {
@@ -13843,13 +12808,6 @@
       function hostStart() {
         if (NET.role !== "host" || NET.players.length < 2) {
           toast(t("arenaWait"));
-          return;
-        }
-        if (NET.players.length > NET.settings.count) {
-          // 🆕
-          toast(
-            lang === "ru" ? "Игроков больше, чем слотов" : "Too many players",
-          );
           return;
         }
         const cols = shuffle(MAGE_COLORS.map((c) => c.hex)),
@@ -13897,10 +12855,6 @@
           sfx("error");
           return;
         }
-        // Установка выбранного сервера
-        const server = $("serverSelect").value || "0.peerjs.com";
-        CONFIG.PEERJS_HOST = server;
-
         netCleanup();
         NET.role = "client";
         NET.code = code;
@@ -13925,8 +12879,6 @@
             });
             conn.on("data", (d) => clientHandle(d));
             conn.on("close", () => {
-              // 🆕 Если эта conn уже не текущая — игнорируем (защита от double cleanup)
-              if (NET.hostConn !== conn) return;
               if (G && G.online && !G.resultShown) {
                 toast(t("hostLeft"));
                 quitToMenu();
@@ -13941,12 +12893,7 @@
               $("joinStatus").textContent = t("connErr");
             });
             setTimeout(() => {
-              if (
-                !opened &&
-                NET.hostConn === conn && // 🆕
-                NET.role === "client" &&
-                state === "ONLINE"
-              ) {
+              if (!opened && NET.role === "client" && state === "ONLINE") {
                 $("joinStatus").textContent = t("connErr");
                 netCleanup();
               }
@@ -14067,19 +13014,13 @@
                   : "idle",
             facing: m.facing,
             element: m.elem,
-            kills: m.kills,
-            gold: m.goldEarn || 0,
             runes: m.runes,
             ultCharge: Math.round(m.ultCharge),
             aura: r1(m.aura),
             ae: m.auraElem,
             dx: m.dashX,
-            dy: m.dashY,
             ms: m.multiStacks,
             staff: m.staff ? m.staff.id : "wood",
-            cl: r1(m.castLock), // 🆕 castLock
-            sa: r1(m.staffAnim), // 🆕 staffAnim
-            sw: r1(m.swing), // 🆕 swing
             buffs: {
               s: r1(m.fx.shield),
               h: r1(m.fx.haste),
@@ -14089,8 +13030,7 @@
               ts: r1(m.fx.tslow),
               a: r1(m.fx.amp),
             },
-            dc: r1(m.dashCd),
-            ac: r1(m.atkCd),
+            dc: m.dashCd > 0 ? 1 : 0,
           })),
           projectiles: PR.active
             .filter((p) => p.on)
@@ -14102,10 +13042,6 @@
               vy: Math.round(p.vy),
               element: p.e,
               ownerId: p.own ? p.own.id : 0,
-              life: r1(p.life), // 🆕
-              style: p.style, // 🆕
-              col: p.col, // 🆕
-              trail: p.trail, // 🆕
             })),
           pickups: G.pickups.map((p) => ({
             id: p.id,
@@ -14113,19 +13049,6 @@
             y: Math.round(p.y),
             type: p.type,
           })),
-          zones: G.zones
-            .filter((z) => z.r < 5000)
-            .map((z) => ({
-              x: r1(z.x),
-              y: r1(z.y),
-              r: Math.round(z.r),
-              life: r1(z.life),
-              max: r1(z.max),
-              elem: z.elem,
-              style: z.style,
-              core: z.core || 0,
-              own: z.own ? z.own.id : 0,
-            })),
           ev: evs,
         };
         for (const p of conns) sendTo(p.conn, msg);
@@ -14148,8 +13071,6 @@
           m.hp = p.hp;
           m.maxHp = p.mh;
           m.mana = p.mana;
-          m.kills = p.kills || 0; // 🆕
-          m.goldEarn = p.gold || 0; // 🆕
           m.facing =
             m === G.player && (B.attack.st || B.ult.st || B.dash.st)
               ? m.facing
@@ -14159,13 +13080,7 @@
           m.ultCharge = p.ultCharge;
           m.aura = p.aura;
           m.auraElem = p.ae;
-          if (p.dx !== undefined) m.dashX = p.dx;
-          if (p.dy !== undefined) m.dashY = p.dy;
-          if (p.state === "dash") {
-            if (m.dashT <= 0) m.dashT = 0.18;
-          } else if (m.dashT > 0) {
-            m.dashT = 0;
-          }
+          m.dashX = p.dx;
           if (p.ms !== undefined) m.multiStacks = p.ms;
           if (m !== G.player && p.staff && STAFF_BY_ID[p.staff])
             m.staff = STAFF_BY_ID[p.staff];
@@ -14190,45 +13105,26 @@
           if (m !== G.player) {
             m.vx = p.vx;
             m.vy = p.vy;
-            m.dashCd = p.dc;
-            m.atkCd = p.ac;
-          }
-          // 🆕 Синхронизация анимации/блокировки движения
-          if (p.cl !== undefined) m.castLock = p.cl;
-          if (p.sa !== undefined) m.staffAnim = p.sa;
-          if (p.sw !== undefined) m.swing = p.sw;
+          } else if (p.dc === 0 && m.dashCd > 0) m.dashCd = 0;
         }
-        // 🆕 Reconciliation по id — сохраняем трейлы живых снарядов
-        const _exist = new Map();
-        for (const p of PR.active) {
-          if (p.on) _exist.set(p.id, p);
-        }
-        const _seen = new Set();
+        PR.clear();
         for (const q of s.projectiles) {
-          _seen.add(q.id);
-          let p = _exist.get(q.id);
-          if (!p) {
-            p = PR.get();
-            p.id = q.id;
-            p.r = 14;
-            p.age = 0;
-            p.trailPts = [{ x: q.x, y: q.y }];
-          }
-          p.life = q.life || 0.75; // 🆕
-          p.style = q.style || "orb"; // 🆕
-          p.col = q.col || null; // 🆕
-          p.trail = q.trail || ""; // 🆕
-          // Позиция/скорость — всегда с сервера (reconciliation)
+          const p = PR.get();
           p.x = q.x;
           p.y = q.y;
           p.vx = q.vx;
           p.vy = q.vy;
           p.e = q.element;
+          p.r = 7;
+          p.life = 1;
           p.own = G.mages.find((x) => x.id === q.ownerId) || null;
-        }
-        // Всё, чего нет в снапшоте, — умерло
-        for (const p of PR.active) {
-          if (p.on && !_seen.has(p.id)) p.on = false;
+          p.id = q.id;
+          p.trail = "";
+          p.home = false;
+          p.style = "orb";
+          p.trailPts = p.trailPts || [];
+          p.trailPts.length = 0;
+          p.trailPts.push({ x: p.x, y: p.y });
         }
         G.pickups = s.pickups.map((p) => ({
           id: p.id,
@@ -14238,25 +13134,6 @@
           t: p.id,
           life: 20,
         }));
-        if (s.zones) {
-          G.zones = (s.zones || []).map((z) => ({
-            x: z.x,
-            y: z.y,
-            r: z.r,
-            life: z.life,
-            max: z.max,
-            elem: z.elem,
-            style: z.style,
-            core: z.core,
-            own: G.mages.find((m) => m.id === z.own) || null,
-            tick: 0,
-            chase: 0,
-            pull: 0,
-            dps: 0,
-          }));
-        } else {
-          G.zones = [];
-        }
         G.safeR = s.sr;
         G.time = s.time;
         if (s.ev) for (const ev of s.ev) clientEvent(ev);
@@ -14298,16 +13175,6 @@
               sfx("dash");
               const dashCol = m.skin.accent || m.mantle;
               burst(m.x, m.y - 8, dashCol, 12, 160, 3, 0.4, true);
-              for (let i = 1; i <= 3; i++) {
-                G.ghosts.push({
-                  x: m.x - m.dashX * i * 12,
-                  y: m.y - m.dashY * i * 12,
-                  facing: m.facing,
-                  col: dashCol,
-                  life: 0.3,
-                  max: 0.3,
-                });
-              }
             }
             break;
           case "kill":
@@ -14367,19 +13234,11 @@
         if (m.elem === 2) sp *= 1.1;
         if (m.fx.slow > 0) sp *= m.fx.slowF;
         if (m.fx.tslow > 0) sp *= 0.5;
-        if (m.castLock > 0) sp *= 0.25; // 🆕 как на сервере
-        if (m.fx.freeze > 0 || m.fx.stun > 0) sp = 0;
+        if (m.fx.freeze > 0) sp = 0;
         if (m.dashT > 0) {
           m.dashT -= dt;
-          if (m.dashT < 0) m.dashT = 0;
-          // 🆕 Если вектор рывка нулевой — не «морозим» позицию
-          const dl = Math.hypot(m.dashX, m.dashY);
-          if (dl > 0.001) {
-            m.vx = m.dashX * 1000;
-            m.vy = m.dashY * 1000;
-          } else {
-            m.dashT = 0;
-          }
+          m.vx = m.dashX * 1000;
+          m.vy = m.dashY * 1000;
         } else {
           const k = 1 - Math.exp(-dt * 14);
           m.vx += (m.mx * sp - m.vx) * k;
@@ -14446,13 +13305,6 @@
           m.dashCd -= dt;
           m.castLock -= dt;
           m.swing = Math.max(0, m.swing - dt * 5);
-          m.staffAnim = Math.max(0, m.staffAnim - dt * 6);
-          // 🆕 Ограничиваем dashT только для удалённых игроков
-          // (у локального игрока это делает clientSelf)
-          if (m !== g.player && m.dashT > 0) {
-            m.dashT -= dt;
-            if (m.dashT < 0) m.dashT = 0;
-          }
           if (m === g.player && m.hp < m.maxHp * 0.25) {
             m.lowHpBeat -= dt;
             if (m.lowHpBeat <= 0) {
@@ -14469,32 +13321,6 @@
           if (!p.on) continue;
           p.x += p.vx * dt;
           p.y += p.vy * dt;
-          p.life -= dt; // 🆕
-          if (p.life <= 0) {
-            p.on = false;
-            continue;
-          } // 🆕
-          const dx = p.x - CX,
-            dy = p.y - CY;
-          if (dx * dx + dy * dy > (R_ARENA + 20) ** 2) {
-            p.on = false;
-            continue;
-          }
-          // 🆕 Столкновение с камнями
-          let hitRock = false;
-          for (const rk of G.rocks) {
-            const ddx = rk.x - p.x,
-              ddy = rk.y - p.y;
-            if (ddx * ddx + ddy * ddy < rk.r * rk.r) {
-              hitRock = true;
-              break;
-            }
-          }
-          if (hitRock) {
-            burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
-            p.on = false;
-            continue;
-          }
           if (p.trailPts) {
             p.trailPts.push({ x: p.x, y: p.y });
             if (p.trailPts.length > 8) p.trailPts.shift();
@@ -14512,10 +13338,6 @@
             0.95,
           );
         }
-        // 🆕 Убираем мёртвые снаряды из active (иначе утечка памяти у клиента)
-        PR.sweep();
-        // 🆕 Чистим эффекты, таймеры и announce — иначе у клиента
-        // накапливаются кольца, молнии, ghosts, announce и т.д.
         updateTimersAndFx(dt);
       }
       function netTick(rd) {
@@ -14581,8 +13403,7 @@
         if (G.role === "client") updateClientGame(dt);
         else updateGame(dt);
         updateParticles(dt);
-        updateViewScaleCache(); // 🆕
-        const s = _vs,
+        const s = viewScale(),
           hw = W / 2 / s,
           hh = H / 2 / s;
         updateAmbient(dt, cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
@@ -14605,7 +13426,7 @@
             MUS.tgt =
               G.epicT > 0 ||
               p.hp < p.maxHp * 0.25 ||
-              G.monsters.some((m) => m.boss && !m.dead)
+              G.monsters.some((m) => m.boss)
                 ? 1
                 : 0.55;
           }
@@ -14638,12 +13459,9 @@
             state === "PAUSED" ||
             state === "LEVELUP" ||
             state === "RESULT" ||
-            state === "REVIVE" ||
-            (state === "SETTINGS" && G.uiPause))
+            state === "REVIVE")
         ) {
-          // 🆕 Замораживаем камеру (и FX.*) во время hitstop
-          if (state === "PLAYING" && FX.hs <= 0) updateCamera(rd);
-          updateViewScaleCache();
+          if (state === "PLAYING") updateCamera(rd);
           renderGame();
         } else if (state === "BOOT" || state === "LOADING") {
           ctx.fillStyle = "#000";
@@ -14685,9 +13503,9 @@
         try {
           const saved = await loadCloud();
           if (saved && saved.v) {
-            const defaults = DEF_SAVE(); // 🆕
+            const st = Object.assign({}, SAVE.stats, saved.stats || {});
             Object.assign(SAVE, saved);
-            SAVE.stats = Object.assign(defaults.stats, saved.stats || {}); // 🆕
+            SAVE.stats = st;
           }
         } catch (e) {}
         if (SAVE.dailyDay === undefined) SAVE.dailyDay = 0;
@@ -14725,7 +13543,6 @@
         await buildIcons((p) => setProg(30 + p * 50));
         setProg(82, "boot4");
         await delay(30);
-        drawTopbarIconsOnce();
         ensureArena("lava");
         initMenuMages();
         if (!isPeerJSAvailable()) {
