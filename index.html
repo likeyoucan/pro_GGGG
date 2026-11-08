@@ -292,26 +292,39 @@
         font-size: 13px;
         position: relative;
       }
-      /* 🆕 Стили для контейнера кнопок в магазине */
-      .shop-btn-row {
-        display: flex;
-        gap: 4px;
-        width: 100%;
-        margin-top: auto; /* Прижимает кнопки к низу */
-        padding-top: 8px;
-      }
-      /* 🆕 Уменьшенные кнопки конкретно для магазина */
-      .shop-btn {
+      /* 🆕 Контейнер для превью, чтобы центрировать картинку */
+      .card-preview {
         flex: 1;
-        min-height: 34px !important;
-        height: 34px !important;
-        padding: 4px 6px !important;
-        font-size: 13px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 0;
       }
       .card > canvas {
         width: 120px;
         height: 140px;
         object-fit: contain;
+      }
+      /* 🆕 Контейнер для кнопок: в два яруса */
+      .shop-btn-row {
+        display: flex;
+        flex-direction: column; /* Ставим в колонку */
+        gap: 6px;
+        width: 100%;
+        margin-top: auto;
+        padding-top: 8px;
+        min-height: 74px; /* Фиксируем высоту блока кнопок */
+        justify-content: flex-end;
+      }
+      /* 🆕 Кнопки растягиваются на всю ширину */
+      .shop-btn {
+        width: 100%;
+        min-height: 34px !important;
+        height: 34px !important;
+        padding: 4px 6px !important;
+        font-size: 13px !important;
+        justify-content: center;
       }
       .shop-btn-canvas {
         width: 20px !important;
@@ -3824,12 +3837,10 @@
       }
       function sharkHoodPath(c) {
         c.beginPath();
-        c.moveTo(-14, -14); // Низ слева
-        c.quadraticCurveTo(-20, -35, -25, -45); // Поднимаемся к носу
-        c.quadraticCurveTo(-28, -52, -18, -58); // Острый кончик носа
-        c.quadraticCurveTo(5, -60, 15, -40); // Плавный переход к макушке
-        c.quadraticCurveTo(18, -22, 15, -14); // Задняя часть головы
-        c.quadraticCurveTo(0, -10, -14, -14); // Низ
+        c.moveTo(14, -14); // Задний низ
+        c.quadraticCurveTo(22, -40, 10, -55); // Задняя часть головы
+        c.quadraticCurveTo(-5, -65, -15, -50); // Макушка
+        c.quadraticCurveTo(-28, -35, -20, -14); // Нос (вытянутый влево)
         c.closePath();
       }
 
@@ -4142,59 +4153,90 @@
               c.stroke();
             }
             if (m.skin.sharkSkin) {
-              // Рисуем саму пасть (сдвинули к носу)
+              // 1. Внутренняя черная пасть
               c.fillStyle = "#050208";
               c.beginPath();
-              c.ellipse(-12, -28, 15, 9, -0.2, 0, TAU);
+              c.moveTo(-25, -35); // Верхний левый угол
+              c.quadraticCurveTo(-10, -5, 15, -18); // Нижняя челюсть
+              c.quadraticCurveTo(0, -35, -25, -35); // Верхняя челюсть
               c.fill();
 
-              // Рисуем зубы (зигзаги)
+              // 2. Розовая окантовка губ
+              c.strokeStyle = "#FF69B4";
+              c.lineWidth = 3;
+              c.beginPath();
+              c.moveTo(-25, -35);
+              c.quadraticCurveTo(-10, -5, 15, -18);
+              c.stroke();
+
+              // 3. Верхние зубы
               c.fillStyle = "#FFFFFF";
               c.strokeStyle = "#000";
-              c.lineWidth = 1.2;
+              c.lineWidth = 1.5;
               c.lineJoin = "miter";
 
-              // Верхний ряд зубов
+              const topTeeth = [
+                [-22, -33],
+                [-15, -29],
+                [-8, -26],
+                [-1, -24],
+                [6, -22],
+              ];
+              for (let i = 0; i < topTeeth.length; i++) {
+                const [tx, ty] = topTeeth[i];
+                c.beginPath();
+                c.moveTo(tx - 2, ty);
+                c.lineTo(tx + 1, ty + 6); // Зуб вниз
+                c.lineTo(tx + 4, ty);
+                c.closePath();
+                c.fill();
+                c.stroke();
+              }
+
+              // 4. Нижние зубы
+              const botTeeth = [
+                [-20, -24],
+                [-13, -20],
+                [-6, -17],
+                [1, -15],
+                [8, -16],
+              ];
+              for (let i = 0; i < botTeeth.length; i++) {
+                const [tx, ty] = botTeeth[i];
+                c.beginPath();
+                c.moveTo(tx - 2, ty);
+                c.lineTo(tx + 1, ty - 6); // Зуб вверх
+                c.lineTo(tx + 4, ty);
+                c.closePath();
+                c.fill();
+                c.stroke();
+              }
+
+              // 5. Плавник на макушке
+              c.fillStyle = "#FFB6D9";
+              c.strokeStyle = "#000";
+              c.lineWidth = 2.5;
               c.beginPath();
-              c.moveTo(-26, -30);
-              c.lineTo(-23, -24);
-              c.lineTo(-20, -30);
-              c.lineTo(-17, -24);
-              c.lineTo(-14, -30);
-              c.lineTo(-11, -24);
-              c.lineTo(-8, -30);
+              c.moveTo(5, -55);
+              c.quadraticCurveTo(15, -75, 25, -55);
+              c.closePath();
               c.fill();
               c.stroke();
 
-              // Нижний ряд зубов
+              // 6. Боковой глаз акулы
+              c.fillStyle = "#000";
               c.beginPath();
-              c.moveTo(-24, -24);
-              c.lineTo(-21, -30);
-              c.lineTo(-18, -24);
-              c.lineTo(-15, -30);
-              c.lineTo(-12, -24);
-              c.lineTo(-9, -30);
-              c.lineTo(-6, -24);
+              c.ellipse(-10, -48, 3, 4, -0.3, 0, TAU);
               c.fill();
-              c.stroke();
-            } else {
-              // Острая, но широкая форма глаза
+              c.fillStyle = "#FFF";
               c.beginPath();
-              c.moveTo(-4, 4);
-              c.quadraticCurveTo(0, -7, 10, -8); // Растянули правый угол
-              c.quadraticCurveTo(5, 3, -4, 4);
-              c.closePath();
-              // Возвращаем белый цвет в обычном состоянии (col используется только для ауры свечения)
-              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.arc(-10.5, -49, 1, 0, TAU);
               c.fill();
 
-              // Внутренний блик (тоже растянутый)
+              // 7. Блик на капюшоне для объема
+              c.fillStyle = "rgba(255,255,255,0.15)";
               c.beginPath();
-              c.moveTo(-2, 3);
-              c.quadraticCurveTo(0, -4, 8, -5);
-              c.quadraticCurveTo(4, 2, -2, 3);
-              c.closePath();
-              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.ellipse(0, -45, 8, 4, -0.5, 0, TAU);
               c.fill();
             }
             c.restore();
@@ -4354,9 +4396,9 @@
         }
       }
 
-      function withStaffTransform(c, m, f, drawShaft, drawTip) {
-        const px = f * 13.5,
-          py = -6, // 🆕 Опустили посох ниже
+  function withStaffTransform(c, m, f, drawShaft, drawTip) {
+        const px = f * 18.5, // 🆕 Вынесли посох дальше в сторону
+          py = -5,          // 🆕 Оставили на уровне пояса
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
         c.translate(px, py);
@@ -4904,7 +4946,7 @@
         );
       }
 
-      function drawMage(c, m, o) {
+         function drawMage(c, m, o) {
         o = o || {};
         const alpha = m.alpha * (o.alpha === undefined ? 1 : o.alpha);
         if (alpha <= 0.01) return;
@@ -5026,8 +5068,8 @@
 
         // Hand 1 (Back Hand)
         c.lineCap = "round";
-
-        // Рукав
+        
+        // Рукав задней руки
         c.strokeStyle = "#000";
         c.lineWidth = 9;
         c.beginPath();
@@ -5038,7 +5080,7 @@
         c.lineWidth = 6;
         c.stroke();
 
-        // Гладкая черная рукавичка (без манжеты)
+        // Гладкая черная рукавичка
         c.fillStyle = "#0a0510";
         c.strokeStyle = "#000";
         c.lineWidth = 1.5;
@@ -5063,44 +5105,85 @@
         c.stroke();
 
         if (m.skin.sharkSkin) {
-          // Shark Mouth
+          // 1. Внутренняя черная пасть
           c.fillStyle = "#050208";
           c.beginPath();
-          c.ellipse(-2, -28, 13, 11, -0.2, 0, TAU);
+          c.moveTo(-25, -35); // Верхний левый угол
+          c.quadraticCurveTo(-10, -5, 15, -18); // Нижняя челюсть
+          c.quadraticCurveTo(0, -35, -25, -35); // Верхняя челюсть
           c.fill();
 
-          // Teeth (Bigger, contouring the hood)
+          // 2. Розовая окантовка губ
+          c.strokeStyle = "#FF69B4";
+          c.lineWidth = 3;
+          c.beginPath();
+          c.moveTo(-25, -35);
+          c.quadraticCurveTo(-10, -5, 15, -18);
+          c.stroke();
+
+          // 3. Верхние зубы
           c.fillStyle = "#FFFFFF";
           c.strokeStyle = "#000";
-          c.lineWidth = 1.2;
-
-          // Top teeth
-          for (let i = 0; i < 6; i++) {
-            const ang = -Math.PI * 0.85 + (i / 5) * Math.PI * 0.7;
-            const tx = -2 + Math.cos(ang) * 13,
-              ty = -28 + Math.sin(ang) * 11;
+          c.lineWidth = 1.5;
+          c.lineJoin = "miter";
+          
+          const topTeeth = [
+            [-22, -33], [-15, -29], [-8, -26], [-1, -24], [6, -22]
+          ];
+          for (let i = 0; i < topTeeth.length; i++) {
+            const [tx, ty] = topTeeth[i];
             c.beginPath();
-            c.moveTo(tx, ty);
-            c.lineTo(tx + 2.5, ty + 4);
+            c.moveTo(tx - 2, ty);
+            c.lineTo(tx + 1, ty + 6); // Зуб вниз
             c.lineTo(tx + 4, ty);
             c.closePath();
             c.fill();
             c.stroke();
           }
-          // Bottom teeth
-          for (let i = 0; i < 6; i++) {
-            const ang = -Math.PI * 0.15 - (i / 5) * Math.PI * 0.7;
-            const tx = -2 + Math.cos(ang) * 13,
-              ty = -28 + Math.sin(ang) * 11;
+
+          // 4. Нижние зубы
+          const botTeeth = [
+            [-20, -24], [-13, -20], [-6, -17], [1, -15], [8, -16]
+          ];
+          for (let i = 0; i < botTeeth.length; i++) {
+            const [tx, ty] = botTeeth[i];
             c.beginPath();
-            c.moveTo(tx, ty);
-            c.lineTo(tx - 2.5, ty - 4);
-            c.lineTo(tx - 4, ty);
+            c.moveTo(tx - 2, ty);
+            c.lineTo(tx + 1, ty - 6); // Зуб вверх
+            c.lineTo(tx + 4, ty);
             c.closePath();
             c.fill();
             c.stroke();
           }
+
+          // 5. Плавник на макушке
+          c.fillStyle = "#FFB6D9"; 
+          c.strokeStyle = "#000";
+          c.lineWidth = 2.5;
+          c.beginPath();
+          c.moveTo(5, -55);
+          c.quadraticCurveTo(15, -75, 25, -55);
+          c.closePath();
+          c.fill();
+          c.stroke();
+
+          // 6. Боковой глаз акулы
+          c.fillStyle = "#000";
+          c.beginPath();
+          c.ellipse(-10, -48, 3, 4, -0.3, 0, TAU);
+          c.fill();
+          c.fillStyle = "#FFF";
+          c.beginPath();
+          c.arc(-10.5, -49, 1, 0, TAU);
+          c.fill();
+
+          // 7. Блик на капюшоне для объема
+          c.fillStyle = "rgba(255,255,255,0.15)";
+          c.beginPath();
+          c.ellipse(0, -45, 8, 4, -0.5, 0, TAU);
+          c.fill();
         }
+        
         if (m.skin.catEars) {
           c.fillStyle = pal.hi;
           c.strokeStyle = "#000";
@@ -5108,7 +5191,7 @@
           c.lineJoin = "round";
           for (const s of [-1, 1]) {
             const bx = s * 8;
-
+            
             // Внешнее ухо (плавный треугольник)
             c.beginPath();
             c.moveTo(bx - 7, -45); // Левый нижний угол
@@ -5117,7 +5200,7 @@
             c.closePath(); // Замыкаем основание
             c.fill();
             c.stroke();
-
+            
             // Внутреннее розовое ухо
             c.fillStyle = "#FF69B4";
             c.beginPath();
@@ -5126,7 +5209,7 @@
             c.quadraticCurveTo(bx + 3, -54, bx + 4, -46);
             c.closePath();
             c.fill();
-
+            
             c.fillStyle = pal.hi;
           }
         }
@@ -5202,15 +5285,15 @@
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        c.translate(f * 7, -15); // 🆕 Опустили начало рукава
+        c.translate(f * 7, -15);
         c.rotate(f * -0.25 + swingRot);
         c.strokeStyle = "#000";
         c.lineWidth = 9;
         c.lineCap = "round";
         c.beginPath();
         c.moveTo(0, 0);
-        // 🆕 Направили рукав к новой позиции руки
-        c.quadraticCurveTo(f * 8, -2, f * 12, -6);
+        // 🆕 Рукав теперь тянется вбок к новой позиции посоха
+        c.quadraticCurveTo(f * 10, -2, f * 18.5, -5); 
         c.stroke();
         c.strokeStyle = pal.sh;
         c.lineWidth = 6;
@@ -5221,8 +5304,8 @@
         drawStaff(c, m, f);
 
         // 3. РИСУЕМ ЧЕРНУЮ РУКАВИЧКУ ПОВЕРХ ПОСОХА
-        const px = f * 13.5,
-          py = -6; // 🆕 Опустили кисть
+        const px = f * 18.5, // 🆕 Синхронизировано с посохом
+          py = -5;
         const sw =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -5236,7 +5319,7 @@
 
         // Гладкая черная варежка
         c.beginPath();
-        c.ellipse(px, py - 1, 3, 4, 0, 0, TAU); // Сделали еще чуть меньше
+        c.ellipse(px, py - 1, 3, 4, 0, 0, TAU); 
         c.fill();
         c.stroke();
 
@@ -12213,13 +12296,13 @@
         };
 
         c.save();
-        c.translate(65, 160);
-        c.scale(2.6, 2.6);
+        c.translate(90, 175); // 🆕 Сдвинули вправо и вниз для идеального центра
+        c.scale(2.4, 2.4); // 🆕 Чуть уменьшили, чтобы посох не обрезался
         drawStaff(c, fakeMage, 1);
         c.restore();
       }
 
-            function buildShop() {
+      function buildShop() {
         clearInterval(shopTimer);
         const tabs = $("shopTabs");
         tabs.innerHTML = "";
@@ -12242,24 +12325,7 @@
         }
         const grid = $("shopGrid");
         grid.innerHTML = "";
-        const card = (title, sub, subCol) => {
-          const c = document.createElement("div");
-          c.className = "card";
-          const cv = document.createElement("canvas");
-          c.appendChild(cv);
-          const n = document.createElement("div");
-          n.innerHTML = "<b>" + esc(title) + "</b>";
-          c.appendChild(n);
-          if (sub) {
-            const s = document.createElement("div");
-            s.className = "rar";
-            s.style.color = subCol;
-            s.textContent = sub;
-            c.appendChild(s);
-          }
-          grid.appendChild(c);
-          return { c, cv };
-        };
+        const card = (title, sub, subCol);
 
         const mkShopBtn = (icon, text, cb) => {
           const b = document.createElement("button");
@@ -12344,11 +12410,7 @@
         else if (shopTab === "staffs")
           for (const st of STAFFS) {
             // 🆕 Используем t(st.rar)
-            const k = card(
-              st[lang],
-              t(st.rar),
-              RAR_COL[st.rar] || "#ccc",
-            );
+            const k = card(st[lang], t(st.rar), RAR_COL[st.rar] || "#ccc");
             drawStaffPreview(k.cv, st);
             k.c.appendChild(
               btns(
@@ -12370,11 +12432,7 @@
         else if (shopTab === "fx")
           for (const f of EFFECTS) {
             // 🆕 Используем t(f.type)
-            const k = card(
-              f[lang],
-              t(f.type),
-              "#9cf",
-            );
+            const k = card(f[lang], t(f.type), "#9cf");
             const c = k.cv.getContext("2d");
             k.cv.width = 180;
             k.cv.height = 200;
