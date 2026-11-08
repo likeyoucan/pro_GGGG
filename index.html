@@ -2299,10 +2299,6 @@
             }
           }
           if (steps >= MX) acc = 0;
-          if (hasC() && G) {
-            hostSendState();
-            NET.stT = 0;
-          }
         } catch (e) {}
         if (state === "PLAYING" && G && G.online && G.role === "host")
           bgTimer = setTimeout(bgLoop, 50);
@@ -3543,6 +3539,7 @@
           this.r = 14;
           this.facing = 1;
           this.elem = 0;
+          this.baseElem = 0;
           this.runes = [];
           this.ultCharge = 0;
           this.atkCd = 0;
@@ -4707,7 +4704,7 @@
                 ? "#E8E0C8"
                 : sk === "crystal"
                   ? "#6a5a9a"
-                  : sk === "rainbow"
+                  : sk === "rainbow" || sk === "gold"
                     ? "#DAA520"
                     : sk === "ice"
                       ? "#A0E8FF"
@@ -4950,8 +4947,8 @@
         c.lineWidth = 9;
         c.lineCap = "round";
         c.beginPath();
-        c.moveTo(f * 6, -8); // Опускаем начало рукава ниже
-        c.quadraticCurveTo(f * 14, 4 + swingRot * 5, f * 22, -2 + swingRot * 8); // Рукав идет вниз и вбок, не задевая лицо
+        c.moveTo(f * 8, -2); // Опустили начало рукава к телу, а не к лицу
+        c.quadraticCurveTo(f * 14, 8 + swingRot * 3, f * 22, 2 + swingRot * 6);
         c.stroke();
         c.strokeStyle = pal.sh;
         c.lineWidth = 6;
@@ -5155,20 +5152,17 @@
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
         const px = f * 22,
-          py = -2;
+          py = 2; // Опустили кисть чуть ниже
         const sw =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
         c.translate(px, py);
-        c.rotate(sw - f * 0.04 + (m.staffAnim || 0) * f * 0.45);
+        // Уменьшили амплитуду вращения кисти, чтобы она не выгибалась неестественно
+        c.rotate(sw * 0.5 - f * 0.04 + (m.staffAnim || 0) * f * 0.2);
         c.translate(-px, -py);
 
-        c.fillStyle = "#0a0510";
-        c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
-
         c.beginPath();
-        c.ellipse(px, py, 4, 5, 0, 0, TAU);
+        c.ellipse(px, py, 4, 5, -f * 0.2, 0, TAU); // Добавили легкий наклон
         c.fill();
         c.stroke();
 
@@ -6471,7 +6465,7 @@
             break;
           }
         }
-        const col = elemColor(m.elem);
+        const col = elemColor(m.baseElem || m.elem);
         if (melee) {
           m.swing = 1;
           sfx("swing");
@@ -6505,8 +6499,8 @@
             w = alignF * alignF;
           const ex = lerp(bodyX, staffX, w),
             ey = lerp(bodyY, staffY, w);
-          const coreCol = ELEMS[m.elem].core,
-            elCol = elemColor(m.elem);
+          const coreCol = ELEMS[m.baseElem || m.elem].core,
+            elCol = elemColor(m.baseElem || m.elem);
           burst(ex, ey, [elCol, coreCol, "#fff"], 16, 260, 3.5, 0.3, true);
           G.rings.push({
             x: ex,
@@ -6543,17 +6537,17 @@
               ex,
               ey,
               ang + (i - (n - 1) / 2) * spreadRad,
-              m.elem,
+              m.baseElem || m.elem,
               base,
               {
                 life,
                 trail: m === G.player ? SAVE.fxTrail : "",
                 style: stStyle,
                 col: stCol,
-                r: 12, // 🆕 Увеличили размер для сочности
+                r: 12,
               },
             );
-          elemFx(ex, ey, m.elem, 8, 140);
+          elemFx(ex, ey, m.baseElem || m.elem, 8, 140);
         }
         G.events.push({ k: "atk", id: m.id, a: ang, e: m.elem });
         return true;
@@ -7168,8 +7162,8 @@
             break;
           case "0-3":
             addZone(m, {
-              x: mx + (ax - mx) * 0.5,
-              y: my + (ay - my) * 0.5,
+              x: ax, // 🆕 Спавним там, куда нацелился игрок
+              y: ay, // 🆕
               r: 75,
               life: 6,
               dps: 60,
@@ -7256,8 +7250,8 @@
             break;
           case "2-3":
             addZone(m, {
-              x: mx + (ax - mx) * 0.5,
-              y: my + (ay - my) * 0.5,
+              x: ax, // 🆕
+              y: ay, // 🆕
               r: 75,
               life: 5,
               dps: 20,
@@ -8062,9 +8056,13 @@
         if (G.role !== "client") {
           if (m.remote) {
             const n = m.netIn;
-            if (n) {
+            // 🆕 Если данные не приходили > 500мс, останавливаем мага
+            if (n && performance.now() - (m.netLastIn || 0) < 500) {
               m.mx = n.mx;
               m.my = n.my;
+            } else {
+              m.mx = 0;
+              m.my = 0;
             }
           } else if (m.isBot) aiUpdate(m, dt);
           else if (m === G.player) {
@@ -8707,6 +8705,7 @@
         }
         if (!e.repeat) {
           if (e.code === "Escape") {
+            if (document.activeElement) document.activeElement.blur(); // 🆕
             if (state === "PLAYING") {
               // 🆕 Отмена прицела по Esc
               if (
@@ -10133,6 +10132,7 @@
             else if (skinId === "celestial") pm.elem = 3;
             else if (skinId === "cursed") pm.elem = 4;
           }
+          pm.baseElem = pm.elem;
           pm.auraElem = pm.elem;
           G.player = pm;
           G.mages.push(pm);
@@ -10182,9 +10182,15 @@
           cam.y = G.player.y;
           G.player.hp = G.player.maxHp;
         } else {
-          cam.x = CX;
-          cam.y = CY;
-          console.warn("[startMatch] G.player === null (myId не совпал?)");
+          console.error("[startMatch] G.player === null (myId не совпал)");
+          toast(t("connErr")); // 🆕
+          if (G.online) {
+            // 🆕
+            netCleanup();
+            state = "ONLINE";
+            showScreen("sc-online");
+            return false;
+          }
         }
         state = "PLAYING";
         showScreen(null);
@@ -11884,8 +11890,12 @@
         if (!m) return;
         const sk = SKIN_BY_ID[SAVE.skin] || SKINS[0];
         m.skin = sk;
-        if (sk.catTail && !m.tail) m.tail = new Chain(5, 3.5);
-        else if (!sk.catTail && m.tail) m.tail = null;
+        if (sk.catTail && !m.tail) {
+          m.tail = new Chain(5, 3.5);
+          m.tail.reset(-8, -6, -1, 0.3); // 🆕 Сбрасываем позицию
+        } else if (!sk.catTail && m.tail) {
+          m.tail = null;
+        }
         m.staff = STAFF_BY_ID[SAVE.staff] || STAFFS[0];
         m.mantle =
           sk.mantle ||
@@ -12316,8 +12326,8 @@
         };
 
         c.save();
-        // 🆕 Сдвинули X с 90 на 75, чтобы компенсировать смещение древка посоха вправо
-        c.translate(75, 175);
+        // 🆕 Точное центрирование: центр (90) минус (22 * 2.4)
+        c.translate(37.2, 175);
         c.scale(2.4, 2.4);
         drawStaff(c, fakeMage, 1);
         c.restore();
@@ -12720,11 +12730,11 @@
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML = `
-                                        <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
-                                          <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
-                                        </div>
-                                        <div style="opacity:.8;font-size:13px">${it.sub}</div>
-                                      `;
+                                              <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
+                                                <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
+                                              </div>
+                                              <div style="opacity:.8;font-size:13px">${it.sub}</div>
+                                            `;
             const b = document.createElement("button");
             b.className = "btn small shop-btn";
             b.style.display = "flex";
@@ -13652,15 +13662,13 @@
           });
           peer.on("connection", (conn) => hostOnConnection(conn));
           peer.on("error", (err) => {
-            if (err && err.type === "unavailable-id" && NET.tries++ < 4)
+            if (err && err.type === "unavailable-id" && NET.tries++ < 4) {
               netCreateRoom();
-            else {
+            } else {
               toast(t("connErr"));
-              if (state === "LOBBY") {
-                netCleanup();
-                state = "ONLINE";
-                showScreen("sc-online");
-              }
+              netCleanup(); // 🆕 Принудительно чистим всё
+              state = "ONLINE"; // 🆕 Возвращаем в меню
+              showScreen("sc-online"); // 🆕
             }
           });
         } catch (e) {
@@ -13791,6 +13799,7 @@
             mx: isFinite(mx) ? clamp(mx, -1, 1) : 0,
             my: isFinite(my) ? clamp(my, -1, 1) : 0,
           };
+          m.netLastIn = performance.now(); // 🆕
           if (Array.isArray(d.acts)) {
             // 🆕 добавили {
             for (const a of d.acts.slice(0, 6)) {
@@ -14343,7 +14352,11 @@
               emote(m, u.mega ? "mega" : "ult", u.mega ? 2 : 1.5);
               castFeel(m, u);
               later(u.mega ? 0.6 : 0.35, () => {
-                splash(ev.x, ev.y, 200, elemColor(u.e), 1.2);
+                // 🆕 Подбираем радиус под тип ульты
+                let splashR = 200;
+                if (ev.key === "3-3-3") splashR = 260;
+                if (ev.key === "4-4-4") splashR = 220;
+                splash(ev.x, ev.y, splashR, elemColor(u.e), 1.2);
                 const gm = {
                   "0-0-0": ["lava", 10],
                   "1-1-1": ["ice", 5],
@@ -14685,9 +14698,13 @@
         try {
           const saved = await loadCloud();
           if (saved && saved.v) {
-            const defaults = DEF_SAVE(); // 🆕
+            const defaults = DEF_SAVE();
             Object.assign(SAVE, saved);
-            SAVE.stats = Object.assign(defaults.stats, saved.stats || {}); // 🆕
+            // 🆕 Защита от поврежденных данных
+            SAVE.stats =
+              typeof saved.stats === "object"
+                ? Object.assign(defaults.stats, saved.stats || {})
+                : defaults.stats;
           }
         } catch (e) {}
         if (SAVE.dailyDay === undefined) SAVE.dailyDay = 0;
