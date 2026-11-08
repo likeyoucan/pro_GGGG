@@ -347,7 +347,7 @@
           0 0 22px rgba(255, 170, 0, 0.7);
         text-align: center;
       }
-      
+
       /* Стилизация инпутов и селектов */
       .inp {
         background: rgba(0, 0, 0, 0.5);
@@ -400,7 +400,7 @@
         background: #daa520;
       }
       input[type="checkbox"]:checked::after {
-        content: '✔';
+        content: "✔";
         position: absolute;
         color: #1a0500;
         font-size: 18px;
@@ -671,7 +671,7 @@
       id="sc-shop"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2">МАГАЗИН</h2>
+      <h2 class="h2" data-i18n="shopTitle">МАГАЗИН</h2>
       <div class="tabs" id="shopTabs"></div>
       <div
         class="panel scroll shopgrid"
@@ -688,7 +688,7 @@
       id="sc-codex"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2">КОДЕКС</h2>
+      <h2 class="h2" data-i18n="codexTitle">КОДЕКС</h2>
       <div
         class="panel scroll"
         id="codexBody"
@@ -709,7 +709,7 @@
       id="sc-tutorial"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2">ОБУЧЕНИЕ</h2>
+      <h2 class="h2" data-i18n="tutorialTitle">ОБУЧЕНИЕ</h2>
       <div
         class="panel scroll"
         id="tutorialBody"
@@ -731,7 +731,7 @@
       id="sc-quests"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2">ЗАДАНИЯ</h2>
+      <h2 class="h2" data-i18n="questsTitle">ЗАДАНИЯ</h2>
       <div
         class="panel scroll"
         id="questsBody"
@@ -743,7 +743,7 @@
     </div>
 
     <div class="screen" id="sc-settings">
-      <h2 class="h2">НАСТРОЙКИ</h2>
+      <h2 class="h2" data-i18n="settingsTitle">НАСТРОЙКИ</h2>
       <div
         class="panel"
         style="
@@ -815,7 +815,7 @@
       id="sc-lb"
       style="justify-content: flex-start; padding-top: 60px"
     >
-      <h2 class="h2">РЕЙТИНГ</h2>
+      <h2 class="h2" data-i18n="lbTitle">РЕЙТИНГ</h2>
       <div
         class="panel scroll"
         id="lbBody"
@@ -827,7 +827,7 @@
     </div>
 
     <div class="screen" id="sc-online">
-      <h2 class="h2">ОНЛАЙН PVP</h2>
+      <h2 class="h2" data-i18n="onlineTitle">ОНЛАЙН PVP</h2>
       <div class="stack">
         <button class="btn primary" data-act="createRoom">
           <span data-i18n="createRoom"></span>
@@ -842,23 +842,16 @@
           "
         >
           <!-- ВЫБОР СЕРВЕРА -->
-          <select
-            id="serverSelect"
-            class="inp"
-            style="
-              font-size: 14px;
-              width: 100%;
-              color: #fff;
-              background: #000;
-              padding: 10px;
-              border-radius: 10px;
-              letter-spacing: 0;
-              text-align: left;
-            "
-          >
-            <option value="0.peerjs.com">Сервер: Default (PeerJS Cloud)</option>
-            <option value="peerjs.yandex.cloud">Сервер: Yandex Cloud</option>
-            <option value="peerjs.cloudflare.com">Сервер: Cloudflare</option>
+          <select id="serverSelect" class="inp" ...>
+            <option value="0.peerjs.com" data-i18n="serverDefault">
+              Сервер: Default (PeerJS Cloud)
+            </option>
+            <option value="peerjs.yandex.cloud" data-i18n="serverYandex">
+              Сервер: Yandex Cloud
+            </option>
+            <option value="peerjs.cloudflare.com" data-i18n="serverCloudflare">
+              Сервер: Cloudflare
+            </option>
           </select>
           <input
             class="inp"
@@ -890,7 +883,9 @@
     <div class="screen" id="sc-room">
       <div style="font-weight: 800" data-i18n="roomCode"></div>
       <div class="code" id="roomCode">------</div>
-      <button class="btn small" data-act="copyCode">КОПИРОВАТЬ</button>
+      <button class="btn small" data-act="copyCode">
+        <span data-i18n="copy"></span>
+      </button>
       <div class="panel plist" id="roomPlayers"></div>
       <div
         class="panel"
@@ -906,25 +901,35 @@
         <div class="row" id="roomArena"></div>
       </div>
       <div class="row">
-        <button class="btn" data-act="leaveRoom">ПОКИНУТЬ</button>
+        <button class="btn" data-act="leaveRoom">
+          <span data-i18n="leave"></span>
+        </button>
         <button class="btn primary" data-act="startOnline" id="startOnlineBtn">
-          НАЧАТЬ
+          <span data-i18n="startOnline"></span>
         </button>
       </div>
     </div>
 
     <div class="screen" id="sc-pause" style="background: rgba(0, 0, 0, 0.55)">
-      <h2 class="h2">ПАУЗА</h2>
+      <h2 class="h2" data-i18n="pauseTitle">ПАУЗА</h2>
       <div class="stack">
-        <button class="btn primary" data-act="resume">ПРОДОЛЖИТЬ</button>
-        <button class="btn" data-act="pauseSettings">НАСТРОЙКИ</button>
-        <button class="btn" data-act="fs">ПОЛНЫЙ ЭКРАН</button>
-        <button class="btn" data-act="quit">В МЕНЮ</button>
+        <button class="btn primary" data-act="resume">
+          <span data-i18n="resume"></span>
+        </button>
+        <button class="btn" data-act="pauseSettings">
+          <span data-i18n="settings"></span>
+        </button>
+        <button class="btn" data-act="fs">
+          <span data-i18n="fullscreen"></span>
+        </button>
+        <button class="btn" data-act="quit">
+          <span data-i18n="toMenu"></span>
+        </button>
       </div>
     </div>
 
     <div class="screen" id="sc-levelup" style="background: rgba(0, 0, 0, 0.6)">
-      <h2 class="h2">НОВЫЙ УРОВЕНЬ</h2>
+      <h2 class="h2" data-i18n="levelUpTitle">НОВЫЙ УРОВЕНЬ</h2>
       <div class="row" id="upgRow"></div>
     </div>
 
@@ -947,7 +952,7 @@
       ></div>
       <div class="row">
         <button class="btn primary" data-act="rematch" id="rematchBtn">
-          ЕЩЁ РАЗ
+          <span data-i18n="rematch"></span>
         </button>
         <button
           class="btn"
@@ -955,9 +960,11 @@
           id="backToRoomBtn"
           style="display: none"
         >
-          В КОМНАТУ
+          <span data-i18n="returnToRoom"></span>
         </button>
-        <button class="btn" data-act="quit">В МЕНЮ</button>
+        <button class="btn" data-act="quit">
+          <span data-i18n="toMenu"></span>
+        </button>
       </div>
     </div>
 
@@ -994,7 +1001,7 @@
       id="sc-daily"
       style="background: rgba(0, 0, 0, 0.75); z-index: 35"
     >
-      <h2 class="h2">ЕЖЕДНЕВНЫЙ БОНУС</h2>
+      <h2 class="h2" data-i18n="dailyTitle">ЕЖЕДНЕВНЫЙ БОНУС</h2>
       <div
         class="panel"
         style="text-align: center; padding: 20px; min-width: min(300px, 86vw)"
@@ -1028,8 +1035,12 @@
           id="dailyProgress"
         ></div>
       </div>
-      <button class="btn primary" data-act="claimDaily">ЗАБРАТЬ</button>
-      <button class="btn" data-act="closeDaily">ПОЗЖЕ</button>
+      <button class="btn primary" data-act="claimDaily">
+        <span data-i18n="claim"></span>
+      </button>
+      <button class="btn" data-act="closeDaily">
+        <span data-i18n="later"></span>
+      </button>
     </div>
 
     <div
@@ -1057,8 +1068,12 @@
         ></div>
       </div>
       <div class="row">
-        <button class="btn" data-act="confirmNo">ОТМЕНА</button>
-        <button class="btn primary" data-act="confirmYes">ВЫЙТИ</button>
+        <button class="btn" data-act="confirmNo">
+          <span data-i18n="cancel"></span>
+        </button>
+        <button class="btn primary" data-act="confirmYes">
+          <span data-i18n="exit"></span>
+        </button>
       </div>
     </div>
 
@@ -1067,31 +1082,20 @@
       id="sc-revive"
       style="background: rgba(0, 0, 0, 0.8); z-index: 36"
     >
-      <h2 class="h2" style="color: #ff4040">ВЫ ПОГИБЛИ</h2>
-      <div
-        class="panel"
-        style="
-          text-align: center;
-          padding: 22px;
-          min-width: min(320px, 90vw);
-          max-width: min(400px, 92vw);
-        "
-      >
-        <div
-          style="
-            font-weight: 800;
-            font-size: 16px;
-            line-height: 1.4;
-            margin-bottom: 8px;
-          "
-        >
-          Посмотрите рекламу, чтобы воскреснуть с 50% HP
-        </div>
-        <div style="opacity: 0.65; font-size: 12px">Доступно 1 раз за матч</div>
+      <h2 class="h2" style="color: #ff4040" data-i18n="reviveTitle">
+        ВЫ ПОГИБЛИ
+      </h2>
+      <div class="panel" ...>
+        <div style="..." data-i18n="reviveDesc">Посмотрите рекламу...</div>
+        <div style="..." data-i18n="reviveNote">Доступно 1 раз за матч</div>
       </div>
       <div class="stack">
-        <button class="btn primary" data-act="watchRevive">ВОСКРЕСНУТЬ</button>
-        <button class="btn" data-act="giveUp">СДАТЬСЯ</button>
+        <button class="btn primary" data-act="watchRevive">
+          <span data-i18n="reviveBtn"></span>
+        </button>
+        <button class="btn" data-act="giveUp">
+          <span data-i18n="giveUp"></span>
+        </button>
       </div>
     </div>
 
@@ -1144,9 +1148,16 @@
         }
         return r;
       }
+      const _rc = new Map();
       function rgba(h, a) {
-        const c = hexRGB(h);
-        return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
+        const k = h + "|" + a;
+        let s = _rc.get(k);
+        if (!s) {
+          const c = hexRGB(h);
+          s = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
+          _rc.set(k, s);
+        }
+        return s;
       }
       function shade(h, a) {
         const k = h + "|" + a;
@@ -1251,6 +1262,45 @@
           botDiff: "СЛОЖНОСТЬ БОТОВ",
           nickEmpty: "Ник не может быть пустым",
           nickTaken: "Этот ник уже занят",
+          boot1: "Загрузка ресурсов...",
+          boot2: "Инициализация Yandex SDK...",
+          boot3: "Генерация иконок...",
+          boot4: "Построение арены...",
+          boot5: "Готово!",
+          exitConfirm: "Выйти в меню? Прогресс матча будет потерян.",
+          exitOnlineConfirm: "Выйти из онлайн-матча?",
+          claim: "ЗАБРАТЬ",
+          claimed: "ПОЛУЧЕНО",
+          progress: "В ПРОЦЕССЕ",
+          later: "ПОЗЖЕ",
+          cancel: "ОТМЕНА",
+          exit: "ВЫЙТИ",
+          day: "День",
+          lobbyFull: "Комната заполнена",
+          reviveBtn: "ВОСКРЕСНУТЬ",
+          giveUp: "СДАТЬСЯ",
+          reviveDesc: "Посмотрите рекламу, чтобы воскреснуть с 50% HP",
+          reviveNote: "Доступно 1 раз за матч",
+          codexElems: "СТИХИИ",
+          codexCombos: "КОМБО-УЛЬТЫ",
+          codexMega: "МЕГА-УЛЬТЫ",
+          codexTips: "СОВЕТЫ",
+          tipsBody:
+            "Используйте руны и мультивыстрел для максимального урона. Замедляйте время удержанием кнопки атаки.",
+          shopTitle: "МАГАЗИН",
+          codexTitle: "КОДЕКС",
+          tutorialTitle: "ОБУЧЕНИЕ",
+          questsTitle: "ЗАДАНИЯ",
+          settingsTitle: "НАСТРОЙКИ",
+          lbTitle: "РЕЙТИНГ",
+          onlineTitle: "ОНЛАЙН PVP",
+          pauseTitle: "ПАУЗА",
+          levelUpTitle: "НОВЫЙ УРОВЕНЬ",
+          dailyTitle: "ЕЖЕДНЕВНЫЙ БОНУС",
+          reviveTitle: "ВЫ ПОГИБЛИ",
+          serverDefault: "Сервер: Default (PeerJS Cloud)",
+          serverYandex: "Сервер: Yandex Cloud",
+          serverCloudflare: "Сервер: Cloudflare",
         },
         en: {
           play: "PLAY",
@@ -1329,6 +1379,45 @@
           botDiff: "BOT DIFFICULTY",
           nickEmpty: "Nick cannot be empty",
           nickTaken: "Nick is already taken",
+          boot1: "Loading resources...",
+          boot2: "Initializing Yandex SDK...",
+          boot3: "Generating icons...",
+          boot4: "Building arena...",
+          boot5: "Ready!",
+          exitConfirm: "Exit to menu? Match progress will be lost.",
+          exitOnlineConfirm: "Leave online match?",
+          claim: "CLAIM",
+          claimed: "CLAIMED",
+          progress: "IN PROGRESS",
+          later: "LATER",
+          cancel: "CANCEL",
+          exit: "EXIT",
+          day: "Day",
+          lobbyFull: "Room is full",
+          reviveBtn: "REVIVE",
+          giveUp: "GIVE UP",
+          reviveDesc: "Watch ad to revive with 50% HP",
+          reviveNote: "Available once per match",
+          codexElems: "ELEMENTS",
+          codexCombos: "COMBO ULTS",
+          codexMega: "MEGA ULTS",
+          codexTips: "TIPS",
+          tipsBody:
+            "Use runes and multi-shot for max damage. Slow time by holding attack.",
+          shopTitle: "SHOP",
+          codexTitle: "CODEX",
+          tutorialTitle: "TUTORIAL",
+          questsTitle: "QUESTS",
+          settingsTitle: "SETTINGS",
+          lbTitle: "LEADERBOARD",
+          onlineTitle: "ONLINE PVP",
+          pauseTitle: "PAUSED",
+          levelUpTitle: "LEVEL UP",
+          dailyTitle: "DAILY BONUS",
+          reviveTitle: "YOU DIED",
+          serverDefault: "Server: Default (PeerJS Cloud)",
+          serverYandex: "Server: Yandex Cloud",
+          serverCloudflare: "Server: Cloudflare",
         },
       };
       let lang = CONFIG.DEFAULT_LANGUAGE;
@@ -1427,6 +1516,14 @@
           saveCloud(SAVE);
         }
       }
+      function drawTopbarIconsOnce() {
+        // 🆕
+        if (!IC.coin) return;
+        $("icoGold").getContext("2d").drawImage(IC.coin, 0, 0, 24, 24);
+        $("icoGem").getContext("2d").drawImage(IC.gemIcon, 0, 0, 24, 24);
+        $("icoEnergy").getContext("2d").drawImage(IC.energy, 0, 0, 24, 24);
+      }
+
       function updateTopbar() {
         energyTick();
         $("goldV").textContent = SAVE.gold;
@@ -1439,17 +1536,6 @@
           $("enT").textContent =
             Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
         } else $("enT").textContent = "";
-        if (IC.coin) {
-          const ctx = $("icoGold").getContext("2d");
-          ctx.clearRect(0, 0, 24, 24);
-          ctx.drawImage(IC.coin, 0, 0, 24, 24);
-          const ctx2 = $("icoGem").getContext("2d");
-          ctx2.clearRect(0, 0, 24, 24);
-          ctx2.drawImage(IC.gemIcon, 0, 0, 24, 24);
-          const ctx3 = $("icoEnergy").getContext("2d");
-          ctx3.clearRect(0, 0, 24, 24);
-          ctx3.drawImage(IC.energy, 0, 0, 24, 24);
-        }
       }
 
       async function loadScript(url, to = 4000) {
@@ -2089,10 +2175,12 @@
             if (typeof autoPause === "function") autoPause();
           }
         } else {
+          // ← просто `} else {`, без лишней `}`
           if (bgTimer) {
             clearTimeout(bgTimer);
             bgTimer = null;
           }
+          resetAllInputs();
           stopKeepAlive();
           resumeAudio();
           lastTime = performance.now();
@@ -2101,6 +2189,7 @@
             NET.lastRecv = performance.now();
         }
       });
+
       function bgLoop() {
         bgTimer = null;
         if (!G || !G.online || G.role !== "host" || state !== "PLAYING") return;
@@ -3003,9 +3092,9 @@
           this.active.length = w;
         }
         clear() {
-          for (const o of this.a) {
-            o.on = false;
-            o._inActive = false;
+          for (let i = 0; i < this.active.length; i++) {
+            this.active[i].on = false;
+            this.active[i]._inActive = false;
           }
           this.active.length = 0;
         }
@@ -3067,6 +3156,7 @@
         dprCap: 2,
         mobMul: 1,
       };
+      let _previewMode = false; // 🆕
       let TM = 0;
       function pt(x, y, vx, vy, life, size, color, grav, add, drag, sq) {
         if (Q.pmul < 1 && Math.random() > Q.pmul) return;
@@ -3460,7 +3550,6 @@
           this.arcT = 0;
           this.arcs = [];
           this.lastHit = null;
-          this.auraMax = 10;
           this.lowHpBeat = 0;
           this.tauntT = rnd(4, 9);
         }
@@ -4208,11 +4297,8 @@
         }
       }
 
-      function drawStaffShark(c, m, f) {
-        const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
-          bx = f * 12.5,
-          topY = -50,
-          px = f * 13.5,
+      function withStaffTransform(c, m, f, drawShaft, drawTip) {
+        const px = f * 13.5,
           py = -14,
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -4221,459 +4307,477 @@
         c.translate(-px, -py);
         c.lineCap = "round";
         c.lineJoin = "round";
-        c.strokeStyle = "#000";
-        c.lineWidth = 6;
-        c.beginPath();
-        c.moveTo(bx, 2);
-        c.lineTo(f * 14, topY + 10);
-        c.stroke();
-        c.strokeStyle = "#FFB6D9";
-        c.lineWidth = 4;
-        c.stroke();
-        c.strokeStyle = "#FF69B4";
-        c.lineWidth = 1.5;
-        c.stroke();
-        
-        // Large layered shark fin
-        const tipX = f * 14 - f * 16,
-          tipY = topY - 24,
-          baseY = topY + 16,
-          baseX = f * 14;
-          
-        c.beginPath();
-        c.moveTo(baseX, baseY);
-        c.lineTo(baseX - f * 22, baseY - 6);
-        c.quadraticCurveTo(baseX - f * 16, topY - 10, tipX, tipY);
-        c.quadraticCurveTo(baseX - f * 6, topY + 2, baseX, topY + 4);
-        c.closePath();
-        
-        const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
-        fg.addColorStop(0, "#FFC8E0");
-        fg.addColorStop(0.5, "#FFB6D9");
-        fg.addColorStop(1, "#FF69B4");
-        c.fillStyle = fg;
-        c.fill();
-        c.strokeStyle = "#000";
-        c.lineWidth = 2.5;
-        c.stroke();
-        
-        // Fin details / lines
-        c.strokeStyle = "rgba(255,105,180,.8)";
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.moveTo(baseX - f * 4, baseY - 2);
-        c.lineTo(tipX + f * 4, tipY + 4);
-        c.moveTo(baseX - f * 8, baseY - 4);
-        c.lineTo(tipX + f * 2, tipY + 6);
-        c.stroke();
-        
-        const ox = tipX,
-          oy = tipY,
-          pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
-        c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
-        gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
-        gr.addColorStop(0.3, rgba("#FF69B4", 0.7 * pul));
-        gr.addColorStop(1, rgba("#FF69B4", 0));
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(ox, oy, 22, 0, TAU);
-        c.fill();
-        c.globalCompositeOperation = "source-over";
+        drawShaft();
+        drawTip();
         c.restore();
+      }
+
+      function drawStaffShark(c, m, f) {
+        const bx = f * 12.5,
+          topY = -50;
+        withStaffTransform(
+          c,
+          m,
+          f,
+          // ─── древко ───
+          () => {
+            c.strokeStyle = "#000";
+            c.lineWidth = 6;
+            c.beginPath();
+            c.moveTo(bx, 2);
+            c.lineTo(f * 14, topY + 10);
+            c.stroke();
+            c.strokeStyle = "#FFB6D9";
+            c.lineWidth = 4;
+            c.stroke();
+            c.strokeStyle = "#FF69B4";
+            c.lineWidth = 1.5;
+            c.stroke();
+          },
+          // ─── плавник ───
+          () => {
+            const tipX = f * 14 - f * 16,
+              tipY = topY - 24,
+              baseY = topY + 16,
+              baseX = f * 14;
+
+            c.beginPath();
+            c.moveTo(baseX, baseY);
+            c.lineTo(baseX - f * 22, baseY - 6);
+            c.quadraticCurveTo(baseX - f * 16, topY - 10, tipX, tipY);
+            c.quadraticCurveTo(baseX - f * 6, topY + 2, baseX, topY + 4);
+            c.closePath();
+
+            const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
+            fg.addColorStop(0, "#FFC8E0");
+            fg.addColorStop(0.5, "#FFB6D9");
+            fg.addColorStop(1, "#FF69B4");
+            c.fillStyle = fg;
+            c.fill();
+            c.strokeStyle = "#000";
+            c.lineWidth = 2.5;
+            c.stroke();
+
+            c.strokeStyle = "rgba(255,105,180,.8)";
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.moveTo(baseX - f * 4, baseY - 2);
+            c.lineTo(tipX + f * 4, tipY + 4);
+            c.moveTo(baseX - f * 8, baseY - 4);
+            c.lineTo(tipX + f * 2, tipY + 6);
+            c.stroke();
+
+            const ox = tipX,
+              oy = tipY,
+              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+            c.globalCompositeOperation = "lighter";
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
+            gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
+            gr.addColorStop(0.3, rgba("#FF69B4", 0.7 * pul));
+            gr.addColorStop(1, rgba("#FF69B4", 0));
+            c.fillStyle = gr;
+            c.beginPath();
+            c.arc(ox, oy, 22, 0, TAU);
+            c.fill();
+            c.globalCompositeOperation = "source-over";
+          },
+        );
       }
 
       function drawStaffStar(c, m, f) {
         const bx = f * 12.5,
-          topY = -42,
-          px = f * 13.5,
-          py = -14,
-          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-        c.save();
-        c.translate(px, py);
-        c.rotate(sw - f * 0.04);
-        c.translate(-px, -py);
-        c.lineCap = "round";
-        c.lineJoin = "round";
-        c.strokeStyle = "#000";
-        c.lineWidth = 5.5;
-        c.beginPath();
-        c.moveTo(bx, 2);
-        c.lineTo(f * 14, topY + 8);
-        c.stroke();
-        c.strokeStyle = "#DAA520";
-        c.lineWidth = 3.4;
-        c.stroke();
-        c.strokeStyle = "#FFF6A0";
-        c.lineWidth = 1.2;
-        c.stroke();
-        const ox = f * 14,
-          oy = topY - 2,
-          pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
-        c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
-        gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
-        gr.addColorStop(0.35, rgba("#FFFFC0", 0.55 * pul));
-        gr.addColorStop(1, rgba("#FFB020", 0));
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(ox, oy, 30, 0, TAU);
-        c.fill();
-        c.globalCompositeOperation = "source-over";
-        const star4 = (sx, sy, len, w) => {
-          c.beginPath();
-          c.moveTo(sx, sy - len);
-          c.quadraticCurveTo(sx + w, sy - w, sx + len, sy);
-          c.quadraticCurveTo(sx + w, sy + w, sx, sy + len);
-          c.quadraticCurveTo(sx - w, sy + w, sx - len, sy);
-          c.quadraticCurveTo(sx - w, sy - w, sx, sy - len);
-          c.closePath();
-        };
-        star4(ox, oy, 17, 1.8);
-        c.fillStyle = "rgba(40,20,10,.85)";
-        c.fill();
-        c.strokeStyle = "#000";
-        c.lineWidth = 2;
-        c.stroke();
-        star4(ox, oy, 14, 1.2);
-        const sg = c.createRadialGradient(ox, oy, 0.5, ox, oy, 14);
-        sg.addColorStop(0, "#FFFFFF");
-        sg.addColorStop(0.5, "#FFF6C0");
-        sg.addColorStop(1, "#FFC020");
-        c.fillStyle = sg;
-        c.fill();
-        c.strokeStyle = "#FFF6A0";
-        c.lineWidth = 1;
-        c.stroke();
-        c.fillStyle = "#FFFFFF";
-        c.beginPath();
-        c.arc(ox, oy, 2.2, 0, TAU);
-        c.fill();
-        star4(ox + f * 7, oy - 12, 6, 0.7);
-        c.fillStyle = "rgba(255,240,180,.9)";
-        c.fill();
-        c.restore();
+          topY = -42;
+        withStaffTransform(
+          c,
+          m,
+          f,
+          // ─── древко ───
+          () => {
+            c.strokeStyle = "#000";
+            c.lineWidth = 5.5;
+            c.beginPath();
+            c.moveTo(bx, 2);
+            c.lineTo(f * 14, topY + 8);
+            c.stroke();
+            c.strokeStyle = "#DAA520";
+            c.lineWidth = 3.4;
+            c.stroke();
+            c.strokeStyle = "#FFF6A0";
+            c.lineWidth = 1.2;
+            c.stroke();
+          },
+          // ─── звезда ───
+          () => {
+            const ox = f * 14,
+              oy = topY - 2,
+              pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
+
+            c.globalCompositeOperation = "lighter";
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
+            gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
+            gr.addColorStop(0.35, rgba("#FFFFC0", 0.55 * pul));
+            gr.addColorStop(1, rgba("#FFB020", 0));
+            c.fillStyle = gr;
+            c.beginPath();
+            c.arc(ox, oy, 30, 0, TAU);
+            c.fill();
+            c.globalCompositeOperation = "source-over";
+
+            const star4 = (sx, sy, len, w) => {
+              c.beginPath();
+              c.moveTo(sx, sy - len);
+              c.quadraticCurveTo(sx + w, sy - w, sx + len, sy);
+              c.quadraticCurveTo(sx + w, sy + w, sx, sy + len);
+              c.quadraticCurveTo(sx - w, sy + w, sx - len, sy);
+              c.quadraticCurveTo(sx - w, sy - w, sx, sy - len);
+              c.closePath();
+            };
+
+            star4(ox, oy, 17, 1.8);
+            c.fillStyle = "rgba(40,20,10,.85)";
+            c.fill();
+            c.strokeStyle = "#000";
+            c.lineWidth = 2;
+            c.stroke();
+
+            star4(ox, oy, 14, 1.2);
+            const sg = c.createRadialGradient(ox, oy, 0.5, ox, oy, 14);
+            sg.addColorStop(0, "#FFFFFF");
+            sg.addColorStop(0.5, "#FFF6C0");
+            sg.addColorStop(1, "#FFC020");
+            c.fillStyle = sg;
+            c.fill();
+            c.strokeStyle = "#FFF6A0";
+            c.lineWidth = 1;
+            c.stroke();
+
+            c.fillStyle = "#FFFFFF";
+            c.beginPath();
+            c.arc(ox, oy, 2.2, 0, TAU);
+            c.fill();
+
+            star4(ox + f * 7, oy - 12, 6, 0.7);
+            c.fillStyle = "rgba(255,240,180,.9)";
+            c.fill();
+          },
+        );
       }
 
       function drawStaffVoid(c, m, f) {
         const bx = f * 12.5,
-          topY = -50,
-          px = f * 13.5,
-          py = -14,
-          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-        c.save();
-        c.translate(px, py);
-        c.rotate(sw - f * 0.04);
-        c.translate(-px, -py);
-        c.lineCap = "round";
-        c.lineJoin = "round";
+          topY = -50;
+        withStaffTransform(
+          c,
+          m,
+          f,
+          // ─── древко ───
+          () => {
+            c.strokeStyle = "#000";
+            c.lineWidth = 6;
+            c.beginPath();
+            c.moveTo(bx, 2);
+            c.lineTo(f * 14, topY + 12);
+            c.stroke();
+            c.strokeStyle = "#110020";
+            c.lineWidth = 4;
+            c.stroke();
+            c.strokeStyle = "#8A2BE2";
+            c.lineWidth = 1.5;
+            c.stroke();
+          },
+          // ─── крылья + чёрная дыра ───
+          () => {
+            c.fillStyle = "#4B0082";
+            c.strokeStyle = "#000";
+            c.lineWidth = 1.5;
 
-        // Shaft
-        c.strokeStyle = "#000";
-        c.lineWidth = 6;
-        c.beginPath();
-        c.moveTo(bx, 2);
-        c.lineTo(f * 14, topY + 12);
-        c.stroke();
-        c.strokeStyle = "#110020";
-        c.lineWidth = 4;
-        c.stroke();
-        c.strokeStyle = "#8A2BE2";
-        c.lineWidth = 1.5;
-        c.stroke();
+            // Left wing
+            c.beginPath();
+            c.moveTo(f * 14, topY + 12);
+            c.lineTo(f * 2, topY - 10);
+            c.lineTo(f * 10, topY + 2);
+            c.closePath();
+            c.fill();
+            c.stroke();
 
-        // Outer Wings/Crystals
-        c.fillStyle = "#4B0082";
-        c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
-        
-        // Left wing
-        c.beginPath();
-        c.moveTo(f * 14, topY + 12);
-        c.lineTo(f * 2, topY - 10);
-        c.lineTo(f * 10, topY + 2);
-        c.closePath();
-        c.fill();
-        c.stroke();
-        
-        // Right wing
-        c.beginPath();
-        c.moveTo(f * 14, topY + 12);
-        c.lineTo(f * 26, topY - 10);
-        c.lineTo(f * 18, topY + 2);
-        c.closePath();
-        c.fill();
-        c.stroke();
+            // Right wing
+            c.beginPath();
+            c.moveTo(f * 14, topY + 12);
+            c.lineTo(f * 26, topY - 10);
+            c.lineTo(f * 18, topY + 2);
+            c.closePath();
+            c.fill();
+            c.stroke();
 
-        const ox = f * 14,
-          oy = topY - 4,
-          pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
+            const ox = f * 14,
+              oy = topY - 4,
+              pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
 
-        // Orbital Rings (Accretion Disk)
-        c.globalCompositeOperation = "lighter";
-        c.strokeStyle = `rgba(180, 50, 255, ${0.7 * pul})`;
-        c.lineWidth = 3;
-        for (let i = 0; i < 3; i++) {
-          const ra = TM * 2.5 + i * 1.2;
-          c.beginPath();
-          c.ellipse(ox, oy, 20 + i * 4, 7 + i * 2, ra, 0, TAU);
-          c.stroke();
-        }
-        
-        // Outer Glow
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 35);
-        gr.addColorStop(0, "rgba(20,0,30,1)");
-        gr.addColorStop(0.4, "rgba(106,13,173,0.8)");
-        gr.addColorStop(0.8, "rgba(176,64,255,0.3)");
-        gr.addColorStop(1, "rgba(176,64,255,0)");
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(ox, oy, 35, 0, TAU);
-        c.fill();
-        
-        // Core Black Hole
-        c.fillStyle = "#000000";
-        c.beginPath();
-        c.arc(ox, oy, 12, 0, TAU);
-        c.fill();
-        
-        // Bright Rim
-        c.strokeStyle = `rgba(255, 100, 255, ${pul})`;
-        c.lineWidth = 2;
-        c.beginPath();
-        c.arc(ox, oy, 12, 0, TAU);
-        c.stroke();
-        
-        // Singularity point
-        c.fillStyle = "#FFFFFF";
-        c.globalAlpha = pul;
-        c.beginPath();
-        c.arc(ox, oy, 2, 0, TAU);
-        c.fill();
-        c.globalAlpha = 1;
-        
-        // Floating particles
-        for (let i = 0; i < 4; i++) {
-           const a = TM * 4 + (i * TAU) / 4;
-           const dist = 18 + Math.sin(TM * 8 + i) * 4;
-           const px = ox + Math.cos(a) * dist;
-           const py = oy + Math.sin(a) * dist;
-           c.fillStyle = "#D070FF";
-           c.beginPath();
-           c.arc(px, py, 1.5, 0, TAU);
-           c.fill();
-        }
+            c.globalCompositeOperation = "lighter";
+            c.strokeStyle = `rgba(180, 50, 255, ${0.7 * pul})`;
+            c.lineWidth = 3;
+            for (let i = 0; i < 3; i++) {
+              const ra = TM * 2.5 + i * 1.2;
+              c.beginPath();
+              c.ellipse(ox, oy, 20 + i * 4, 7 + i * 2, ra, 0, TAU);
+              c.stroke();
+            }
 
-        c.globalCompositeOperation = "source-over";
-        c.restore();
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 35);
+            gr.addColorStop(0, "rgba(20,0,30,1)");
+            gr.addColorStop(0.4, "rgba(106,13,173,0.8)");
+            gr.addColorStop(0.8, "rgba(176,64,255,0.3)");
+            gr.addColorStop(1, "rgba(176,64,255,0)");
+            c.fillStyle = gr;
+            c.beginPath();
+            c.arc(ox, oy, 35, 0, TAU);
+            c.fill();
+
+            c.fillStyle = "#000000";
+            c.beginPath();
+            c.arc(ox, oy, 12, 0, TAU);
+            c.fill();
+
+            c.strokeStyle = `rgba(255, 100, 255, ${pul})`;
+            c.lineWidth = 2;
+            c.beginPath();
+            c.arc(ox, oy, 12, 0, TAU);
+            c.stroke();
+
+            c.fillStyle = "#FFFFFF";
+            c.globalAlpha = pul;
+            c.beginPath();
+            c.arc(ox, oy, 2, 0, TAU);
+            c.fill();
+            c.globalAlpha = 1;
+
+            for (let i = 0; i < 4; i++) {
+              const a = TM * 4 + (i * TAU) / 4;
+              const dist = 18 + Math.sin(TM * 8 + i) * 4;
+              const ptx = ox + Math.cos(a) * dist;
+              const pty = oy + Math.sin(a) * dist;
+              c.fillStyle = "#D070FF";
+              c.beginPath();
+              c.arc(ptx, pty, 1.5, 0, TAU);
+              c.fill();
+            }
+
+            c.globalCompositeOperation = "source-over";
+          },
+        );
       }
 
       function drawStaffFire(c, m, f) {
         const bx = f * 12.5,
           tx = f * 15,
-          topY = -37,
-          px = f * 13.5,
-          py = -14,
-          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-        c.save();
-        c.translate(px, py);
-        c.rotate(sw - f * 0.04);
-        c.translate(-px, -py);
-        c.lineCap = "round";
-        c.lineJoin = "round";
-        c.strokeStyle = "#000";
-        c.lineWidth = 5.8;
-        c.beginPath();
-        c.moveTo(bx, 2);
-        c.quadraticCurveTo(f * 11.5, -18, tx, topY);
-        c.stroke();
-        c.strokeStyle = "#3a1008";
-        c.lineWidth = 3.6;
-        c.stroke();
-        c.strokeStyle = "#8a2008";
-        c.lineWidth = 1.4;
-        c.stroke();
-        c.strokeStyle = "#FF6010";
-        c.lineWidth = 1.2;
-        for (let i = 0; i < 4; i++) {
-          const u = 0.2 + i * 0.2,
-            x = lerp(bx, tx, u) - f * 0.8,
-            y = lerp(2, topY, u);
-          c.beginPath();
-          c.moveTo(x, y);
-          c.lineTo(x + f * 1.5, y - 2);
-          c.lineTo(x - f * 0.5, y - 5);
-          c.stroke();
-        }
-        const ox = tx + f * 0.5,
-          oy = topY - 8,
-          pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
-        c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 32);
-        gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
-        gr.addColorStop(0.3, "rgba(255,238,0," + 0.8 * pul + ")");
-        gr.addColorStop(0.6, "rgba(255,140,0," + 0.5 * pul + ")");
-        gr.addColorStop(1, "rgba(255,69,0,0)");
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(ox, oy, 32, 0, TAU);
-        c.fill();
-        c.globalCompositeOperation = "source-over";
-        for (let i = 0; i < 5; i++) {
-          const a = TM * 4 + i * 1.26,
-            bx2 = ox + Math.cos(a) * 5,
-            by2 = oy + Math.sin(a) * 3,
-            len = 12 + Math.sin(TM * 10 + i) * 4;
-          c.beginPath();
-          c.moveTo(bx2 - 3, by2 + 2);
-          c.quadraticCurveTo(
-            bx2 - 1,
-            by2 - len * 0.6,
-            bx2 + Math.sin(TM * 15 + i) * 3,
-            by2 - len,
-          );
-          c.quadraticCurveTo(bx2 + 3, by2 - len * 0.4, bx2 + 3, by2 + 2);
-          c.closePath();
-          const fg = c.createLinearGradient(bx2, by2 + 2, bx2, by2 - len);
-          fg.addColorStop(0, "rgba(255,69,0,.9)");
-          fg.addColorStop(0.5, "rgba(255,180,0,.85)");
-          fg.addColorStop(1, "rgba(255,255,200,.7)");
-          c.fillStyle = fg;
-          c.fill();
-        }
-        const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 9);
-        og.addColorStop(0, "#FFFFFF");
-        og.addColorStop(0.3, "#FFEE00");
-        og.addColorStop(0.7, "#FF8C00");
-        og.addColorStop(1, "#FF4500");
-        c.fillStyle = og;
-        c.beginPath();
-        c.arc(ox, oy, 9, 0, TAU);
-        c.fill();
-        c.strokeStyle = "rgba(60,0,0,.6)";
-        c.lineWidth = 1.5;
-        c.stroke();
-        for (let i = 0; i < 4; i++) {
-          const sa = TM * 5 + i * 1.57,
-            sx = ox + Math.cos(sa) * 16,
-            sy = oy + Math.sin(sa) * 10;
-          c.fillStyle = "#FFC040";
-          c.beginPath();
-          c.arc(sx, sy, 1.8, 0, TAU);
-          c.fill();
-        }
-        c.restore();
-      }
+          topY = -37;
+        withStaffTransform(
+          c,
+          m,
+          f,
+          // ─── древко ───
+          () => {
+            c.strokeStyle = "#000";
+            c.lineWidth = 5.8;
+            c.beginPath();
+            c.moveTo(bx, 2);
+            c.quadraticCurveTo(f * 11.5, -18, tx, topY);
+            c.stroke();
+            c.strokeStyle = "#3a1008";
+            c.lineWidth = 3.6;
+            c.stroke();
+            c.strokeStyle = "#8a2008";
+            c.lineWidth = 1.4;
+            c.stroke();
+            c.strokeStyle = "#FF6010";
+            c.lineWidth = 1.2;
+            for (let i = 0; i < 4; i++) {
+              const u = 0.2 + i * 0.2,
+                x = lerp(bx, tx, u) - f * 0.8,
+                y = lerp(2, topY, u);
+              c.beginPath();
+              c.moveTo(x, y);
+              c.lineTo(x + f * 1.5, y - 2);
+              c.lineTo(x - f * 0.5, y - 5);
+              c.stroke();
+            }
+          },
+          // ─── пламя ───
+          () => {
+            const ox = tx + f * 0.5,
+              oy = topY - 8,
+              pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
 
+            c.globalCompositeOperation = "lighter";
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 32);
+            gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
+            gr.addColorStop(0.3, "rgba(255,238,0," + 0.8 * pul + ")");
+            gr.addColorStop(0.6, "rgba(255,140,0," + 0.5 * pul + ")");
+            gr.addColorStop(1, "rgba(255,69,0,0)");
+            c.fillStyle = gr;
+            c.beginPath();
+            c.arc(ox, oy, 32, 0, TAU);
+            c.fill();
+            c.globalCompositeOperation = "source-over";
+
+            for (let i = 0; i < 5; i++) {
+              const a = TM * 4 + i * 1.26,
+                bx2 = ox + Math.cos(a) * 5,
+                by2 = oy + Math.sin(a) * 3,
+                len = 12 + Math.sin(TM * 10 + i) * 4;
+              c.beginPath();
+              c.moveTo(bx2 - 3, by2 + 2);
+              c.quadraticCurveTo(
+                bx2 - 1,
+                by2 - len * 0.6,
+                bx2 + Math.sin(TM * 15 + i) * 3,
+                by2 - len,
+              );
+              c.quadraticCurveTo(bx2 + 3, by2 - len * 0.4, bx2 + 3, by2 + 2);
+              c.closePath();
+              const fg = c.createLinearGradient(bx2, by2 + 2, bx2, by2 - len);
+              fg.addColorStop(0, "rgba(255,69,0,.9)");
+              fg.addColorStop(0.5, "rgba(255,180,0,.85)");
+              fg.addColorStop(1, "rgba(255,255,200,.7)");
+              c.fillStyle = fg;
+              c.fill();
+            }
+
+            const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 9);
+            og.addColorStop(0, "#FFFFFF");
+            og.addColorStop(0.3, "#FFEE00");
+            og.addColorStop(0.7, "#FF8C00");
+            og.addColorStop(1, "#FF4500");
+            c.fillStyle = og;
+            c.beginPath();
+            c.arc(ox, oy, 9, 0, TAU);
+            c.fill();
+            c.strokeStyle = "rgba(60,0,0,.6)";
+            c.lineWidth = 1.5;
+            c.stroke();
+
+            for (let i = 0; i < 4; i++) {
+              const sa = TM * 5 + i * 1.57,
+                sx = ox + Math.cos(sa) * 16,
+                sy = oy + Math.sin(sa) * 10;
+              c.fillStyle = "#FFC040";
+              c.beginPath();
+              c.arc(sx, sy, 1.8, 0, TAU);
+              c.fill();
+            }
+          },
+        );
+      }
       function drawStaffCat(c, m, f) {
         const bx = f * 12.5,
           tx = f * 15,
-          topY = -37,
-          px = f * 13.5,
-          py = -14,
-          sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-        c.save();
-        c.translate(px, py);
-        c.rotate(sw - f * 0.04);
-        c.translate(-px, -py);
-        c.lineCap = "round";
-        c.lineJoin = "round";
-        c.strokeStyle = "#000";
-        c.lineWidth = 5.4;
-        c.beginPath();
-        c.moveTo(bx, 2);
-        c.quadraticCurveTo(f * 11.5, -18, tx, topY);
-        c.stroke();
-        c.strokeStyle = "#FFB6D9";
-        c.lineWidth = 3.2;
-        c.stroke();
-        c.strokeStyle = "#FF69B4";
-        c.lineWidth = 1;
-        for (let i = 0; i < 4; i++) {
-          const u = 0.15 + i * 0.22,
-            x = lerp(bx, tx, u) - f * 0.6,
-            y = lerp(2, topY, u);
-          c.beginPath();
-          c.arc(x, y, 1.2, 0, TAU);
-          c.stroke();
-        }
-        const ox = tx + f * 0.5,
-          oy = topY - 8,
-          pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
-        c.globalCompositeOperation = "lighter";
-        const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 24);
-        gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
-        gr.addColorStop(0.35, rgba("#FFB6D9", 0.7 * pul));
-        gr.addColorStop(1, rgba("#FFB6D9", 0));
-        c.fillStyle = gr;
-        c.beginPath();
-        c.arc(ox, oy, 24, 0, TAU);
-        c.fill();
-        c.globalCompositeOperation = "source-over";
-        
-        // Bigger Heart shape
-        c.fillStyle = "#FF69B4";
-        c.strokeStyle = "#000";
-        c.lineWidth = 1.8;
-        c.beginPath();
-        c.moveTo(ox, oy + 7);
-        c.bezierCurveTo(ox - 11, oy - 3, ox - 8, oy - 13, ox, oy - 5);
-        c.bezierCurveTo(ox + 8, oy - 13, ox + 11, oy - 3, ox, oy + 7);
-        c.fill();
-        c.stroke();
-        
-        // Highlights
-        c.fillStyle = "rgba(255,255,255,0.7)";
-        c.beginPath();
-        c.ellipse(ox - 3.5, oy - 4, 2, 2.5, -0.5, 0, TAU);
-        c.fill();
-        
-        c.restore();
+          topY = -37;
+        withStaffTransform(
+          c,
+          m,
+          f,
+          // ─── древко ───
+          () => {
+            c.strokeStyle = "#000";
+            c.lineWidth = 5.4;
+            c.beginPath();
+            c.moveTo(bx, 2);
+            c.quadraticCurveTo(f * 11.5, -18, tx, topY);
+            c.stroke();
+            c.strokeStyle = "#FFB6D9";
+            c.lineWidth = 3.2;
+            c.stroke();
+            c.strokeStyle = "#FF69B4";
+            c.lineWidth = 1;
+            for (let i = 0; i < 4; i++) {
+              const u = 0.15 + i * 0.22,
+                x = lerp(bx, tx, u) - f * 0.6,
+                y = lerp(2, topY, u);
+              c.beginPath();
+              c.arc(x, y, 1.2, 0, TAU);
+              c.stroke();
+            }
+          },
+          // ─── сердце ───
+          () => {
+            const ox = tx + f * 0.5,
+              oy = topY - 8,
+              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+
+            c.globalCompositeOperation = "lighter";
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 24);
+            gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
+            gr.addColorStop(0.35, rgba("#FFB6D9", 0.7 * pul));
+            gr.addColorStop(1, rgba("#FFB6D9", 0));
+            c.fillStyle = gr;
+            c.beginPath();
+            c.arc(ox, oy, 24, 0, TAU);
+            c.fill();
+            c.globalCompositeOperation = "source-over";
+
+            c.fillStyle = "#FF69B4";
+            c.strokeStyle = "#000";
+            c.lineWidth = 1.8;
+            c.beginPath();
+            c.moveTo(ox, oy + 7);
+            c.bezierCurveTo(ox - 11, oy - 3, ox - 8, oy - 13, ox, oy - 5);
+            c.bezierCurveTo(ox + 8, oy - 13, ox + 11, oy - 3, ox, oy + 7);
+            c.fill();
+            c.stroke();
+
+            c.fillStyle = "rgba(255,255,255,0.7)";
+            c.beginPath();
+            c.ellipse(ox - 3.5, oy - 4, 2, 2.5, -0.5, 0, TAU);
+            c.fill();
+          },
+        );
       }
 
       function drawStaff(c, m, f) {
         const sk = m.staff.id;
-        if (sk === "sharkstaff" || sk === "alpha") drawStaffShark(c, m, f);
-        else if (sk === "catstaff" || sk === "meow") drawStaffCat(c, m, f);
-        else if (
-          sk === "starstaff" ||
-          (sk === "gold" && m.skin.id === "archmage")
-        )
-          drawStaffStar(c, m, f);
-        else if (sk === "voidstaff" || sk === "abyss") drawStaffVoid(c, m, f);
-        else if (sk === "firestaff" || sk === "flame") drawStaffFire(c, m, f);
-        else {
-          const shaft =
-              sk === "bone"
-                ? "#E8E0C8"
-                : sk === "crystal"
-                  ? "#6a5a9a"
+        if (sk === "sharkstaff" || sk === "alpha")
+          return drawStaffShark(c, m, f);
+        if (sk === "catstaff" || sk === "meow") return drawStaffCat(c, m, f);
+        if (sk === "starstaff" || (sk === "gold" && m.skin.id === "archmage"))
+          return drawStaffStar(c, m, f);
+        if (sk === "voidstaff" || sk === "abyss") return drawStaffVoid(c, m, f);
+        if (sk === "firestaff" || sk === "flame") return drawStaffFire(c, m, f);
+
+        // ─── Дефолтный посох ───
+        const bx = f * 12.5,
+          tx = f * 15,
+          topY = -37;
+        withStaffTransform(
+          c,
+          m,
+          f,
+          // ─── древко ───
+          () => {
+            const shaft =
+                sk === "bone"
+                  ? "#E8E0C8"
+                  : sk === "crystal"
+                    ? "#6a5a9a"
+                    : sk === "rainbow"
+                      ? "#DAA520"
+                      : sk === "ice"
+                        ? "#A0E8FF"
+                        : "#8B6F3F",
+              grain =
+                sk === "bone"
+                  ? "#B0A888"
                   : sk === "rainbow"
-                    ? "#DAA520" // Fallback for rainbow shaft
-                    : sk === "ice"
-                      ? "#A0E8FF"
-                      : "#8B6F3F",
-            grain = sk === "bone" ? "#B0A888" : sk === "rainbow" ? "#FFF" : "#5A4A2F";
-          const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
-            bx = f * 12.5,
-            tx = f * 15,
-            topY = -37,
-            px = f * 13.5,
-            py = -14,
-            sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-          c.save();
-          c.translate(px, py);
-          c.rotate(sw - f * 0.04);
-          c.translate(-px, -py);
-          c.lineCap = "round";
-          c.strokeStyle = "#000";
-          c.lineWidth = 5.4;
-          c.beginPath();
-          c.moveTo(bx, 2);
-          c.quadraticCurveTo(f * 11.5, -18, tx, topY);
-          c.stroke();
-          
-          if (sk === "rainbow") {
+                    ? "#FFF"
+                    : "#5A4A2F";
+
+            c.strokeStyle = "#000";
+            c.lineWidth = 5.4;
+            c.beginPath();
+            c.moveTo(bx, 2);
+            c.quadraticCurveTo(f * 11.5, -18, tx, topY);
+            c.stroke();
+
+            if (sk === "rainbow") {
               const rg = c.createLinearGradient(bx, 2, tx, topY);
               rg.addColorStop(0, "#ff0000");
               rg.addColorStop(0.2, "#ffff00");
@@ -4682,56 +4786,65 @@
               rg.addColorStop(0.8, "#0000ff");
               rg.addColorStop(1, "#ff00ff");
               c.strokeStyle = rg;
-          } else {
+            } else {
               c.strokeStyle = shaft;
-          }
-          c.lineWidth = 3.2;
-          c.stroke();
-          c.strokeStyle = grain;
-          c.lineWidth = 0.9;
-          for (let i = 0; i < 5; i++) {
-            const u = 0.12 + i * 0.17,
-              x = lerp(bx, tx, u) - f * 1.0,
-              y = lerp(2, topY, u);
-            c.beginPath();
-            c.moveTo(x, y);
-            c.lineTo(x + f * 0.6, y - 3);
+            }
+            c.lineWidth = 3.2;
             c.stroke();
-          }
-          const ox = tx + f * 0.5,
-            oy = topY - 8,
-            pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
-          let coreCol = el.core, outerCol = el.color === "#6A0DAD" ? "#B040FF" : el.color;
-          
-          if (sk === "ice") {
-             coreCol = "#E8FFFF"; outerCol = "#00DDFF";
-          } else if (sk === "rainbow") {
-             coreCol = "#FFFFFF"; outerCol = `hsl(${(TM * 200) % 360}, 100%, 60%)`;
-          }
 
-          c.globalCompositeOperation = "lighter";
-          const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
-          gr.addColorStop(0, rgba(coreCol, 0.9 * pul));
-          gr.addColorStop(0.3, rgba(outerCol, 0.6 * pul));
-          gr.addColorStop(1, rgba(outerCol, 0));
-          c.fillStyle = gr;
-          c.beginPath();
-          c.arc(ox, oy, 22, 0, TAU);
-          c.fill();
-          c.globalCompositeOperation = "source-over";
-          const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 8);
-          og.addColorStop(0, "#FFFFFF");
-          og.addColorStop(0.4, coreCol);
-          og.addColorStop(1, outerCol);
-          c.fillStyle = og;
-          c.beginPath();
-          c.arc(ox, oy, 7, 0, TAU);
-          c.fill();
-          c.strokeStyle = "rgba(0,0,0,0.5)";
-          c.lineWidth = 1.5;
-          c.stroke();
-          c.restore();
-        }
+            c.strokeStyle = grain;
+            c.lineWidth = 0.9;
+            for (let i = 0; i < 5; i++) {
+              const u = 0.12 + i * 0.17,
+                x = lerp(bx, tx, u) - f * 1.0,
+                y = lerp(2, topY, u);
+              c.beginPath();
+              c.moveTo(x, y);
+              c.lineTo(x + f * 0.6, y - 3);
+              c.stroke();
+            }
+          },
+          // ─── орб ───
+          () => {
+            const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
+            const ox = tx + f * 0.5,
+              oy = topY - 8,
+              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+            let coreCol = el.core,
+              outerCol = el.color === "#6A0DAD" ? "#B040FF" : el.color;
+
+            if (sk === "ice") {
+              coreCol = "#E8FFFF";
+              outerCol = "#00DDFF";
+            } else if (sk === "rainbow") {
+              coreCol = "#FFFFFF";
+              outerCol = `hsl(${(TM * 200) % 360}, 100%, 60%)`;
+            }
+
+            c.globalCompositeOperation = "lighter";
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
+            gr.addColorStop(0, rgba(coreCol, 0.9 * pul));
+            gr.addColorStop(0.3, rgba(outerCol, 0.6 * pul));
+            gr.addColorStop(1, rgba(outerCol, 0));
+            c.fillStyle = gr;
+            c.beginPath();
+            c.arc(ox, oy, 22, 0, TAU);
+            c.fill();
+            c.globalCompositeOperation = "source-over";
+
+            const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 8);
+            og.addColorStop(0, "#FFFFFF");
+            og.addColorStop(0.4, coreCol);
+            og.addColorStop(1, outerCol);
+            c.fillStyle = og;
+            c.beginPath();
+            c.arc(ox, oy, 7, 0, TAU);
+            c.fill();
+            c.strokeStyle = "rgba(0,0,0,0.5)";
+            c.lineWidth = 1.5;
+            c.stroke();
+          },
+        );
       }
 
       function drawMage(c, m, o) {
@@ -4897,19 +5010,19 @@
         c.lineJoin = "round";
         c.strokeStyle = "#000";
         c.stroke();
-        
+
         if (m.skin.sharkSkin) {
           // Shark Mouth
           c.fillStyle = "#050208";
           c.beginPath();
           c.ellipse(-2, -28, 13, 11, -0.2, 0, TAU);
           c.fill();
-          
+
           // Teeth (Bigger, contouring the hood)
           c.fillStyle = "#FFFFFF";
           c.strokeStyle = "#000";
           c.lineWidth = 1.2;
-          
+
           // Top teeth
           for (let i = 0; i < 6; i++) {
             const ang = -Math.PI * 0.85 + (i / 5) * Math.PI * 0.7;
@@ -4985,7 +5098,7 @@
         c.bezierCurveTo(-13.5, -33, -10, -39, -5.5, -42);
         c.stroke();
         c.globalAlpha = alpha;
-        
+
         // Eyes
         const fx = f * 1.2;
         c.fillStyle = "#050208";
@@ -4995,7 +5108,7 @@
         c.lineWidth = 1.5;
         c.strokeStyle = "rgba(0,0,0,0.8)";
         c.stroke();
-        
+
         if (m.skin.catEars) {
           c.strokeStyle = "rgba(255,255,255,0.7)";
           c.lineWidth = 1.5;
@@ -5032,12 +5145,13 @@
           c.stroke();
         }
         drawEyes(c, m, fx, -26);
-        
+
         // Draw Staff
         drawStaff(c, m, f);
 
         // Hand 2 (Front Hand)
-        const swingRot = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
+        const swingRot =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
         c.translate(f * 7, -17);
         c.rotate(f * -0.25 + swingRot);
@@ -5054,8 +5168,10 @@
         c.restore();
 
         // Front Hand Glove (Gripping staff)
-        const px = f * 13.5, py = -14;
-        const sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        const px = f * 13.5,
+          py = -14;
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
         c.translate(px, py);
         c.rotate(sw - f * 0.04);
@@ -5908,7 +6024,7 @@
               c.fill();
             }
             ey = -r * 1.05;
-            ex = 0;
+            ex = r * 0.38;
             glow = "#FF4020";
             break;
           case "golem": {
@@ -6051,6 +6167,8 @@
       };
       const cam = { x: CX, y: CY, z: 1, sx: 0, sy: 0 };
       const isFoe = (a, b) =>
+        a &&
+        b &&
         b !== a &&
         !b.dead &&
         (G.mode === "survival" ? !!a.isMonster !== !!b.isMonster : true);
@@ -6228,7 +6346,6 @@
         G.events.push({ k: "kill", id: t.id });
         t.deadAlive = G.mages.filter((m) => !m.dead).length + 1;
         if (t === G.player) {
-          FX.chroma = 6;
           FX.flash = 0.7;
           FX.zoom = 0.2;
           vib([80, 40, 200]);
@@ -6351,11 +6468,12 @@
         if (m.fx.blind > 0) ang += rnd(-0.5, 0.5);
         m.facing = Math.cos(ang) >= 0 ? 1 : -1;
         emote(m, "cast", 0.3);
-        
+
         // Damage scaling with multiStacks (15% per extra stack)
         const dmgMult = 1 + (m.multiStacks - 1) * 0.15;
-        const base = (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
-        
+        const base =
+          (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
+
         let melee = false;
         for (const t of G.all) {
           if (!isFoe(m, t)) continue;
@@ -6543,7 +6661,7 @@
             p.trailPts.push({ x: p.x, y: p.y });
             if (p.trailPts.length > 8) p.trailPts.shift();
           }
-          
+
           // Always spawn base element trail
           if (Q.pmul >= 0.4) {
             const col =
@@ -6575,7 +6693,7 @@
                 true,
                 0.9,
               );
-              
+
             // Stack custom trail effect on top
             if (p.trail === "trail_rainbow") {
               for (let ti = 0; ti < 2; ti++)
@@ -6646,7 +6764,7 @@
                 );
             }
           }
-          
+
           const dxc = p.x - CX,
             dyc = p.y - CY;
           if (p.life <= 0 || dxc * dxc + dyc * dyc > lim2) {
@@ -6654,7 +6772,7 @@
             p.on = false;
             continue;
           }
-          
+
           if (p.age > 0.1) {
             let hit = false;
             for (const rk of G.rocks) {
@@ -6671,7 +6789,7 @@
               continue;
             }
           }
-          
+
           _pp = p;
           GRID.query(p.x, p.y, 60, projHitCb);
         }
@@ -6834,7 +6952,6 @@
         G.epicT = 4;
         if (me) {
           FX.dark = 0.6;
-          FX.chroma = u.mega ? 8 : 5;
           FX.zoom = u.mega ? -0.15 : 0.15;
           vib([50, 30, 100]);
         }
@@ -7004,7 +7121,6 @@
       function giveAura(m, e, dur) {
         m.aura = dur;
         m.auraElem = e;
-        m.auraMax = dur;
       }
 
       function runUlt(m, u, ax, ay) {
@@ -7439,6 +7555,18 @@
           }
         } else if (z.style === "tornado") {
           const h = z.r * 1.8;
+          // 🆕 Все заливки в одном пути → 1 вызов fill() вместо 9
+          c.fillStyle = rgba(col, 0.12 * k);
+          c.beginPath();
+          for (let i = 0; i < 9; i++) {
+            const u = i / 8,
+              y = z.y - u * h,
+              w = z.r * (0.25 + u * 0.75),
+              a = TM * 8 + i;
+            c.ellipse(z.x + Math.sin(a * 0.5) * 6, y, w, w * 0.3, 0, 0, TAU);
+          }
+          c.fill();
+          // Обводки (alpha у каждой своя, поэтому в цикле)
           c.lineWidth = 3;
           for (let i = 0; i < 9; i++) {
             const u = i / 8,
@@ -7446,10 +7574,8 @@
               w = z.r * (0.25 + u * 0.75),
               a = TM * 8 + i;
             c.strokeStyle = rgba(col, (0.8 - u * 0.4) * k);
-            c.fillStyle = rgba(col, 0.12 * k);
             c.beginPath();
             c.ellipse(z.x + Math.sin(a * 0.5) * 6, y, w, w * 0.3, 0, 0, TAU);
-            c.fill();
             c.stroke();
           }
         } else if (z.style === "ice") {
@@ -7527,7 +7653,7 @@
             m.fx.shield = 25;
             break;
           case "gem":
-            if (m === G.player || m.id === G.myId) G.goldEarn += 5;
+            m.goldEarn = (m.goldEarn || 0) + 5;
             break;
           case "time":
             for (const t of G.all) if (isFoe(m, t)) t.fx.tslow = 4;
@@ -7744,7 +7870,7 @@
         m.scale = 1;
         const tl = m.victory ? 20 : m.aura > 0 ? 5 : 0;
         m.lev += (tl - m.lev) * 0.1;
-        if (Q.pmul >= 0.6 && !m.dead && Math.random() < 0.25) {
+        if (Q.pmul >= 0.6 && !m.dead && !_previewMode && Math.random() < 0.25) {
           const au = m.skin.aura,
             x = m.x + rnd(-10, 10),
             y = m.y - rnd(8, 36);
@@ -7789,14 +7915,24 @@
               Math.random() < 0.3,
               0.98,
             );
-            
+
           const isMe = G && m === G.player;
-          
+
           // Default speed trail (always active for the player)
           if (isMe && Math.hypot(m.vx, m.vy) > 40 && Math.random() < 0.5) {
-            pt(m.x, m.y - 10, rnd(-15, 15), rnd(-15, 15), 0.3, rnd(2, 4), elemColor(m.elem), 0, true);
+            pt(
+              m.x,
+              m.y - 10,
+              rnd(-15, 15),
+              rnd(-15, 15),
+              0.3,
+              rnd(2, 4),
+              elemColor(m.elem),
+              0,
+              true,
+            );
           }
-          
+
           if (isMe && SAVE.fxAura === "aura_souls")
             pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#A0FFE0", 0, true);
           else if (isMe && SAVE.fxAura === "aura_petals")
@@ -7811,7 +7947,7 @@
               0,
               false,
             );
-            
+
           if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
             const tx = m.x + rnd(-6, 6),
               ty = m.y - rnd(5, 30);
@@ -7928,10 +8064,10 @@
         updateStatus(m, dt);
         if (m.dead) return;
         m.mana = Math.min(100, m.mana + 10 * m.up.mregen * dt);
-        
+
         // Ульта заряжается быстрее (было 20, стало 12)
         m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult);
-        
+
         if (m.aura > 0) m.aura -= dt;
         if (G.role !== "client") {
           if (m.remote) {
@@ -8299,10 +8435,19 @@
           matchLogic(dt);
           for (const m of g.mages) updateMage(m, dt);
           for (const mo of g.monsters) updateMonster(mo, dt);
+
+          // 🆕 Чистим мёртвых и одновременно ищем босса
           let w = 0;
-          for (let i = 0; i < g.monsters.length; i++)
-            if (!g.monsters[i].dead) g.monsters[w++] = g.monsters[i];
+          g.boss = null;
+          for (let i = 0; i < g.monsters.length; i++) {
+            const mo = g.monsters[i];
+            if (!mo.dead) {
+              g.monsters[w++] = mo;
+              if (mo.boss) g.boss = mo;
+            }
+          }
           g.monsters.length = w;
+
           updateProjs(dt);
           updateZones(dt);
           updatePickups(dt);
@@ -8451,7 +8596,6 @@
           Q.dprCap = 1.25;
         }
         Q.lvl = 0;
-        Q.base = Q.pmul;
         resize();
       }
       function resize() {
@@ -8470,15 +8614,18 @@
       window.addEventListener("orientationchange", () =>
         setTimeout(resize, 150),
       );
-      const viewScale = () => {
+      let _vs = 1; // 🆕 кэш
+      function updateViewScaleCache() {
+        // 🆕
         let base;
         if (IS_MOBILE && Math.min(W, H) < 700) base = clamp(H / 900, 0.45, 1.1);
         else if (IS_TABLET) base = clamp(H / 650, 0.6, 1.4);
         else base = clamp(H / 750, 0.55, 1.6);
-        return base * cam.z;
-      };
+        _vs = base * cam.z;
+      }
+      const viewScale = () => _vs; // ← возвращает кэш
       function w2s(x, y) {
-        const s = viewScale();
+        const s = _vs; // ← использует кэш
         return { x: (x - cam.x) * s + W / 2, y: (y - cam.y) * s + H / 2 };
       }
 
@@ -8527,14 +8674,19 @@
             a.tagName === "TEXTAREA")
         );
       };
+      let _blCache = null,
+        _blKey = ""; // 🆕
       function btnLayout() {
+        const key = W + "|" + H + "|" + UIS; // 🆕
+        if (_blKey === key && _blCache) return _blCache;
+        _blKey = key;
         const u = UIS;
-        return {
+        return (_blCache = {
           attack: { x: W - 120 * u, y: H - 110 * u, r: 45 * u },
           ult: { x: W - 62 * u, y: H - 218 * u, r: 42 * u },
           dash: { x: W - 222 * u, y: H - 62 * u, r: 33 * u },
           pause: { x: W - 30 * u, y: 30 * u, r: 22 * u },
-        };
+        });
       }
       function resetAllInputs() {
         for (const k in keys) delete keys[k];
@@ -9748,7 +9900,6 @@
         FX.shakeT = 0;
         FX.flash = 0;
         FX.dark = 0;
-        FX.chroma = 0;
         FX.zoom = 0;
         FX.hs = 0;
         FX.slow = { t: 0, s: 1 };
@@ -9811,6 +9962,7 @@
           reviveUsed: false,
           reviveChecked: false,
           pendingQuit: false,
+          boss: null, // 🆕 кэш живого босса
         };
       }
 
@@ -10001,8 +10153,7 @@
       function rematch() {
         if (!G || G.online) return;
         const o = G.opts;
-        G.resultShown = true;
-        startMatch(Object.assign({}, o, { seed: 0 }));
+        if (startMatch(Object.assign({}, o, { seed: 0 }))) return;
       }
       function returnToRoom() {
         $("sc-confirm").classList.remove("show");
@@ -10145,7 +10296,7 @@
           }
         }
         if (SAVE.vip) reward = Math.round(reward * 1.2);
-        const total = reward + G.goldEarn;
+        const total = reward + (p.goldEarn || 0);
         SAVE.gold += total;
         SAVE.stats.matches++;
         SAVE.stats.kills += p.kills;
@@ -10468,7 +10619,7 @@
           c.arc(t.x, t.y, t.r * (1 - k), 0, TAU);
           c.stroke();
         }
-        
+
         if (G.pillar) {
           const pl = G.pillar;
           pl.t -= 1 / 60;
@@ -10476,7 +10627,7 @@
           else {
             const alpha = clamp(pl.t, 0, 1);
             const w = 100 + Math.sin(TM * 10) * 15;
-            
+
             // Soft base glow
             const rg = c.createRadialGradient(pl.x, pl.y, 10, pl.x, pl.y, 200);
             rg.addColorStop(0, `rgba(255,255,255,${alpha})`);
@@ -10486,31 +10637,31 @@
             c.beginPath();
             c.ellipse(pl.x, pl.y, 200, 50, 0, 0, TAU);
             c.fill();
-            
+
             // Smooth column
             const gr = c.createLinearGradient(pl.x, pl.y - 900, pl.x, pl.y);
             gr.addColorStop(0, "rgba(255,255,255,0)");
             gr.addColorStop(0.3, `rgba(255,255,180,${0.4 * alpha})`);
             gr.addColorStop(1, `rgba(255,215,0,${0.9 * alpha})`);
             c.fillStyle = gr;
-            
+
             // Draw using arc for smooth top and bottom
             c.beginPath();
-            c.moveTo(pl.x - w/2, pl.y);
-            c.lineTo(pl.x - w/2, pl.y - 800);
-            c.quadraticCurveTo(pl.x, pl.y - 900, pl.x + w/2, pl.y - 800);
-            c.lineTo(pl.x + w/2, pl.y);
-            c.quadraticCurveTo(pl.x, pl.y + 40, pl.x - w/2, pl.y);
+            c.moveTo(pl.x - w / 2, pl.y);
+            c.lineTo(pl.x - w / 2, pl.y - 800);
+            c.quadraticCurveTo(pl.x, pl.y - 900, pl.x + w / 2, pl.y - 800);
+            c.lineTo(pl.x + w / 2, pl.y);
+            c.quadraticCurveTo(pl.x, pl.y + 40, pl.x - w / 2, pl.y);
             c.fill();
-            
+
             // Bright inner core
             c.fillStyle = `rgba(255,255,255,${alpha * 0.8})`;
             c.beginPath();
-            c.moveTo(pl.x - w/6, pl.y);
-            c.lineTo(pl.x - w/6, pl.y - 800);
-            c.quadraticCurveTo(pl.x, pl.y - 850, pl.x + w/6, pl.y - 800);
-            c.lineTo(pl.x + w/6, pl.y);
-            c.quadraticCurveTo(pl.x, pl.y + 20, pl.x - w/6, pl.y);
+            c.moveTo(pl.x - w / 6, pl.y);
+            c.lineTo(pl.x - w / 6, pl.y - 800);
+            c.quadraticCurveTo(pl.x, pl.y - 850, pl.x + w / 6, pl.y - 800);
+            c.lineTo(pl.x + w / 6, pl.y);
+            c.quadraticCurveTo(pl.x, pl.y + 20, pl.x - w / 6, pl.y);
             c.fill();
           }
         }
@@ -10672,7 +10823,6 @@
           Math.min(1, rd * 8);
         FX.flash = Math.max(0, FX.flash - rd * 1.6);
         FX.dark = Math.max(0, FX.dark - rd * 2);
-        FX.chroma = Math.max(0, FX.chroma - rd * 12);
         FX.vig = Math.max(0, FX.vig - rd * 1.6);
         if (state !== "PAUSED") FX.shake *= Math.pow(0.85, rd * 60);
         if (FX.shake > 0.4) {
@@ -11212,8 +11362,8 @@
           pb.r * 1.2,
           pb.r * 1.2,
         );
-        const boss = G.monsters.find((m) => m.boss && !m.dead);
-        if (boss) {
+        const boss = G.boss;
+if (boss) {
           const bw2 = Math.min(360 * u, W * 0.5),
             bx2 = W / 2 - bw2 / 2;
           rr(c, bx2, 70 * u, bw2, 12 * u, 5 * u);
@@ -11585,6 +11735,8 @@
         if (!m) return;
         const sk = SKIN_BY_ID[SAVE.skin] || SKINS[0];
         m.skin = sk;
+        if (sk.catTail && !m.tail) m.tail = new Chain(5, 3.5);
+        else if (!sk.catTail && m.tail) m.tail = null;
         m.staff = STAFF_BY_ID[SAVE.staff] || STAFFS[0];
         m.mantle =
           sk.mantle ||
@@ -11981,14 +12133,16 @@
         m.facing = 1;
         m.resetVerlet();
         m.ey.a = 0.95;
+        _previewMode = true;
         for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
+        _previewMode = false;
         c.save();
         c.translate(90, 180);
         c.scale(2.6, 2.6);
         drawMage(c, m, { noShadow: false });
         c.restore();
       }
-      
+
       function drawStaffPreview(cv, staff) {
         const c = cv.getContext("2d");
         cv.width = 180;
@@ -11999,10 +12153,18 @@
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
-        
+
         const fakeMage = {
-          x: 0, y: 0, facing: 1, swing: 0, elem: 0, aura: 0, id: 0, lev: 0,
-          staff: staff, skin: {id: ''}
+          x: 0,
+          y: 0,
+          facing: 1,
+          swing: 0,
+          elem: 0,
+          aura: 0,
+          id: 0,
+          lev: 0,
+          staff: staff,
+          skin: { id: "" },
         };
 
         c.save();
@@ -12355,11 +12517,11 @@
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML = `
-              <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
-                <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
-              </div>
-              <div style="opacity:.8;font-size:13px">${it.sub}</div>
-            `;
+                                                  <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
+                                                    <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
+                                                  </div>
+                                                  <div style="opacity:.8;font-size:13px">${it.sub}</div>
+                                                `;
             const b = document.createElement("button");
             b.className = "btn small";
             b.style.display = "flex";
@@ -13252,7 +13414,7 @@
         // Установка выбранного сервера
         const server = $("serverSelect").value || "0.peerjs.com";
         CONFIG.PEERJS_HOST = server;
-        
+
         netCleanup();
         const code = genCode();
         NET.code = code;
@@ -13441,6 +13603,17 @@
             m.isBot = true;
             m.isPlayer = false;
             m.netIn = null;
+            const diff = DIFF[SAVE.botDifficulty] || DIFF.normal; // 🆕
+            Object.assign(m.ai, {
+              // 🆕
+              skill: diff.skill,
+              aimErr: diff.aimErr,
+              fireDelayMul: diff.fireDelayMul,
+              aggression: diff.aggression,
+              ultChance: diff.ultChance,
+              retreatHp: diff.retreatHp,
+              dodgeChance: diff.dodgeChance,
+            });
             ftext(m.x, m.y - 60, "BOT", "#fff", 14);
           }
         } else if (state === "LOBBY") {
@@ -13501,7 +13674,7 @@
         // Установка выбранного сервера
         const server = $("serverSelect").value || "0.peerjs.com";
         CONFIG.PEERJS_HOST = server;
-        
+
         netCleanup();
         NET.role = "client";
         NET.code = code;
@@ -13526,6 +13699,8 @@
             });
             conn.on("data", (d) => clientHandle(d));
             conn.on("close", () => {
+              // 🆕 Если эта conn уже не текущая — игнорируем (защита от double cleanup)
+              if (NET.hostConn !== conn) return;
               if (G && G.online && !G.resultShown) {
                 toast(t("hostLeft"));
                 quitToMenu();
@@ -13540,7 +13715,12 @@
               $("joinStatus").textContent = t("connErr");
             });
             setTimeout(() => {
-              if (!opened && NET.role === "client" && state === "ONLINE") {
+              if (
+                !opened &&
+                NET.hostConn === conn && // 🆕
+                NET.role === "client" &&
+                state === "ONLINE"
+              ) {
                 $("joinStatus").textContent = t("connErr");
                 netCleanup();
               }
@@ -13661,6 +13841,8 @@
                   : "idle",
             facing: m.facing,
             element: m.elem,
+            kills: m.kills,
+            gold: m.goldEarn || 0,
             runes: m.runes,
             ultCharge: Math.round(m.ultCharge),
             aura: r1(m.aura),
@@ -13677,7 +13859,8 @@
               ts: r1(m.fx.tslow),
               a: r1(m.fx.amp),
             },
-            dc: m.dashCd > 0 ? 1 : 0,
+            dc: r1(m.dashCd),
+            ac: r1(m.atkCd),
           })),
           projectiles: PR.active
             .filter((p) => p.on)
@@ -13718,6 +13901,8 @@
           m.hp = p.hp;
           m.maxHp = p.mh;
           m.mana = p.mana;
+          m.kills = p.kills || 0; // 🆕
+          m.goldEarn = p.gold || 0; // 🆕
           m.facing =
             m === G.player && (B.attack.st || B.ult.st || B.dash.st)
               ? m.facing
@@ -13752,7 +13937,9 @@
           if (m !== G.player) {
             m.vx = p.vx;
             m.vy = p.vy;
-          } else if (p.dc === 0 && m.dashCd > 0) m.dashCd = 0;
+            m.dashCd = p.dc;
+            m.atkCd = p.ac;
+          }
         }
         PR.clear();
         for (const q of s.projectiles) {
@@ -13763,7 +13950,7 @@
           p.vy = q.vy;
           p.e = q.element;
           p.r = 14;
-          p.life = 1;
+          p.life = 0.75;
           p.own = G.mages.find((x) => x.id === q.ownerId) || null;
           p.id = q.id;
           p.trail = "";
@@ -13978,6 +14165,18 @@
           if (!p.on) continue;
           p.x += p.vx * dt;
           p.y += p.vy * dt;
+          p.life -= dt; // 🆕
+          if (p.life <= 0) {
+            p.on = false;
+            continue;
+          } // 🆕
+          const dx = p.x - CX,
+            dy = p.y - CY; // 🆕
+          if (dx * dx + dy * dy > (R_ARENA + 20) ** 2) {
+            // 🆕
+            p.on = false;
+            continue;
+          }
           if (p.trailPts) {
             p.trailPts.push({ x: p.x, y: p.y });
             if (p.trailPts.length > 8) p.trailPts.shift();
@@ -13995,7 +14194,6 @@
             0.95,
           );
         }
-        updateTimersAndFx(dt);
       }
       function netTick(rd) {
         if (!G || !G.online) return;
@@ -14060,7 +14258,8 @@
         if (G.role === "client") updateClientGame(dt);
         else updateGame(dt);
         updateParticles(dt);
-        const s = viewScale(),
+        updateViewScaleCache(); // 🆕
+        const s = _vs,
           hw = W / 2 / s,
           hh = H / 2 / s;
         updateAmbient(dt, cam.x - hw, cam.y - hh, cam.x + hw, cam.y + hh);
@@ -14083,7 +14282,7 @@
             MUS.tgt =
               G.epicT > 0 ||
               p.hp < p.maxHp * 0.25 ||
-              G.monsters.some((m) => m.boss)
+              G.monsters.some((m) => m.boss && !m.dead)
                 ? 1
                 : 0.55;
           }
@@ -14116,9 +14315,11 @@
             state === "PAUSED" ||
             state === "LEVELUP" ||
             state === "RESULT" ||
-            state === "REVIVE")
+            state === "REVIVE" ||
+            (state === "SETTINGS" && G.uiPause))
         ) {
           if (state === "PLAYING") updateCamera(rd);
+          updateViewScaleCache();
           renderGame();
         } else if (state === "BOOT" || state === "LOADING") {
           ctx.fillStyle = "#000";
@@ -14160,9 +14361,9 @@
         try {
           const saved = await loadCloud();
           if (saved && saved.v) {
-            const st = Object.assign({}, SAVE.stats, saved.stats || {});
+            const defaults = DEF_SAVE(); // 🆕
             Object.assign(SAVE, saved);
-            SAVE.stats = st;
+            SAVE.stats = Object.assign(defaults.stats, saved.stats || {}); // 🆕
           }
         } catch (e) {}
         if (SAVE.dailyDay === undefined) SAVE.dailyDay = 0;
@@ -14200,6 +14401,7 @@
         await buildIcons((p) => setProg(30 + p * 50));
         setProg(82, "boot4");
         await delay(30);
+        drawTopbarIconsOnce();
         ensureArena("lava");
         initMenuMages();
         if (!isPeerJSAvailable()) {
