@@ -4934,7 +4934,6 @@
         c.lineWidth = 6;
         c.stroke();
 
-        // Гладкая черная рукавичка
         c.fillStyle = "#0a0510";
         c.strokeStyle = "#000";
         c.lineWidth = 1.5;
@@ -4943,8 +4942,24 @@
         c.fill();
         c.stroke();
 
+        // 🆕 РИСУЕМ РУКАВ (ТЕПЕРЬ ПОД КАПЮШОНОМ, ЧТОБЫ НЕ ПЕРЕКРЫВАТЬ ЛИЦО)
+        const swingRot =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        c.scale(f, 1); // 🆕 Изменено на f, чтобы капюшон смотрел в ту же сторону, что и рука
+        c.strokeStyle = "#000";
+        c.lineWidth = 9;
+        c.lineCap = "round";
+        c.beginPath();
+        c.moveTo(f * 6, -8); // Опускаем начало рукава ниже
+        c.quadraticCurveTo(f * 14, 4 + swingRot * 5, f * 22, -2 + swingRot * 8); // Рукав идет вниз и вбок, не задевая лицо
+        c.stroke();
+        c.strokeStyle = pal.sh;
+        c.lineWidth = 6;
+        c.stroke();
+        c.restore();
+
+        c.save();
+        c.scale(f, 1); // Капюшон смотрит в сторону взгляда
         if (m.skin.sharkSkin) sharkHoodPath(c);
         else hoodPath(c);
         const hg = c.createLinearGradient(-14, -48, 14, -14);
@@ -5134,27 +5149,6 @@
           c.stroke();
         }
         drawEyes(c, m, fx, -26);
-
-        // 1. РИСУЕМ РУКАВ (ПОЗАДИ ПОСОХА)
-        const swingRot =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
-        c.save();
-        c.strokeStyle = "#000";
-        c.lineWidth = 9;
-        c.lineCap = "round";
-        c.beginPath();
-        c.moveTo(f * 9, -14);
-        c.quadraticCurveTo(
-          f * 15,
-          -8 + swingRot * 5,
-          f * 22,
-          -2 + swingRot * 8,
-        );
-        c.stroke();
-        c.strokeStyle = pal.sh;
-        c.lineWidth = 6;
-        c.stroke();
-        c.restore();
 
         // 2. РИСУЕМ ПОСОХ
         drawStaff(c, m, f);
