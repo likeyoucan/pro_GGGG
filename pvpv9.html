@@ -3697,15 +3697,15 @@
         c.quadraticCurveTo(0, -10, -14, -14);
         c.closePath();
       }
-     function sharkHoodPath(c) {
-  c.beginPath();
-  c.moveTo(14, -14);
-  c.quadraticCurveTo(30, -32, 22, -50); // Нос смотрит вправо
-  c.quadraticCurveTo(10, -58, -10, -52);
-  c.quadraticCurveTo(-18, -40, -15, -22);
-  c.quadraticCurveTo(-10, -12, 0, -10);
-  c.closePath();
-}
+      function sharkHoodPath(c) {
+        c.beginPath();
+        c.moveTo(-14, -14);
+        c.quadraticCurveTo(-30, -32, -22, -50);
+        c.quadraticCurveTo(-10, -58, 10, -52);
+        c.quadraticCurveTo(18, -40, 15, -22);
+        c.quadraticCurveTo(10, -12, 0, -10);
+        c.closePath();
+      }
 
       function drawCape(c, m, pal) {
         const s = m.cape.s,
@@ -3955,24 +3955,18 @@
               c.arc(0, 0, 1.5, 0, TAU);
               c.fill();
             } else if (e.shape === 7) {
-  } else if (e.shape === 7) {
-  const pr = 1 + Math.sin(TM * 6) * 0.1;
-  // Внешняя форма — овальный "кошачий глаз"
-  c.fillStyle = "rgb(" + col + ")";
-  c.beginPath();
-  c.ellipse(0, 0, 5.5 * pr, 4.2 * pr, 0, 0, TAU);
-  c.fill();
-  // Вертикальный зрачок
-  c.fillStyle = "rgba(0,0,0,0.85)";
-  c.beginPath();
-  c.ellipse(0, 0, 1.2, 3.2 * pr, 0, 0, TAU);
-  c.fill();
-  // Блик
-  c.fillStyle = "rgba(255,255,255," + a * 0.9 + ")";
-  c.beginPath();
-  c.arc(-1.8, -1.5, 0.9, 0, TAU);
-  c.fill();
-} else if (e.shape === 8) {
+              const pr = 1 + Math.sin(TM * 6) * 0.1;
+              c.fillStyle = "rgb(" + col + ")";
+              c.beginPath();
+              c.moveTo(0, 3 * pr);
+              c.bezierCurveTo(-6 * pr, -2 * pr, -3 * pr, -6 * pr, 0, -3 * pr);
+              c.bezierCurveTo(3 * pr, -6 * pr, 6 * pr, -2 * pr, 0, 3 * pr);
+              c.fill();
+              c.fillStyle = "rgba(255,255,255," + a * 0.7 + ")";
+              c.beginPath();
+              c.arc(-1.2, -1, 1, 0, TAU);
+              c.fill();
+            } else if (e.shape === 8) {
               const pr = 1 + Math.sin(TM * 6) * 0.15;
               c.fillStyle = "rgb(" + col + ")";
               c.beginPath();
@@ -4036,24 +4030,27 @@
               c.fillStyle = "rgba(255,255,255," + a + ")";
               c.fill();
             } else {
-  // Изогнутая "злая" форма
-  c.beginPath();
-  c.moveTo(-4, 3);
-  c.quadraticCurveTo(-1, -3, 6.5, -4.5);
-  c.quadraticCurveTo(2.5, 3.5, -4, 3);
-  c.closePath();
-  c.fillStyle = "rgba(" + col + "," + a + ")";
-  c.fill();
-  // Белый блик внутри
-  c.beginPath();
-  c.moveTo(-2.8, 2);
-  c.quadraticCurveTo(-0.5, -1.8, 5.2, -3);
-  c.quadraticCurveTo(2, 2.5, -2.8, 2);
-  c.closePath();
-  c.fillStyle = "rgba(255,255,255," + a + ")";
-  c.fill();
-  if (e.shape === 3) { /* зрачок при ульте */ }
-}
+              c.beginPath();
+              c.moveTo(-4, 3);
+              c.quadraticCurveTo(-1, -3, 6.5, -4.5);
+              c.quadraticCurveTo(2.5, 3.5, -4, 3);
+              c.closePath();
+              c.fillStyle = "rgba(" + col + "," + a + ")";
+              c.fill();
+              c.beginPath();
+              c.moveTo(-2.8, 2);
+              c.quadraticCurveTo(-0.5, -1.8, 5.2, -3);
+              c.quadraticCurveTo(2, 2.5, -2.8, 2);
+              c.closePath();
+              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.fill();
+              if (e.shape === 3) {
+                c.fillStyle = "rgba(255,255,255," + a * 0.55 + ")";
+                c.beginPath();
+                c.ellipse(1, -0.6, 2.8, 1.4, -0.2, 0, TAU);
+                c.fill();
+              }
+            }
             c.restore();
           }
         }
@@ -5039,52 +5036,59 @@
         // Draw Staff
         drawStaff(c, m, f);
 
-        // 1. РИСУЕМ РУКАВ (ПОЗАДИ ПОСОХА)
+        // Hand 2 (Front Hand)
         const swingRot = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
+        c.translate(f * 7, -17);
+        c.rotate(f * -0.25 + swingRot);
         c.strokeStyle = "#000";
-        c.lineWidth = 9;
+        c.lineWidth = 6.5;
         c.lineCap = "round";
         c.beginPath();
-        c.moveTo(f * 6, -14); // Плечо
-        c.quadraticCurveTo(f * 10, -12 + swingRot * 5, f * 15.5, -14 + swingRot * 8); // Изгиб к кисти
+        c.moveTo(0, 0);
+        c.quadraticCurveTo(f * 3, 1, f * 5.5, 2);
         c.stroke();
         c.strokeStyle = pal.sh;
-        c.lineWidth = 6;
+        c.lineWidth = 4;
         c.stroke();
         c.restore();
 
-        // 2. РИСУЕМ ПОСОХ
-        drawStaff(c, m, f);
-
-        // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
-        const px = f * 15.5, py = -14; // Сдвинули чуть дальше
+        // Front Hand Glove (Gripping staff)
+        const px = f * 13.5, py = -14;
         const sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
         c.translate(px, py);
         c.rotate(sw - f * 0.04);
         c.translate(-px, -py);
 
-        c.fillStyle = "#0a0510";
+        c.fillStyle = "#1A1520";
         c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
+        c.lineWidth = 2;
 
-        // Аккуратная кисть (уменьшили размер)
+        // Main hand
         c.beginPath();
-        c.ellipse(px, py, 3.5, 4.5, 0, 0, TAU);
+        c.ellipse(px, py, 5, 6, 0, 0, TAU);
         c.fill();
         c.stroke();
 
-        // Большой палец, обхватывающий посох
+        // Thumb wrapping around
         c.beginPath();
-        c.ellipse(px - f * 2, py + 1, 2, 2.5, -f * 0.4, 0, TAU);
+        c.ellipse(px - f * 3, py - 3, 2.5, 3.5, -f * 0.5, 0, TAU);
         c.fill();
         c.stroke();
 
-        // Блик
-        c.fillStyle = "rgba(255,255,255,.15)";
+        // Finger crease / knuckle detail
+        c.strokeStyle = "rgba(0,0,0,0.5)";
+        c.lineWidth = 1;
         c.beginPath();
-        c.ellipse(px + f * 1, py - 1.5, 1.5, 2, 0, 0, TAU);
+        c.moveTo(px + f * 1, py - 4);
+        c.quadraticCurveTo(px + f * 2, py, px + f * 1, py + 4);
+        c.stroke();
+
+        // Highlight
+        c.fillStyle = "rgba(255,255,255,.25)";
+        c.beginPath();
+        c.ellipse(px + f * 1, py - 2, 2, 2.5, 0, 0, TAU);
         c.fill();
 
         c.restore();
