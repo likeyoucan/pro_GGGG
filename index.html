@@ -4119,28 +4119,18 @@
               c.fillStyle = "rgba(255,255,255," + a + ")";
               c.fill();
             } else {
+              // Гладкие глаза
               c.beginPath();
-              // Более злой и острый глаз
-              c.moveTo(-4, 4);
-              c.quadraticCurveTo(0, -6, 8, -7);
-              c.quadraticCurveTo(4, 2, -4, 4);
-              c.closePath();
+              c.ellipse(0, 0, 3.5, 6, -sd * 0.35, 0, TAU);
+              // Если каст — цвет становится цветом стихии (col), в покое — белый (255,255,255)
               c.fillStyle = "rgba(" + col + "," + a + ")";
               c.fill();
 
+              // Блик внутри глаза (всегда остается белым для объема)
               c.beginPath();
-              c.moveTo(-2, 3);
-              c.quadraticCurveTo(0, -3, 6, -4);
-              c.quadraticCurveTo(2.5, 2, -2, 3);
-              c.closePath();
-              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.ellipse(0.5 * sd, 1.5, 1.5, 2.5, -sd * 0.2, 0, TAU);
+              c.fillStyle = "rgba(255,255,255," + a * 0.6 + ")";
               c.fill();
-              if (e.shape === 3) {
-                c.fillStyle = "rgba(255,255,255," + a * 0.55 + ")";
-                c.beginPath();
-                c.ellipse(1, -0.6, 2.8, 1.4, -0.2, 0, TAU);
-                c.fill();
-              }
             }
             c.restore();
           }
@@ -4972,32 +4962,23 @@
         // Hand 1 (Back Hand)
         c.lineCap = "round";
 
-        // Рукав (делаем шире и длиннее)
+        // Рукав
         c.strokeStyle = "#000";
-        c.lineWidth = 8;
+        c.lineWidth = 9;
         c.beginPath();
         c.moveTo(-f * 7, -16);
-        c.quadraticCurveTo(-f * 10, -13, -f * 11, -7);
+        c.quadraticCurveTo(-f * 9, -13, -f * 10, -6);
         c.stroke();
         c.strokeStyle = pal.sh;
-        c.lineWidth = 5;
+        c.lineWidth = 6;
         c.stroke();
 
-        // Золотая манжета рукава
-        c.fillStyle = m.skin.accent || "#DAA520";
-        c.strokeStyle = "#5a3a00";
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.ellipse(-f * 11, -7, 4, 2.5, -f * 0.3, 0, TAU);
-        c.fill();
-        c.stroke();
-
-        // Маленькая кисть, выглядывающая из рукава
-        c.fillStyle = "#1A1520";
+        // Гладкая черная рукавичка (без манжеты)
+        c.fillStyle = "#0a0510";
         c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
+        c.lineWidth = 2;
         c.beginPath();
-        c.ellipse(-f * 11, -4.5, 2.5, 2.5, -f * 0.3, 0, TAU);
+        c.ellipse(-f * 10, -3.5, 3.5, 4, -f * 0.3, 0, TAU);
         c.fill();
         c.stroke();
 
@@ -5151,38 +5132,28 @@
         }
         drawEyes(c, m, fx, -26);
 
-        // 1. СНАЧАЛА РИСУЕМ РУКАВ (он должен быть позади посоха)
+        // 1. РИСУЕМ РУКАВ (позади посоха)
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
         c.translate(f * 7, -17);
         c.rotate(f * -0.25 + swingRot);
         c.strokeStyle = "#000";
-        c.lineWidth = 8; // Рукав стал шире
+        c.lineWidth = 9;
         c.lineCap = "round";
         c.beginPath();
         c.moveTo(0, 0);
-        // Рукав теперь тянется прямо к посоху
-        c.quadraticCurveTo(f * 6, 2, f * 10, -6);
+        c.quadraticCurveTo(f * 5, 2, f * 9, -6);
         c.stroke();
         c.strokeStyle = pal.sh;
-        c.lineWidth = 5;
-        c.stroke();
-
-        // Золотая манжета переднего рукава
-        c.fillStyle = m.skin.accent || "#DAA520";
-        c.strokeStyle = "#5a3a00";
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.ellipse(f * 10, -6, 4, 5, f * 0.4, 0, TAU);
-        c.fill();
+        c.lineWidth = 6;
         c.stroke();
         c.restore();
 
-        // 2. РИСУЕМ ПОСОХ (он перекрывает рукав)
+        // 2. РИСУЕМ ПОСОХ
         drawStaff(c, m, f);
 
-        // 3. РИСУЕМ МАЛЕНЬКУЮ КИСТЬ ПОВЕРХ ПОСОХА
+        // 3. РИСУЕМ ЧЕРНУЮ РУКАВИЧКУ ПОВЕРХ ПОСОХА
         const px = f * 13.5,
           py = -14;
         const sw =
@@ -5192,31 +5163,26 @@
         c.rotate(sw - f * 0.04);
         c.translate(-px, -py);
 
-        c.fillStyle = "#1A1520";
+        c.fillStyle = "#0a0510";
         c.strokeStyle = "#000";
-        c.lineWidth = 1.5; // Контур тоньше
+        c.lineWidth = 2;
 
-        // Маленькая ладошка (вместо огромного шара)
+        // Гладкая черная варежка
         c.beginPath();
-        c.ellipse(px + f * 1, py - 2, 3.5, 4, 0, 0, TAU);
+        c.ellipse(px, py - 2, 5, 6.5, 0, 0, TAU);
         c.fill();
         c.stroke();
 
-        // Всего 2 аккуратных пальчика, обхватывающих посох
+        // Большой палец, который обхватывает посох
         c.beginPath();
-        c.ellipse(px - f * 2, py - 3, 2, 2.5, -f * 0.5, 0, TAU); // Большой палец
+        c.ellipse(px - f * 3.5, py - 1, 2.5, 3.5, -f * 0.4, 0, TAU);
         c.fill();
         c.stroke();
 
+        // Едва заметный блик для объема варежки
+        c.fillStyle = "rgba(255,255,255,.08)";
         c.beginPath();
-        c.ellipse(px + f * 3, py, 2, 2, 0, 0, TAU); // Указательный
-        c.fill();
-        c.stroke();
-
-        // Легкий блик для объема
-        c.fillStyle = "rgba(255,255,255,.15)";
-        c.beginPath();
-        c.ellipse(px + f * 1, py - 3, 1.5, 2, 0, 0, TAU);
+        c.ellipse(px + f * 1.5, py - 3, 2, 3, 0, 0, TAU);
         c.fill();
 
         c.restore();
