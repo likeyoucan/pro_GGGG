@@ -280,15 +280,33 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: flex-start;
         gap: 6px;
         padding: 10px;
         width: 158px;
+        height: 295px; /* 🆕 Фиксируем высоту */
         border-radius: 12px;
         background: rgba(40, 20, 60, 0.7);
         border: 2px solid rgba(218, 165, 32, 0.4);
         text-align: center;
         font-size: 13px;
         position: relative;
+      }
+      /* 🆕 Стили для контейнера кнопок в магазине */
+      .shop-btn-row {
+        display: flex;
+        gap: 4px;
+        width: 100%;
+        margin-top: auto; /* Прижимает кнопки к низу */
+        padding-top: 8px;
+      }
+      /* 🆕 Уменьшенные кнопки конкретно для магазина */
+      .shop-btn {
+        flex: 1;
+        min-height: 34px !important;
+        height: 34px !important;
+        padding: 4px 6px !important;
+        font-size: 13px !important;
       }
       .card > canvas {
         width: 120px;
@@ -1298,9 +1316,18 @@
           levelUpTitle: "НОВЫЙ УРОВЕНЬ",
           dailyTitle: "ЕЖЕДНЕВНЫЙ БОНУС",
           reviveTitle: "ВЫ ПОГИБЛИ",
-          serverDefault: "Сервер: Default (PeerJS Cloud)",
+          serverDefault: "Сервер: Стандарт (PeerJS Cloud)",
           serverYandex: "Сервер: Yandex Cloud",
           serverCloudflare: "Сервер: Cloudflare",
+          // 🆕 Переводы для редкостей и типов
+          common: "ОБЫЧНЫЙ",
+          rare: "РЕДКИЙ",
+          epic: "ЭПИЧЕСКИЙ",
+          legendary: "ЛЕГЕНДАРНЫЙ",
+          mythic: "МИФИЧЕСКИЙ",
+          trail: "СЛЕД",
+          aura: "АУРА",
+          default: "БАЗОВЫЙ",
         },
         en: {
           play: "PLAY",
@@ -1418,6 +1445,15 @@
           serverDefault: "Server: Default (PeerJS Cloud)",
           serverYandex: "Server: Yandex Cloud",
           serverCloudflare: "Server: Cloudflare",
+          // 🆕 Английские ключи
+          common: "COMMON",
+          rare: "RARE",
+          epic: "EPIC",
+          legendary: "LEGENDARY",
+          mythic: "MYTHIC",
+          trail: "TRAIL",
+          aura: "AURA",
+          default: "DEFAULT",
         },
       };
       let lang = CONFIG.DEFAULT_LANGUAGE;
@@ -3788,11 +3824,12 @@
       }
       function sharkHoodPath(c) {
         c.beginPath();
-        c.moveTo(-14, -14);
-        c.quadraticCurveTo(-30, -32, -22, -50);
-        c.quadraticCurveTo(-10, -58, 10, -52);
-        c.quadraticCurveTo(18, -40, 15, -22);
-        c.quadraticCurveTo(10, -12, 0, -10);
+        c.moveTo(-14, -14); // Низ слева
+        c.quadraticCurveTo(-20, -35, -25, -45); // Поднимаемся к носу
+        c.quadraticCurveTo(-28, -52, -18, -58); // Острый кончик носа
+        c.quadraticCurveTo(5, -60, 15, -40); // Плавный переход к макушке
+        c.quadraticCurveTo(18, -22, 15, -14); // Задняя часть головы
+        c.quadraticCurveTo(0, -10, -14, -14); // Низ
         c.closePath();
       }
 
@@ -4103,33 +4140,61 @@
                 c.lineTo(Math.cos(ang0) * r0 * 0.6, Math.sin(ang0) * r0 * 0.6);
               }
               c.stroke();
-            } else if (m.skin.sharkSkin) {
+            }
+            if (m.skin.sharkSkin) {
+              // Рисуем саму пасть (сдвинули к носу)
+              c.fillStyle = "#050208";
               c.beginPath();
-              c.moveTo(-4.5, 2.5);
-              c.lineTo(7.5, -3.5);
-              c.quadraticCurveTo(0.5, 1.0, -4.5, 2.5);
-              c.closePath();
-              c.fillStyle = "rgba(" + col + "," + a + ")";
-              c.fill();
-              c.beginPath();
-              c.moveTo(-3.0, 1.8);
-              c.lineTo(6.2, -2.9);
-              c.quadraticCurveTo(0.5, 1.2, -3.0, 1.8);
-              c.closePath();
-              c.fillStyle = "rgba(255,255,255," + a + ")";
-              c.fill();
-            } else {
-              // Гладкие глаза
-              c.beginPath();
-              c.ellipse(0, 0, 3.5, 6, -sd * 0.35, 0, TAU);
-              // Если каст — цвет становится цветом стихии (col), в покое — белый (255,255,255)
-              c.fillStyle = "rgba(" + col + "," + a + ")";
+              c.ellipse(-12, -28, 15, 9, -0.2, 0, TAU);
               c.fill();
 
-              // Блик внутри глаза (всегда остается белым для объема)
+              // Рисуем зубы (зигзаги)
+              c.fillStyle = "#FFFFFF";
+              c.strokeStyle = "#000";
+              c.lineWidth = 1.2;
+              c.lineJoin = "miter";
+
+              // Верхний ряд зубов
               c.beginPath();
-              c.ellipse(0.5 * sd, 1.5, 1.5, 2.5, -sd * 0.2, 0, TAU);
-              c.fillStyle = "rgba(255,255,255," + a * 0.6 + ")";
+              c.moveTo(-26, -30);
+              c.lineTo(-23, -24);
+              c.lineTo(-20, -30);
+              c.lineTo(-17, -24);
+              c.lineTo(-14, -30);
+              c.lineTo(-11, -24);
+              c.lineTo(-8, -30);
+              c.fill();
+              c.stroke();
+
+              // Нижний ряд зубов
+              c.beginPath();
+              c.moveTo(-24, -24);
+              c.lineTo(-21, -30);
+              c.lineTo(-18, -24);
+              c.lineTo(-15, -30);
+              c.lineTo(-12, -24);
+              c.lineTo(-9, -30);
+              c.lineTo(-6, -24);
+              c.fill();
+              c.stroke();
+            } else {
+              // Острая, но широкая форма глаза
+              c.beginPath();
+              c.moveTo(-4, 4);
+              c.quadraticCurveTo(0, -7, 10, -8); // Растянули правый угол
+              c.quadraticCurveTo(5, 3, -4, 4);
+              c.closePath();
+              // Возвращаем белый цвет в обычном состоянии (col используется только для ауры свечения)
+              c.fillStyle = "rgba(255,255,255," + a + ")";
+              c.fill();
+
+              // Внутренний блик (тоже растянутый)
+              c.beginPath();
+              c.moveTo(-2, 3);
+              c.quadraticCurveTo(0, -4, 8, -5);
+              c.quadraticCurveTo(4, 2, -2, 3);
+              c.closePath();
+              c.fillStyle = "rgba(255,255,255," + a + ")";
               c.fill();
             }
             c.restore();
@@ -4291,7 +4356,7 @@
 
       function withStaffTransform(c, m, f, drawShaft, drawTip) {
         const px = f * 13.5,
-          py = -14,
+          py = -6, // 🆕 Опустили посох ниже
           sw = m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
         c.translate(px, py);
@@ -4976,9 +5041,9 @@
         // Гладкая черная рукавичка (без манжеты)
         c.fillStyle = "#0a0510";
         c.strokeStyle = "#000";
-        c.lineWidth = 2;
+        c.lineWidth = 1.5;
         c.beginPath();
-        c.ellipse(-f * 10, -3.5, 3.5, 4, -f * 0.3, 0, TAU);
+        c.ellipse(-f * 10, -4, 2.5, 3, -f * 0.3, 0, TAU);
         c.fill();
         c.stroke();
 
@@ -5043,24 +5108,25 @@
           c.lineJoin = "round";
           for (const s of [-1, 1]) {
             const bx = s * 8;
+
+            // Внешнее ухо (плавный треугольник)
             c.beginPath();
-            c.moveTo(bx - 6, -45);
-            c.lineTo(bx - 8, -62);
-            c.lineTo(bx, -50);
-            c.lineTo(bx + 8, -62);
-            c.lineTo(bx + 6, -45);
-            c.closePath();
+            c.moveTo(bx - 7, -45); // Левый нижний угол
+            c.quadraticCurveTo(bx - 6, -58, bx, -62); // Левая грань к кончику
+            c.quadraticCurveTo(bx + 6, -58, bx + 7, -45); // Правая грань к низу
+            c.closePath(); // Замыкаем основание
             c.fill();
             c.stroke();
+
+            // Внутреннее розовое ухо
             c.fillStyle = "#FF69B4";
             c.beginPath();
             c.moveTo(bx - 4, -46);
-            c.lineTo(bx - 5, -57);
-            c.lineTo(bx, -49);
-            c.lineTo(bx + 5, -57);
-            c.lineTo(bx + 4, -46);
+            c.quadraticCurveTo(bx - 3, -54, bx, -57);
+            c.quadraticCurveTo(bx + 3, -54, bx + 4, -46);
             c.closePath();
             c.fill();
+
             c.fillStyle = pal.hi;
           }
         }
@@ -5136,14 +5202,15 @@
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        c.translate(f * 7, -17);
+        c.translate(f * 7, -15); // 🆕 Опустили начало рукава
         c.rotate(f * -0.25 + swingRot);
         c.strokeStyle = "#000";
         c.lineWidth = 9;
         c.lineCap = "round";
         c.beginPath();
         c.moveTo(0, 0);
-        c.quadraticCurveTo(f * 5, 2, f * 9, -6);
+        // 🆕 Направили рукав к новой позиции руки
+        c.quadraticCurveTo(f * 8, -2, f * 12, -6);
         c.stroke();
         c.strokeStyle = pal.sh;
         c.lineWidth = 6;
@@ -5155,7 +5222,7 @@
 
         // 3. РИСУЕМ ЧЕРНУЮ РУКАВИЧКУ ПОВЕРХ ПОСОХА
         const px = f * 13.5,
-          py = -14;
+          py = -6; // 🆕 Опустили кисть
         const sw =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -5165,24 +5232,24 @@
 
         c.fillStyle = "#0a0510";
         c.strokeStyle = "#000";
-        c.lineWidth = 2;
+        c.lineWidth = 1.5;
 
         // Гладкая черная варежка
         c.beginPath();
-        c.ellipse(px, py - 2, 5, 6.5, 0, 0, TAU);
+        c.ellipse(px, py - 1, 3, 4, 0, 0, TAU); // Сделали еще чуть меньше
         c.fill();
         c.stroke();
 
         // Большой палец, который обхватывает посох
         c.beginPath();
-        c.ellipse(px - f * 3.5, py - 1, 2.5, 3.5, -f * 0.4, 0, TAU);
+        c.ellipse(px - f * 2.5, py, 1.8, 2.5, -f * 0.4, 0, TAU);
         c.fill();
         c.stroke();
 
         // Едва заметный блик для объема варежки
         c.fillStyle = "rgba(255,255,255,.08)";
         c.beginPath();
-        c.ellipse(px + f * 1.5, py - 3, 2, 3, 0, 0, TAU);
+        c.ellipse(px + f * 1, py - 2, 1.5, 2, 0, 0, TAU);
         c.fill();
 
         c.restore();
@@ -12152,7 +12219,7 @@
         c.restore();
       }
 
-      function buildShop() {
+            function buildShop() {
         clearInterval(shopTimer);
         const tabs = $("shopTabs");
         tabs.innerHTML = "";
@@ -12196,9 +12263,10 @@
 
         const mkShopBtn = (icon, text, cb) => {
           const b = document.createElement("button");
-          b.className = "btn small";
+          b.className = "btn small shop-btn";
           b.style.display = "flex";
           b.style.alignItems = "center";
+          b.style.justifyContent = "center";
           b.style.gap = "4px";
           if (icon && IC[icon]) {
             const cv = document.createElement("canvas");
@@ -12218,8 +12286,7 @@
 
         const btns = (list, id, gold, gems, ownedCheck, equipped, onEquip) => {
           const box = document.createElement("div");
-          box.style.cssText =
-            "display:flex;gap:4px;flex-wrap:wrap;justify-content:center";
+          box.className = "shop-btn-row";
           if (ownedCheck)
             box.appendChild(
               mkShopBtn(
@@ -12254,7 +12321,8 @@
 
         if (shopTab === "skins")
           for (const s of SKINS) {
-            const k = card(s[lang], s.rar.toUpperCase(), RAR_COL[s.rar]);
+            // 🆕 Используем t(s.rar) для перевода
+            const k = card(s[lang], t(s.rar), RAR_COL[s.rar]);
             drawSkinPreview(k.cv, s);
             k.c.appendChild(
               btns(
@@ -12275,9 +12343,10 @@
           }
         else if (shopTab === "staffs")
           for (const st of STAFFS) {
+            // 🆕 Используем t(st.rar)
             const k = card(
               st[lang],
-              st.rar.toUpperCase(),
+              t(st.rar),
               RAR_COL[st.rar] || "#ccc",
             );
             drawStaffPreview(k.cv, st);
@@ -12300,9 +12369,10 @@
           }
         else if (shopTab === "fx")
           for (const f of EFFECTS) {
+            // 🆕 Используем t(f.type)
             const k = card(
               f[lang],
-              f.type === "trail" ? "TRAIL" : "AURA",
+              t(f.type),
               "#9cf",
             );
             const c = k.cv.getContext("2d");
@@ -12340,9 +12410,10 @@
         else if (shopTab === "arenas")
           for (const id of THEME_IDS) {
             const th = THEMES[id];
+            // 🆕 Перевели редкости арен
             const k = card(
               th[lang],
-              id === "void" ? "EPIC" : th.gold ? "RARE" : "DEFAULT",
+              id === "void" ? t("epic") : th.gold ? t("rare") : t("default"),
               id === "void" ? "#C060FF" : "#4DA6FF",
             );
             if (th.gold === 0 || SAVE.arenas.indexOf(id) >= 0) {
@@ -12495,15 +12566,16 @@
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML = `
-                                                  <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
-                                                    <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
-                                                  </div>
-                                                  <div style="opacity:.8;font-size:13px">${it.sub}</div>
-                                                `;
+              <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
+                <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
+              </div>
+              <div style="opacity:.8;font-size:13px">${it.sub}</div>
+            `;
             const b = document.createElement("button");
-            b.className = "btn small";
+            b.className = "btn small shop-btn";
             b.style.display = "flex";
             b.style.alignItems = "center";
+            b.style.justifyContent = "center";
             b.style.gap = "6px";
             if (IC[it.btn]) {
               const cv = document.createElement("canvas");
