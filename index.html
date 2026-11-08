@@ -4153,16 +4153,21 @@
                 c.lineTo(Math.cos(ang0) * r0 * 0.6, Math.sin(ang0) * r0 * 0.6);
               }
               c.stroke();
-            } else {
-              // 🆕 ВОССТАНОВЛЕНЫ ОБЫЧНЫЕ ГЛАЗА
+             } else {
+              // 🆕 Злые, острые глаза (как на референсе)
               c.beginPath();
-              c.ellipse(0, 0, 3.5, 6, -sd * 0.35, 0, TAU);
+              c.moveTo(-4, -2); // внутренний верхний угол
+              c.lineTo(5, -7);  // внешний верхний угол
+              c.lineTo(7, -1);  // внешний нижний угол
+              c.lineTo(-2, 4);  // внутренний нижний угол
+              c.closePath();
               c.fillStyle = "rgba(" + col + "," + a + ")";
               c.fill();
 
+              // Белый блик (зрачок)
               c.beginPath();
-              c.ellipse(0.5 * sd, 1.5, 1.5, 2.5, -sd * 0.2, 0, TAU);
-              c.fillStyle = "rgba(255,255,255," + a * 0.6 + ")";
+              c.ellipse(2.5, 0, 1.2, 2.2, -0.2, 0, TAU);
+              c.fillStyle = "rgba(255,255,255," + a * 0.8 + ")";
               c.fill();
             }
             c.restore();
@@ -5215,7 +5220,7 @@
         }
         drawEyes(c, m, fx, -26);
 
-        // 1. РИСУЕМ РУКАВ (позади посоха)
+      // 1. РИСУЕМ РУКАВ (позади посоха)
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
@@ -5226,7 +5231,8 @@
         c.lineCap = "round";
         c.beginPath();
         c.moveTo(0, 0);
-        c.quadraticCurveTo(f * 10, -2, f * 20, 0); // Ведем к новой позиции руки
+        // 🆕 Ведем точно к центру ладони: (f*20, 0) - (f*7, -15) = (f*13, 15)
+        c.quadraticCurveTo(f * 8, 5, f * 13, 15); 
         c.stroke();
         c.strokeStyle = pal.sh;
         c.lineWidth = 6;
@@ -14171,9 +14177,9 @@
             m.atkCd = p.ac;
           }
           // 🆕 Синхронизация анимации/блокировки движения
-          if (p.cl !== undefined) m.castLock = Math.max(m.castLock, p.cl);
-          if (p.sa !== undefined && p.sa > m.staffAnim) m.staffAnim = p.sa;
-          if (p.sw !== undefined && p.sw > m.swing) m.swing = p.sw;
+        if (p.cl !== undefined) m.castLock = p.cl;
+          if (p.sa !== undefined) m.staffAnim = p.sa;
+          if (p.sw !== undefined) m.swing = p.sw;
         }
         // 🆕 Reconciliation по id — сохраняем трейлы живых снарядов
         const _exist = new Map();
@@ -14489,7 +14495,10 @@
           );
         }
         // 🆕 Убираем мёртвые снаряды из active (иначе утечка памяти у клиента)
-        PR.sweep();
+   PR.sweep();
+        // 🆕 Чистим эффекты, таймеры и announce — иначе у клиента
+        // накапливаются кольца, молнии, ghosts, announce и т.д.
+        updateTimersAndFx(dt);
       }
       function netTick(rd) {
         if (!G || !G.online) return;
