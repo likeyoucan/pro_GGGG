@@ -10458,10 +10458,6 @@
           : win
             ? t("victory")
             : t("defeat");
-       let coinHTML = "";
-        if (IC.coin) {
-          coinHTML = `<img src="${IC.coin.toDataURL()}" style="width:16px;height:16px;vertical-align:middle;margin-bottom:2px">`;
-        }
         $("resBody").innerHTML =
           line1 +
           "<br>" +
@@ -10472,7 +10468,7 @@
           t("reward") +
           ': <b style="color:#ffd23a">+' +
           total +
-          " " + coinHTML + "</b>";
+          " 🪙</b>";
         $("rematchBtn").style.display = G.online ? "none" : "flex";
         $("backToRoomBtn").style.display = G.online ? "flex" : "none";
         sfx(win ? "win" : "lose");
