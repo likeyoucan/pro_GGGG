@@ -4396,7 +4396,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 6;
             c.beginPath();
-            c.moveTo(bx, 10);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY + 10);
             c.stroke();
             c.strokeStyle = "#FFB6D9";
@@ -4454,7 +4454,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.5;
             c.beginPath();
-            c.moveTo(bx, 10);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY + 8);
             c.stroke();
             c.strokeStyle = "#DAA520";
@@ -4521,7 +4521,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 6;
             c.beginPath();
-            c.moveTo(bx, 10);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY + 12);
             c.stroke();
             c.strokeStyle = "#110020";
@@ -4595,7 +4595,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.8;
             c.beginPath();
-            c.moveTo(bx, 10);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY);
             c.stroke();
             c.strokeStyle = "#3a1008";
@@ -4710,7 +4710,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.4;
             c.beginPath();
-            c.moveTo(bx, 10);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY);
             c.stroke();
             if (sk === "rainbow") {
@@ -4934,14 +4934,14 @@
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
         
-        c.beginPath();
+    c.beginPath();
         c.moveTo(f * 4, -17); // Плечо
-        // 🆕 Внутренний изгиб ведем точно к новой кисти
-        c.bezierCurveTo(f * 7, -8, f * 14, -4, f * 21, -4 + swingRot * 4);
-        // 🆕 Манжета рукава (сделали поаккуратнее)
-        c.quadraticCurveTo(f * 24, -2 + swingRot * 4, f * 24, -8 + swingRot * 4);
-        // 🆕 Внешний изгиб обратно к плечу
-        c.bezierCurveTo(f * 15, -10, f * 11, -14, f * 9, -17);
+        // Ведем линию вниз к новой опущенной кисти
+        c.bezierCurveTo(f * 7, -5, f * 14, 2, f * 21, 8 + swingRot * 4);
+        // Манжета рукава
+        c.quadraticCurveTo(f * 24, 10 + swingRot * 4, f * 24, 4 + swingRot * 4);
+        // Внешний изгиб обратно к плечу
+        c.bezierCurveTo(f * 15, -2, f * 11, -10, f * 9, -17);
         c.closePath();
 
         c.fillStyle = pal.sh;
@@ -5145,11 +5145,11 @@
         drawEyes(c, m, fx, -26);
 
         // 2. РИСУЕМ ПОСОХ
-        drawStaff(c, m, f);
+        if (!m.dead) drawStaff(c, m, f);
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
         const px = f * 22,
-          py = -4; // 🆕 Подняли кисть выше, чтобы низ посоха торчал
+          py = 8; // 🆕 Подняли кисть выше, чтобы низ посоха торчал
         const sw =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -11497,8 +11497,8 @@
         txt(
           c,
           G.mode === "survival"
-            ? t("wave") + " " + G.wave + "  ·  ☠ " + G.kills
-            : "👥 " + alive + "/" + G.mages.length,
+            ? t("wave") + " " + G.wave + "  |  " + (lang === "ru" ? "Убийств: " : "Kills: ") + G.kills
+            : (lang === "ru" ? "Живых: " : "Alive: ") + alive + "/" + G.mages.length,
           W / 2,
           54 * u,
           15 * u,
