@@ -901,8 +901,11 @@
             <option value="peerjs.yandex.cloud" data-i18n="serverYandex">
               Сервер: Yandex Cloud
             </option>
-            <option value="peerjs.cloudflare.com" data-i18n="serverCloudflare">
-              Сервер: Cloudflare
+            <option
+              value="arena.likeyoucan.workers.dev"
+              data-i18n="serverLikeyoucan"
+            >
+              Сервер: LikeYouCan (Cloudflare Workers)
             </option>
           </select>
           <input
@@ -1180,6 +1183,41 @@
         PEERJS_SECURE: true,
         YANDEX_SDK_URL: "https://yandex.ru/games/sdk/v2",
       };
+            // 🆕 Карта серверов для динамического переключения
+      const SERVERS = {
+        "0.peerjs.com": {
+          host: "0.peerjs.com",
+          port: 443,
+          path: "/",
+          secure: true,
+        },
+        "peerjs.yandex.cloud": {
+          host: "peerjs.yandex.cloud",
+          port: 443,
+          path: "/",
+          secure: true,
+        },
+        "peerjs.cloudflare.com": {
+          host: "peerjs.cloudflare.com",
+          port: 443,
+          path: "/",
+          secure: true,
+        },
+        "arena.likeyoucan.workers.dev": {
+          host: "arena.likeyoucan.workers.dev",
+          port: 443,
+          path: "/peerjs", // ⚠️ важно!
+          secure: true,
+        },
+      };
+      function applyServerFromSelect() {
+        const id = $("serverSelect").value || "0.peerjs.com";
+        const cfg = SERVERS[id] || SERVERS["0.peerjs.com"];
+        CONFIG.PEERJS_HOST = cfg.host;
+        CONFIG.PEERJS_PORT = cfg.port;
+        CONFIG.PEERJS_PATH = cfg.path;
+        CONFIG.PEERJS_SECURE = cfg.secure;
+      }
       const TAU = Math.PI * 2,
         $ = (id) => document.getElementById(id);
       const clamp = (v, a, b) => (v < a ? a : v > b ? b : v),
@@ -1369,6 +1407,7 @@
           serverDefault: "Сервер: Стандарт (PeerJS Cloud)",
           serverYandex: "Сервер: Yandex Cloud",
           serverCloudflare: "Сервер: Cloudflare",
+          serverLikeyoucan: "Сервер: LikeYouCan (Cloudflare Workers)",
           // 🆕 Переводы для редкостей и типов
           common: "ОБЫЧНЫЙ",
           rare: "РЕДКИЙ",
@@ -1495,6 +1534,7 @@
           serverDefault: "Server: Default (PeerJS Cloud)",
           serverYandex: "Server: Yandex Cloud",
           serverCloudflare: "Server: Cloudflare",
+          serverLikeyoucan: "Server: LikeYouCan (Cloudflare Workers)",
           // 🆕 Английские ключи
           common: "COMMON",
           rare: "RARE",
@@ -7460,19 +7500,6 @@
             FX.flashC = "#6A0DAD";
             if (!G.online) FX.zoom = -0.1;
             break;
-          case "4":
-            addZone(m, {
-              x: ax,
-              y: ay,
-              r: 110,
-              life: 2.5,
-              dps: 30,
-              pull: 240,
-              elem: 4,
-              style: "hole",
-            });
-            splash(ax, ay, 110, E(4), 0.8);
-            break;
           case "0-0":
             for (let i = 0; i < 8; i++) {
               later(i * 0.1, () => {
@@ -7958,7 +7985,7 @@
           r -= PK[k].w;
           if (r <= 0) return k;
         }
-        return "hp";
+        return "hp1";
       }
       function spawnPickup(type, x, y) {
         G.pickups.push({ id: G.pkId++, type, x, y, t: 0, life: 45 });
@@ -8102,8 +8129,8 @@
             for (const p of G.pickups) {
               const d = dist(m.x, m.y, p.x, p.y);
               let sc = d;
-              if (m.hp < m.maxHp * 0.5 && p.type === "hp") sc -= 400;
-              else if (p.type === "mana" && m.mana < 30) sc -= 300;
+              if (m.hp < m.maxHp * 0.5 && p.type.startsWith("hp")) sc -= 400;
+              else if (p.type.startsWith("mana") && m.mana < 30) sc -= 300;
               else if (p.type[0] === "r" && m.runes.length < 3) sc -= 250;
               else if (p.type === "mult" && m.multiStacks < 5) sc -= 200;
               else sc -= 500;
@@ -14381,8 +14408,7 @@
           return;
         }
         // Установка выбранного сервера
-        const server = $("serverSelect").value || "0.peerjs.com";
-        CONFIG.PEERJS_HOST = server;
+        applyServerFromSelect();
 
         netCleanup();
         NET.role = "client";
