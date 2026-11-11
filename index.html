@@ -1207,14 +1207,19 @@
       }
       const _hc = new Map(),
         _sc = new Map();
-      function hexRGB(h) {
-        let r = _hc.get(h);
-        if (!r) {
-          const n = parseInt(h.slice(1), 16);
-          r = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-          _hc.set(h, r);
+    function palOf(hex) {
+        if (!hex) hex = "#4A2A8B";
+        let p = _pal.get(hex);
+        if (!p) {
+          p = {
+            base: hex,
+            hi: shade(hex, 0.22),
+            sh: shade(hex, -0.38),
+            dk: shade(hex, -0.6),
+          };
+          _pal.set(hex, p);
         }
-        return r;
+        return p;
       }
       const _rc = new Map();
       function rgba(h, a) {
@@ -10999,11 +11004,16 @@
         c.globalAlpha = 1;
       }
 
-      function updateCamera(rd) {
+    function updateCamera(rd) {
+        // 🆕 Защита от NaN
+        if (!isFinite(cam.x)) cam.x = CX;
+        if (!isFinite(cam.y)) cam.y = CY;
+        if (!isFinite(FX.zoom)) FX.zoom = 0;
+        if (!isFinite(cam.z)) cam.z = 1;
+
         let tg = G.player && !G.player.dead ? G.player : null;
         if (!tg)
           tg = G.mages.find((m) => !m.dead && m !== G.player) || G.player;
-        // 🆕 Защита от NaN, чтобы камера не улетала
         if (tg && isFinite(tg.x) && isFinite(tg.y)) {
           const k = 1 - Math.exp(-rd * 9);
           cam.x += (tg.x - cam.x) * k;
@@ -11428,7 +11438,7 @@
         const cx = px + 42 * u,
           cy = py + ph / 2,
           pr = 30 * u;
-        c.save();
+      c.save();
         c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
         c.fillStyle = "#0a0510";
@@ -11438,7 +11448,11 @@
         const k = pr / 22;
         c.scale(k, k);
         c.translate(-p.x, -(p.y - 30));
-        drawMage(c, p, { noShadow: true });
+        try {
+          drawMage(c, p, { noShadow: true });
+        } catch (err) {
+          console.error("Ошибка отрисовки мини-мага:", err);
+        }
         c.restore();
         c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
@@ -12245,12 +12259,12 @@
         showScreen("sc-setup");
         setMenuHero();
       }
-      function chipRow(el, items, sel, cb) {
+     function chipRow(el, items, sel, cb) {
         el.innerHTML = "";
         for (const it of items) {
           const d = document.createElement("div");
           d.className = "chip" + (it.v === sel ? " sel" : "");
-          d.innerHTML = it.l; // 🆕 Исправлено на innerHTML
+          d.innerHTML = it.l; // 🆕 Исправлено на innerHTML, чтобы теги <span> работали
           d.onclick = () => {
             sfx("click");
             cb(it.v);
