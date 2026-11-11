@@ -4396,7 +4396,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 6;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 10);
             c.lineTo(f * 22, topY + 10);
             c.stroke();
             c.strokeStyle = "#FFB6D9";
@@ -4454,7 +4454,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.5;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 10);
             c.lineTo(f * 22, topY + 8);
             c.stroke();
             c.strokeStyle = "#DAA520";
@@ -4521,7 +4521,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 6;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 10);
             c.lineTo(f * 22, topY + 12);
             c.stroke();
             c.strokeStyle = "#110020";
@@ -4595,7 +4595,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.8;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 10);
             c.lineTo(f * 22, topY);
             c.stroke();
             c.strokeStyle = "#3a1008";
@@ -4710,7 +4710,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.4;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 10);
             c.lineTo(f * 22, topY);
             c.stroke();
             if (sk === "rainbow") {
@@ -10660,10 +10660,11 @@
           c.restore();
         } else {
           // 🆕 Убрали проверку Q.glow, чтобы шар всегда светился
-          c.globalCompositeOperation = "lighter";
+ c.globalCompositeOperation = "lighter";
+          const pul = 1 + Math.sin(TM * 15 + p.id) * 0.15; 
           c.fillStyle = rgba(col, 0.35);
           c.beginPath();
-          c.arc(p.x, p.y, r * 2.7, 0, TAU);
+          c.arc(p.x, p.y, r * 2.2 * pul, 0, TAU);
           c.fill();
           c.globalCompositeOperation = "source-over";
 
@@ -10689,7 +10690,7 @@
             for (let i = 1; i < N; i++) {
               const a = i / N;
               c.strokeStyle = rgba(col, 0.12 * a);
-              c.lineWidth = p.r * 5 * a;
+                c.lineWidth = Math.max(1, p.r * 2.2 * a); 
               c.beginPath();
               c.moveTo(tp[i - 1].x, tp[i - 1].y);
               c.lineTo(tp[i].x, tp[i].y);
@@ -10699,7 +10700,7 @@
             for (let i = 1; i < N; i++) {
               const a = i / N;
               c.strokeStyle = "rgba(255,255,255," + 0.85 * a + ")";
-              c.lineWidth = p.r * 1.3 * a;
+               c.lineWidth = Math.max(0.5, p.r * 0.8 * a);
               c.beginPath();
               c.moveTo(tp[i - 1].x, tp[i - 1].y);
               c.lineTo(tp[i].x, tp[i].y);
@@ -11405,8 +11406,7 @@
         c.lineWidth = 3 * u;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        const bx = px + 80 * u,
-          bw = 160 * u;
+        const alive = G.mages.filter((m) => !m.dead).length;
         txt(
           c,
           G.mode === "survival"
@@ -12893,7 +12893,7 @@
                : s.gold
                 ? `Зол: ${s.gold}` + (s.gems ? ` / Гем: ${s.gems}` : "")
                 : "";
-          secS += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${col}"><canvas data-skin="${s.id}" width="80" height="100" style="width:60px;height:75px"></canvas><div style="flex:1"><b style="color:${col};font-size:13px">${s[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${s.rar.toUpperCase()} · ${price}</div></div></div>`;
+          secS += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${col}"><canvas data-skin="${s.id}" width="80" height="100" style="width:60px;height:75px"></canvas><div style="flex:1"><b style="color:${col};font-size:13px">${s[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${t(s.rar).toUpperCase()} · ${price}</div></div></div>`;
         }
         h += sec("🎨 " + (lang === "ru" ? "СКИНЫ" : "SKINS"), secS);
         h += sec(
