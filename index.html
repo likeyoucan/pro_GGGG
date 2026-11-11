@@ -4942,12 +4942,12 @@
         c.lineWidth = 9;
         c.lineCap = "round";
         c.beginPath();
-        c.moveTo(f * 6, -4);
+        c.moveTo(f * 9, -16); // 🆕 Начинаем от плеча, а не от живота
         c.bezierCurveTo(
-          f * 12,
-          10 + swingRot * 3,
+          f * 13,
+          -2 + swingRot * 3,
           f * 18,
-          10 + swingRot * 3,
+          8 + swingRot * 3,
           f * 22,
           2 + swingRot * 6,
         );
@@ -5834,18 +5834,32 @@
         if (G.wave >= 3 && Math.random() < 0.22)
           aura = pick(["red", "yellow", "blue"]);
         const ti = pick(cand);
+        const monR = MONSTERS[ti][6] * Q.mobMul; // радиус монстра
         let x = CX,
           y = CY,
           ok = false;
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 40; i++) {
+          // ↑ попыток больше
           const a = rnd(0, TAU),
             r = Math.sqrt(Math.random()) * (G.safeR - 80);
           x = CX + Math.cos(a) * r;
           y = CY + Math.sin(a) * r;
-          if (!p || dist(x, y, p.x, p.y) > 240) {
-            ok = true;
-            break;
+
+          // 🆕 Не спавнить близко к игроку
+          if (p && dist(x, y, p.x, p.y) < 240) continue;
+
+          // 🆕 Не спавнить в камнях (запас = радиус монстра + 20)
+          let rockHit = false;
+          for (const rk of G.rocks) {
+            if (dist(x, y, rk.x, rk.y) < rk.r + monR + 20) {
+              rockHit = true;
+              break;
+            }
           }
+          if (rockHit) continue;
+
+          ok = true;
+          break;
         }
         if (!ok) {
           const a = rnd(0, TAU),
@@ -6761,7 +6775,7 @@
             continue;
           }
 
-          if (p.age > 0.1) {
+          if (p.age > 0.02) {
             let hit = false;
             for (const rk of G.rocks) {
               const ddx = rk.x - p.x,
@@ -7179,7 +7193,7 @@
               elem: 0,
               style: "tornado",
             });
-            splash(mx, my, 100, E(0), 0.8);
+            splash(ax, ay, 100, E(0), 0.8);
             break;
           case "0-4":
             addZone(m, {
@@ -7268,7 +7282,7 @@
               elem: 2,
               style: "tornado",
             });
-            splash(mx, my, 100, E(2), 0.8);
+            splash(ax, ay, 100, E(2), 0.8);
             break;
           case "2-4":
             for (let i = 0; i < 6; i++)
@@ -7828,10 +7842,17 @@
             dy = e.y - rk.y,
             md = rk.r + e.r * 0.8,
             d2 = dx * dx + dy * dy;
-          if (d2 < md * md && d2 > 0.0001) {
-            const d = Math.sqrt(d2);
-            e.x = rk.x + (dx / d) * md;
-            e.y = rk.y + (dy / d) * md;
+          if (d2 < md * md) {
+            // 🆕 убрали d2 > 0.0001
+            if (d2 < 0.0001) {
+              // Точно в центре — выталкиваем в сторону +X
+              e.x = rk.x + md;
+              e.y = rk.y;
+            } else {
+              const d = Math.sqrt(d2);
+              e.x = rk.x + (dx / d) * md;
+              e.y = rk.y + (dy / d) * md;
+            }
           }
         }
         const dx = e.x - CX,
@@ -8908,6 +8929,7 @@
           return;
         }
         if (G.role === "client") {
+          if (p.fx.stun > 0 || p.fx.freeze > 0) return;
           if (n === "attack") {
             if (p.atkCd > 0 || p.mana < 15) {
               if (p.mana < 15) sfx("error");
@@ -8985,8 +9007,9 @@
               elemFx(ex, ey, p.elem, 8, 140);
             }
           } else if (n === "ult") {
-            p.ultCharge = 0; // 🆕 Сбрасываем локально, чтобы не спамить
-            p.castLock = p.runes.length >= 3 ? 0.7 : 0.4;
+            p.ultCharge = 0;
+            const _u = ultKey(p);
+            p.castLock = _u.mega ? 0.7 : 0.4;
           } else if (n === "dash") {
             if (!mageDash(p, ang)) return;
           }
@@ -10151,6 +10174,7 @@
               isBot: true,
             });
             b.elem = elemFromColor(others[i % others.length]);
+            b.baseElem = b.elem;
             b.auraElem = b.elem;
             if (o.mode === "survival") {
               b.ai.skill = 1.1;
@@ -13548,6 +13572,11 @@
           sfx("hover");
         }
       });
+      // 🆕 Сброс при уходе с кнопки
+      document.addEventListener("pointerout", (e) => {
+        const b = e.target.closest && e.target.closest(".btn");
+        if (b && _lastHover === b) _lastHover = null;
+      });
 
       /* NETWORK */
       const NET = {
@@ -14101,6 +14130,8 @@
               h: r1(m.fx.haste),
               f: r1(m.fx.freeze),
               sl: r1(m.fx.slow),
+              slf: r1(m.fx.slowF),
+              st: r1(m.fx.stun),
               b: r1(m.fx.burn),
               ts: r1(m.fx.tslow),
               a: r1(m.fx.amp),
@@ -14199,7 +14230,8 @@
           m.fx.haste = b.h;
           m.fx.freeze = b.f;
           m.fx.slow = b.sl;
-          m.fx.slowF = 0.6;
+          m.fx.slowF = b.slf !== undefined ? b.slf : 0.6;
+          m.fx.stun = b.st || 0;
           m.fx.burn = b.b;
           m.fx.tslow = b.ts;
           m.fx.amp = b.a;
@@ -14208,11 +14240,11 @@
             m.vy = p.vy;
             m.dashCd = p.dc;
             m.atkCd = p.ac;
+     
+            if (p.cl !== undefined) m.castLock = p.cl;
+            if (p.sa !== undefined) m.staffAnim = p.sa;
+            if (p.sw !== undefined) m.swing = p.sw;
           }
-          // 🆕 Синхронизация анимации/блокировки движения
-          if (p.cl !== undefined) m.castLock = p.cl;
-          if (p.sa !== undefined) m.staffAnim = p.sa;
-          if (p.sw !== undefined) m.swing = p.sw;
         }
         // 🆕 Reconciliation по id — сохраняем трейлы живых снарядов
         const _exist = new Map();
