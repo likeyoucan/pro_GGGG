@@ -3966,11 +3966,10 @@
             c.moveTo(x, yy + 1.6);
             c.lineTo(x, yy - 1.2);
             c.stroke();
-   } else if (pat === "star") {
+          } else if (pat === "star") {
             c.beginPath();
-            c.moveTo(x - 1.5, yy);
-            c.lineTo(x + 1.5, yy);
-            c.stroke();
+            c.arc(x, yy, 1.1, 0, TAU);
+            c.fill();
           } else if (pat === "rune") {
             c.beginPath();
             c.moveTo(x - 1.2, yy - 1.2);
