@@ -7012,7 +7012,7 @@
           w: 3,
         });
 
-        // Если это огонь (проверяем по цвету), добавляем взрывную волну
+        // 🆕 Огонь
         if (col === ELEMS[0].color || col === "#FF4500") {
           G.rings.push({
             x,
@@ -7034,7 +7034,103 @@
             0.8,
             true,
           );
-        } else {
+        }
+        // 🆕 Лёд
+        else if (col === ELEMS[1].color || col === "#00DDFF") {
+          G.rings.push({
+            x,
+            y,
+            r0: r * 0.3,
+            r1: r * 1.3,
+            l: 1,
+            m: 1,
+            c: "#E8FFFF",
+            w: 5,
+          });
+          burst(
+            x,
+            y,
+            ["#E8FFFF", "#00DDFF", "#FFFFFF"],
+            Math.ceil(50 * (power || 1)),
+            r * 1.8,
+            5,
+            1,
+            true,
+          );
+          for (let i = 0; i < 8; i++) {
+            // Осколки льда (квадратики)
+            pt(
+              x + rnd(-r, r),
+              y + rnd(-r, r),
+              rnd(-50, 50),
+              rnd(-100, -20),
+              rnd(0.8, 1.5),
+              rnd(3, 6),
+              "#A0F0FF",
+              200,
+              true,
+              0.95,
+              true,
+            );
+          }
+        }
+        // 🆕 Молния
+        else if (col === ELEMS[2].color || col === "#FFEE00") {
+          for (let i = 0; i < 4; i++) {
+            G.bolts.push({
+              pts: bolt(
+                x + rnd(-r, r),
+                y - 400,
+                x + rnd(-r, r),
+                y + rnd(-r, r),
+                10,
+                25,
+              ),
+              l: 0.3,
+              c: "#FFFFC0",
+              w: 5,
+            });
+          }
+          FX.flash = 0.5;
+          FX.flashC = "#FFFFC0";
+          burst(
+            x,
+            y,
+            ["#FFEE00", "#FFFFFF"],
+            Math.ceil(40 * (power || 1)),
+            r * 2,
+            3,
+            0.6,
+            true,
+          );
+        }
+        // 🆕 Воздух
+        else if (col === ELEMS[3].color || col === "#B0E0E6") {
+          for (let i = 0; i < 6; i++) {
+            G.rings.push({
+              x,
+              y,
+              r0: r * 0.5,
+              r1: r * (1.5 + i * 0.2),
+              l: 0.6,
+              m: 0.6,
+              c: "#FFFFFF",
+              w: 2,
+            });
+          }
+          burst(
+            x,
+            y,
+            ["#E8FAFF", "#B0E0E6"],
+            Math.ceil(70 * (power || 1)),
+            r * 2.5,
+            4,
+            0.9,
+            true,
+          );
+        }
+        // 🆕 Пустота (по умолчанию)
+        else {
           burst(
             x,
             y,
@@ -7160,17 +7256,209 @@
             FX.flash = 0.3;
             FX.flashC = "#FF4500";
             break;
-          case "1":
+          case "1": // Одиночная ульта
             aoe(m, ax, ay, 150, 30, { freeze: 1.5 });
-            splash(ax, ay, 150, E(1), 1);
+            splash(ax, ay, 150, E(1), 1.2);
+            FX.flash = 0.4;
+            FX.flashC = "#00DDFF";
+            shake(4);
             break;
-          case "2":
+          case "1-1": // Комбо (Ледяная тюрьма)
+            aoe(m, CX, CY, 5000, 20, { freeze: 3 });
+            splash(mx, my, 300, E(1), 1.4);
+            G.gfx.push({ k: "ice", t: 4, m: 4 }); // Долгое замерзание экрана
+            // 🆕 Спавним ледяные глыбы вокруг игрока
+            for (let i = 0; i < 12; i++) {
+              const a = (i / 12) * TAU;
+              addZone(m, {
+                x: mx + Math.cos(a) * 150,
+                y: my + Math.sin(a) * 150,
+                r: 30,
+                life: 3,
+                dps: 0,
+                elem: 1,
+                style: "ice",
+              });
+            }
+            FX.flash = 0.6;
+            FX.flashC = "#FFFFFF";
+            break;
+          case "1-1-1": // МЕГА (Ледниковый период)
+            giveAura(m, 1, 10);
+            aoe(m, CX, CY, 5000, 30, { freeze: 5 });
+            G.gfx.push({ k: "ice", t: 6, m: 6 });
+            splash(mx, my, 500, E(1), 1.8);
+            // 🆕 Эффект "разбивания" всего экрана
+            FX.flash = 1.0;
+            FX.flashC = "#A0F0FF";
+            if (!G.online) FX.slow = { t: 1.5, s: 0.2 };
+            shake(12);
+            break;
+          case "2": // Одиночная ульта
             chainBolt(m, mx, my - 18, 3, 25, 320, "#FFEE00");
-            splash(mx, my, 90, E(2), 0.6);
+            splash(mx, my, 100, E(2), 1);
+            FX.flash = 0.4;
+            FX.flashC = "#FFFFC0";
             break;
-          case "3":
+          case "2-2": // Комбо (Цепная перегрузка)
+            for (let i = 0; i < 8; i++) {
+              later(i * 0.08, () => {
+                if (m.dead) return;
+                const t = randFoe(m);
+                if (t)
+                  strike(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 80, 35);
+                else
+                  strike(m, mx + rnd(-200, 200), my + rnd(-200, 200), 80, 35);
+              });
+            }
+            splash(mx, my, 200, E(2), 1.2);
+            FX.dark = 0.3; // Кратковременное затемнение
+            break;
+          case "2-2-2": // МЕГА (Гнев Богов)
+            giveAura(m, 2, 10);
+            G.gfx.push({ k: "wrath", t: 8, m: 8 });
+
+            // 🆕 Постоянные удары молний по всей арене
+            emitter(m, 8, 0.12, () => {
+              const t = randFoe(m);
+              if (t && Math.random() < 0.7)
+                strike(m, t.x + rnd(-60, 60), t.y + rnd(-60, 60), 70, 25);
+              else
+                strike(
+                  m,
+                  CX + rnd(-G.safeR, G.safeR),
+                  CY + rnd(-G.safeR, G.safeR),
+                  70,
+                  25,
+                );
+              if (Math.random() < 0.3) shake(2);
+            });
+
+            splash(mx, my, 500, E(2), 2.0);
+            FX.flash = 1.0;
+            FX.flashC = "#FFFFC0";
+            if (!G.online) FX.slow = { t: 1, s: 0.1 };
+            shake(15);
+            break;
+          case "3": // Одиночная ульта
             aoe(m, mx, my, 220, 20, { kb: 28 });
-            splash(mx, my, 220, "#DDF4F8", 1);
+            splash(mx, my, 220, "#DDF4F8", 1.2);
+            // 🆕 Расходящиеся кольца ветра
+            for (let i = 1; i <= 3; i++) {
+              G.rings.push({
+                x: mx,
+                y: my,
+                r0: 50 * i,
+                r1: 150 * i,
+                l: 0.5,
+                m: 0.5,
+                c: "#FFFFFF",
+                w: 2,
+              });
+            }
+            break;
+          case "3-3": // Комбо (Циклон)
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 200,
+              life: 5,
+              dps: 20,
+              pull: 260,
+              elem: 3,
+              style: "tornado",
+              end: "throw",
+            });
+            splash(ax, ay, 200, "#DDF4F8", 1.4);
+            if (!G.online) FX.zoom = 0.1; // Легкий зум
+            break;
+          case "3-3-3": // МЕГА (Ураган)
+            giveAura(m, 3, 10);
+            // 🆕 Огромный, медленно движущийся ураган
+            addZone(m, {
+              x: mx,
+              y: my,
+              r: 350,
+              life: 8,
+              dps: 40,
+              chase: 80,
+              pull: 200,
+              elem: 3,
+              style: "tornado",
+              end: "throw",
+            });
+            splash(mx, my, 500, "#DDF4F8", 1.8);
+            FX.flash = 0.5;
+            FX.flashC = "#FFFFFF";
+            shake(10);
+            break;
+
+          case "4": // Одиночная ульта
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 110,
+              life: 2.5,
+              dps: 30,
+              pull: 240,
+              elem: 4,
+              style: "hole",
+            });
+            splash(ax, ay, 110, E(4), 1);
+            // 🆕 Искажение пространства
+            G.gfx.push({ k: "oblivion", t: 1, m: 1, x: ax, y: ay });
+            break;
+          case "4-4": // Комбо (Чёрная дыра)
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 220,
+              life: 5,
+              dps: 50,
+              pull: 320,
+              elem: 4,
+              style: "hole",
+            });
+            splash(ax, ay, 220, E(4), 1.5);
+            FX.dark = 0.4;
+            shake(5);
+            break;
+          case "4-4-4": // МЕГА (Забвение)
+            giveAura(m, 4, 10);
+            addZone(m, {
+              x: mx,
+              y: my,
+              r: 1e5,
+              life: 6,
+              dps: 0,
+              pull: 230,
+              elem: 4,
+              style: "global",
+              core: 300,
+              coreDps: 80,
+            });
+            G.gfx.push({ k: "oblivion", t: 6, m: 6, x: mx, y: my });
+            splash(mx, my, 600, E(4), 2.0);
+            // 🆕 Жесткое затягивание в центр
+            emitter(m, 6, 0.05, () => {
+              const a = rnd(0, TAU);
+              const r = 800;
+              pt(
+                mx + Math.cos(a) * r,
+                my + Math.sin(a) * r,
+                -Math.cos(a) * 600,
+                -Math.sin(a) * 600,
+                1,
+                rnd(2, 5),
+                pick(["#2a0040", "#6a00a0", "#FF00FF"]),
+                0,
+                true,
+              );
+            });
+            FX.dark = 0.7;
+            FX.flash = 0.8;
+            FX.flashC = "#6A0DAD";
+            if (!G.online) FX.zoom = -0.1;
             break;
           case "4":
             addZone(m, {
@@ -7595,13 +7883,17 @@
           c.beginPath();
           c.arc(z.x, z.y, z.r, 0, TAU);
           c.fill();
+
+          // 🆕 Добавляем искажение пространства (спиральные линии)
           c.lineWidth = 3;
-          c.strokeStyle = rgba(col, 0.8 * k);
-          for (let s = 0; s < 3; s++) {
+          c.strokeStyle = rgba(col, 0.6 * k);
+          for (let s = 0; s < 5; s++) {
+            // Было 3, стало 5
             c.beginPath();
-            for (let i = 0; i <= 20; i++) {
-              const u = i / 20,
-                a = TM * 4 + s * 2.1 + u * 5,
+            for (let i = 0; i <= 30; i++) {
+              // Было 20
+              const u = i / 30,
+                a = TM * 5 + s * 1.5 + u * 8,
                 r = z.r * (1 - u * 0.9),
                 x = z.x + Math.cos(a) * r,
                 y = z.y + Math.sin(a) * r * 0.65;
@@ -7612,28 +7904,42 @@
           }
         } else if (z.style === "tornado") {
           const h = z.r * 1.8;
-          // 🆕 Все заливки в одном пути → 1 вызов fill() вместо 9
-          c.fillStyle = rgba(col, 0.12 * k);
+          c.fillStyle = rgba(col, 0.15 * k); // Чуть плотнее
           c.beginPath();
           for (let i = 0; i < 9; i++) {
             const u = i / 8,
               y = z.y - u * h,
               w = z.r * (0.25 + u * 0.75),
-              a = TM * 8 + i;
+              a = TM * 10 + i; // Быстрее крутится
             c.ellipse(z.x + Math.sin(a * 0.5) * 6, y, w, w * 0.3, 0, 0, TAU);
           }
           c.fill();
-          // Обводки (alpha у каждой своя, поэтому в цикле)
           c.lineWidth = 3;
           for (let i = 0; i < 9; i++) {
             const u = i / 8,
               y = z.y - u * h,
               w = z.r * (0.25 + u * 0.75),
-              a = TM * 8 + i;
+              a = TM * 10 + i;
             c.strokeStyle = rgba(col, (0.8 - u * 0.4) * k);
             c.beginPath();
             c.ellipse(z.x + Math.sin(a * 0.5) * 6, y, w, w * 0.3, 0, 0, TAU);
             c.stroke();
+          }
+          // 🆕 Летящие обломки в торнадо
+          if (Math.random() < 0.4) {
+            const angle = rnd(0, TAU);
+            const radius = z.r * rnd(0.5, 1);
+            pt(
+              z.x + Math.cos(angle) * radius,
+              z.y + Math.sin(angle) * radius - rnd(0, h),
+              -Math.cos(angle) * 100,
+              -Math.sin(angle) * 100 - 50,
+              0.5,
+              3,
+              "#B0E0E6",
+              0,
+              true,
+            );
           }
         } else if (z.style === "ice") {
           c.fillStyle = "rgba(160,232,255," + 0.45 * k + ")";
