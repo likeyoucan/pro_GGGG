@@ -4915,45 +4915,40 @@
         // Hand 1 (Back Hand)
         c.lineCap = "round";
 
-        // Рукав задней руки
-        c.strokeStyle = "#000";
-        c.lineWidth = 9;
+  // Рукав задней руки (естественная форма)
         c.beginPath();
-        c.moveTo(-f * 7, -16);
-        c.quadraticCurveTo(-f * 9, -13, -f * 10, -6);
-        c.stroke();
-        c.strokeStyle = pal.sh;
-        c.lineWidth = 6;
-        c.stroke();
-
-        c.fillStyle = "#0a0510";
-        c.strokeStyle = "#000";
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.ellipse(-f * 10, -4, 2.5, 3, -f * 0.3, 0, TAU);
+        c.moveTo(-f * 5, -16);
+        c.bezierCurveTo(-f * 6, -8, -f * 8, -4, -f * 10, -2);
+        c.quadraticCurveTo(-f * 11, -2, -f * 12, -6);
+        c.bezierCurveTo(-f * 11, -10, -f * 9, -14, -f * 9, -16);
+        c.closePath();
+        c.fillStyle = pal.sh;
         c.fill();
+        c.lineWidth = 3.5;
+        c.strokeStyle = "#000";
+        c.lineJoin = "round";
         c.stroke();
 
-        // 🆕 РИСУЕМ РУКАВ (ТЕПЕРЬ ПОД КАПЮШОНОМ, ЧТОБЫ НЕ ПЕРЕКРЫВАТЬ ЛИЦО)
+     // 🆕 РИСУЕМ РУКАВ (Естественная форма ткани)
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        c.strokeStyle = "#000";
-        c.lineWidth = 9;
-        c.lineCap = "round";
+        
         c.beginPath();
-        c.moveTo(f * 9, -16); // 🆕 Начинаем от плеча, а не от живота
-        c.bezierCurveTo(
-          f * 13,
-          -2 + swingRot * 3,
-          f * 18,
-          8 + swingRot * 3,
-          f * 22,
-          2 + swingRot * 6,
-        );
-        c.stroke();
-        c.strokeStyle = pal.sh;
-        c.lineWidth = 6;
+        c.moveTo(f * 5, -16); // Плечо (внутренняя часть)
+        // Внутренний изгиб вниз к запястью
+        c.bezierCurveTo(f * 8, -4, f * 14, 2, f * 21, 2 + swingRot * 4);
+        // Расширяющийся край запястья (манжета)
+        c.quadraticCurveTo(f * 23, 4 + swingRot * 4, f * 23, -4 + swingRot * 4);
+        // Внешний изгиб обратно к плечу
+        c.bezierCurveTo(f * 16, -6, f * 11, -8, f * 9, -16);
+        c.closePath();
+        
+        c.fillStyle = pal.sh;
+        c.fill();
+        c.lineWidth = 3.5;
+        c.strokeStyle = "#000";
+        c.lineJoin = "round";
         c.stroke();
         c.restore();
 
