@@ -5148,41 +5148,26 @@
         if (!m.dead) drawStaff(c, m, f);
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
-        if (!m.dead) {
-          const px = f * 22,
-            py = 8; // 🆕 Подняли кисть выше, чтобы низ посоха торчал
-          const sw =
-            m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-          c.save();
-          c.translate(px, py);
-          c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
-          c.translate(-px, -py);
+        const px = f * 22,
+          py = 8; // 🆕 Подняли кисть выше, чтобы низ посоха торчал
+        const sw =
+          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+        c.save();
+        c.translate(px, py);
+        c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
+        c.translate(-px, -py);
 
-          // 🆕 Уменьшили пропорции кулака (было 4.5, 6)
-          c.beginPath();
-          c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU); 
-          c.fill();
-          c.stroke();
+        // 🆕 Уменьшили пропорции кулака (было 4.5, 6)
+        c.beginPath();
+        c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU); 
+        c.fill();
+        c.stroke();
 
-          // 🆕 Уменьшили большой палец
-          c.beginPath();
-          c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU); 
-          c.fill();
-          c.stroke();
-
-          // 🆕 Уменьшили остальные пальцы
-          c.beginPath();
-          c.ellipse(px - f * 1.5, py + 1, 1.5, 2, -f * 0.4, 0, TAU);
-          c.fill();
-          c.stroke();
-
-          c.fillStyle = "rgba(255,255,255,.15)";
-          c.beginPath();
-          c.ellipse(px + f * 1, py - 1, 1, 1.5, 0, 0, TAU);
-          c.fill();
-
-          c.restore();
-        }
+        // 🆕 Уменьшили большой палец
+        c.beginPath();
+        c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU); 
+        c.fill();
+        c.stroke();
 
         // 🆕 Уменьшили остальные пальцы
         c.beginPath();
@@ -11416,15 +11401,24 @@
         c.translate(-p.x, -(p.y - 30));
         drawMage(c, p, { noShadow: true });
         c.restore();
-                c.beginPath();
+        c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
         c.lineWidth = 3 * u;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        
-        // 🆕 Переменные bx и bw теперь объявлены здесь, до их использования
-        const bx = px + 80 * u,
-          bw = 160 * u;
+        const alive = G.mages.filter((m) => !m.dead).length;
+        txt(
+          c,
+          G.mode === "survival"
+            ? t("wave") + " " + G.wave + "  |  " + (lang === "ru" ? "Убийств: " : "Kills: ") + G.kills
+            : (lang === "ru" ? "Живых: " : "Alive: ") + alive + "/" + G.mages.length,
+          W / 2,
+          54 * u,
+          15 * u,
+          "#ffd23a",
+          "center",
+          3,
+        );
         const hr = clamp(p.hp / p.maxHp, 0, 1);
         rr(c, bx, py + 28 * u, bw, 13 * u, 5 * u);
         c.fillStyle = "#000";
@@ -11485,16 +11479,6 @@
           c.fillStyle = "#B060FF";
           c.fill();
         }
-        txt(
-          c,
-          p.name + (G.mode === "survival" ? "  Lv." + p.level : ""),
-          bx,
-          py + 15 * u,
-          14 * u,
-          "#fff",
-          "left",
-          3,
-        );
         if (G.online && NET.ping)
           txt(
             c,
@@ -11509,8 +11493,6 @@
         const ts = Math.floor(G.time),
           tm = Math.floor(ts / 60) + ":" + String(ts % 60).padStart(2, "0");
         txt(c, tm, W / 2, 24 * u, 32 * u, "#fff", "center", (5 * u) / 1.5);
-        
-        // 🆕 Оставляем только ОДНО объявление alive
         const alive = G.mages.filter((m) => !m.dead).length;
         txt(
           c,
