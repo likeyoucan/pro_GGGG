@@ -10654,15 +10654,15 @@
           c.fill();
           c.stroke();
           c.restore();
-        } else {
-          if (Q.glow) {
-            c.globalCompositeOperation = "lighter";
-            c.fillStyle = rgba(col, 0.35);
-            c.beginPath();
-            c.arc(p.x, p.y, r * 2.7, 0, TAU);
-            c.fill();
-            c.globalCompositeOperation = "source-over";
-          }
+   } else {
+          // 🆕 Убрали проверку Q.glow, чтобы шар всегда светился
+          c.globalCompositeOperation = "lighter";
+          c.fillStyle = rgba(col, 0.35);
+          c.beginPath();
+          c.arc(p.x, p.y, r * 2.7, 0, TAU);
+          c.fill();
+          c.globalCompositeOperation = "source-over";
+          
           c.fillStyle = p.e === 4 ? "#1a0030" : ELEMS[p.e].core;
           c.beginPath();
           c.arc(p.x, p.y, r * 0.8, 0, TAU);
@@ -10677,10 +10677,10 @@
         for (const p of PR.active) {
           if (!p.on) continue;
           const col = p.col || elemColor(p.e);
-          if (p.trailPts && p.trailPts.length > 1) {
+                    if (p.trailPts && p.trailPts.length > 1) {
             const tp = p.trailPts,
               N = tp.length;
-            c.globalCompositeOperation = Q.glow ? "lighter" : "source-over";
+            c.globalCompositeOperation = "lighter"; // 🆕 Всегда светимся
             c.lineCap = "round";
             for (let i = 1; i < N; i++) {
               const a = i / N;
@@ -14612,17 +14612,15 @@
           const fps = fpsN / fpsT;
           fpsT = 0;
           fpsN = 0;
-          if (fps < 30 && Q.lvl < 3) {
+ if (fps < 30 && Q.lvl < 3) {
             Q.lvl++;
             lowCnt = 0;
-            Q.pmul = Math.max(0.15, Q.pmul * 0.55);
-            Q.glow = Q.lvl < 2;
+            Q.pmul = Math.max(0.15, Q.pmul * 0.55); // Снижаем только частицы
           } else if (fps < 45) {
             if (++lowCnt >= 2 && Q.lvl < 2) {
               Q.lvl++;
               lowCnt = 0;
-              Q.pmul = Math.max(0.25, Q.pmul * 0.65);
-              if (Q.lvl >= 2) Q.glow = false;
+              Q.pmul = Math.max(0.25, Q.pmul * 0.65); // Снижаем только частицы
             }
           } else lowCnt = 0;
         }
