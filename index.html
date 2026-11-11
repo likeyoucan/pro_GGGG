@@ -4644,7 +4644,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.4;
             c.beginPath();
-            c.moveTo(bx, 10)
+            c.moveTo(bx, 10);
             c.lineTo(f * 22, topY);
             c.stroke();
             c.strokeStyle = "#FFB6D9";
@@ -4793,6 +4793,8 @@
       }
 
       function drawMage(c, m, o) {
+        // 🆕 Защита от сломанных координат
+        if (!isFinite(m.x) || !isFinite(m.y)) return;
         o = o || {};
         const alpha = m.alpha * (o.alpha === undefined ? 1 : o.alpha);
         if (alpha <= 0.01) return;
@@ -4933,8 +4935,8 @@
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        
-    c.beginPath();
+
+        c.beginPath();
         c.moveTo(f * 4, -17); // Плечо
         // Ведем линию вниз к новой опущенной кисти
         c.bezierCurveTo(f * 7, -5, f * 14, 2, f * 21, 8 + swingRot * 4);
@@ -5160,13 +5162,13 @@
 
           // 🆕 Уменьшили пропорции кулака (было 4.5, 6)
           c.beginPath();
-          c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU); 
+          c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU);
           c.fill();
           c.stroke();
 
           // 🆕 Уменьшили большой палец
           c.beginPath();
-          c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU); 
+          c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU);
           c.fill();
           c.stroke();
 
@@ -8226,6 +8228,8 @@
         mo.y += mo.vy * dt + mo.kvy;
         mo.kvx *= 0.88;
         mo.kvy *= 0.88;
+        if (!isFinite(mo.x)) mo.x = CX;
+        if (!isFinite(mo.y)) mo.y = CY;
         collideWorld(mo);
         if (
           mo.tg &&
@@ -8496,7 +8500,14 @@
       }
 
       function spawnCelebration(x, y) {
-       const colors = ["#FFD700", "#FF69B4", "#00FFFF", "#FF4500", "#50FF70", "#FFFFFF"];
+        const colors = [
+          "#FFD700",
+          "#FF69B4",
+          "#00FFFF",
+          "#FF4500",
+          "#50FF70",
+          "#FFFFFF",
+        ];
         for (let i = 0; i < 18; i++) {
           const a = rnd(-Math.PI, 0) + rnd(-0.4, 0.4),
             sp = rnd(200, 500);
@@ -9264,7 +9275,7 @@
         return c;
       }
 
-           function getIconUrl(name, size = 20) {
+      function getIconUrl(name, size = 20) {
         if (!IC[name]) return "";
         const cv = document.createElement("canvas");
         cv.width = cv.height = size;
@@ -10145,6 +10156,7 @@
               staff: p.staff || "wood",
             });
             m.elem = elemFromColor(p.color);
+            m.baseElem = m.elem; // 🆕
             m.auraElem = m.elem;
             m.isPlayer = p.id === o.myId;
             m.remote = o.role === "host" && p.id !== o.myId;
@@ -10488,10 +10500,16 @@
             ? t("victory")
             : t("defeat");
         $("resBody").innerHTML =
-          line1 + "<br>" +
-          t("kills") + ": <b>" + p.kills + "</b><br>" +
-          t("reward") + ': <b style="color:#ffd23a; display:flex; align-items:center; justify-content:center; gap:4px">+' +
-          total + ` <img src="${getIconUrl('coin', 20)}" style="width:20px; height:20px;" /></b>`;
+          line1 +
+          "<br>" +
+          t("kills") +
+          ": <b>" +
+          p.kills +
+          "</b><br>" +
+          t("reward") +
+          ': <b style="color:#ffd23a; display:flex; align-items:center; justify-content:center; gap:4px">+' +
+          total +
+          ` <img src="${getIconUrl("coin", 20)}" style="width:20px; height:20px;" /></b>`;
         $("rematchBtn").style.display = G.online ? "none" : "flex";
         $("backToRoomBtn").style.display = G.online ? "flex" : "none";
         sfx(win ? "win" : "lose");
@@ -10675,8 +10693,8 @@
           c.restore();
         } else {
           // 🆕 Убрали проверку Q.glow, чтобы шар всегда светился
- c.globalCompositeOperation = "lighter";
-          const pul = 1 + Math.sin(TM * 15 + p.id) * 0.15; 
+          c.globalCompositeOperation = "lighter";
+          const pul = 1 + Math.sin(TM * 15 + p.id) * 0.15;
           c.fillStyle = rgba(col, 0.35);
           c.beginPath();
           c.arc(p.x, p.y, r * 2.2 * pul, 0, TAU);
@@ -10696,6 +10714,11 @@
       function drawProjectiles(c) {
         for (const p of PR.active) {
           if (!p.on) continue;
+          // 🆕 Убираем снаряд, если он сломался
+          if (!isFinite(p.x) || !isFinite(p.y)) {
+            p.on = false;
+            continue;
+          }
           const col = p.col || elemColor(p.e);
           if (p.trailPts && p.trailPts.length > 1) {
             const tp = p.trailPts,
@@ -10705,7 +10728,7 @@
             for (let i = 1; i < N; i++) {
               const a = i / N;
               c.strokeStyle = rgba(col, 0.12 * a);
-                c.lineWidth = Math.max(1, p.r * 2.2 * a); 
+              c.lineWidth = Math.max(1, p.r * 2.2 * a);
               c.beginPath();
               c.moveTo(tp[i - 1].x, tp[i - 1].y);
               c.lineTo(tp[i].x, tp[i].y);
@@ -10715,7 +10738,7 @@
             for (let i = 1; i < N; i++) {
               const a = i / N;
               c.strokeStyle = "rgba(255,255,255," + 0.85 * a + ")";
-               c.lineWidth = Math.max(0.5, p.r * 0.8 * a);
+              c.lineWidth = Math.max(0.5, p.r * 0.8 * a);
               c.beginPath();
               c.moveTo(tp[i - 1].x, tp[i - 1].y);
               c.lineTo(tp[i].x, tp[i].y);
@@ -10980,7 +11003,8 @@
         let tg = G.player && !G.player.dead ? G.player : null;
         if (!tg)
           tg = G.mages.find((m) => !m.dead && m !== G.player) || G.player;
-        if (tg) {
+        // 🆕 Защита от NaN, чтобы камера не улетала
+        if (tg && isFinite(tg.x) && isFinite(tg.y)) {
           const k = 1 - Math.exp(-rd * 9);
           cam.x += (tg.x - cam.x) * k;
           cam.y += (tg.y - 14 - cam.y) * k;
@@ -11416,12 +11440,12 @@
         c.translate(-p.x, -(p.y - 30));
         drawMage(c, p, { noShadow: true });
         c.restore();
-                c.beginPath();
+        c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
         c.lineWidth = 3 * u;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        
+
         // 🆕 Переменные bx и bw теперь объявлены здесь, до их использования
         const bx = px + 80 * u,
           bw = 160 * u;
@@ -11509,14 +11533,22 @@
         const ts = Math.floor(G.time),
           tm = Math.floor(ts / 60) + ":" + String(ts % 60).padStart(2, "0");
         txt(c, tm, W / 2, 24 * u, 32 * u, "#fff", "center", (5 * u) / 1.5);
-        
+
         // 🆕 Оставляем только ОДНО объявление alive
         const alive = G.mages.filter((m) => !m.dead).length;
         txt(
           c,
           G.mode === "survival"
-            ? t("wave") + " " + G.wave + "  |  " + (lang === "ru" ? "Убийств: " : "Kills: ") + G.kills
-            : (lang === "ru" ? "Живых: " : "Alive: ") + alive + "/" + G.mages.length,
+            ? t("wave") +
+                " " +
+                G.wave +
+                "  |  " +
+                (lang === "ru" ? "Убийств: " : "Kills: ") +
+                G.kills
+            : (lang === "ru" ? "Живых: " : "Alive: ") +
+                alive +
+                "/" +
+                G.mages.length,
           W / 2,
           54 * u,
           15 * u,
@@ -12218,7 +12250,7 @@
         for (const it of items) {
           const d = document.createElement("div");
           d.className = "chip" + (it.v === sel ? " sel" : "");
-          d.textContent = it.l;
+          d.innerHTML = it.l; // 🆕 Исправлено на innerHTML
           d.onclick = () => {
             sfx("click");
             cb(it.v);
@@ -12293,12 +12325,27 @@
         const diffRow = $("diffSel");
         if (setup.mode === "arena") {
           diffRow.style.display = "flex";
-         chipRow(
+          chipRow(
             diffRow,
             [
-              { v: "easy", l: `<span style="color:#50FF70;text-shadow:0 0 6px #50FF70">●</span> ` + DIFF.easy.label[lang] },
-              { v: "normal", l: `<span style="color:#FFD84A;text-shadow:0 0 6px #FFD84A">●</span> ` + DIFF.normal.label[lang] },
-              { v: "hard", l: `<span style="color:#FF4040;text-shadow:0 0 6px #FF4040">●</span> ` + DIFF.hard.label[lang] },
+              {
+                v: "easy",
+                l:
+                  `<span style="color:#50FF70;text-shadow:0 0 6px #50FF70">●</span> ` +
+                  DIFF.easy.label[lang],
+              },
+              {
+                v: "normal",
+                l:
+                  `<span style="color:#FFD84A;text-shadow:0 0 6px #FFD84A">●</span> ` +
+                  DIFF.normal.label[lang],
+              },
+              {
+                v: "hard",
+                l:
+                  `<span style="color:#FF4040;text-shadow:0 0 6px #FF4040">●</span> ` +
+                  DIFF.hard.label[lang],
+              },
             ],
             SAVE.botDifficulty || "normal",
             (v) => {
@@ -12908,7 +12955,7 @@
               ? lang === "ru"
                 ? "Бесплатно"
                 : "Free"
-               : s.gold
+              : s.gold
                 ? `Зол: ${s.gold}` + (s.gems ? ` / Гем: ${s.gems}` : "")
                 : "";
           secS += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${col}"><canvas data-skin="${s.id}" width="80" height="100" style="width:60px;height:75px"></canvas><div style="flex:1"><b style="color:${col};font-size:13px">${s[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${t(s.rar).toUpperCase()} · ${price}</div></div></div>`;
@@ -14230,11 +14277,6 @@
           m.auraElem = p.ae;
           if (p.dx !== undefined) m.dashX = p.dx;
           if (p.dy !== undefined) m.dashY = p.dy;
-          if (p.state === "dash") {
-            if (m.dashT <= 0) m.dashT = 0.18;
-          } else if (m.dashT > 0) {
-            m.dashT = 0;
-          }
           if (p.ms !== undefined) m.multiStacks = p.ms;
           if (m !== G.player && p.staff && STAFF_BY_ID[p.staff])
             m.staff = STAFF_BY_ID[p.staff];
@@ -14262,10 +14304,18 @@
             m.vy = p.vy;
             m.dashCd = p.dc;
             m.atkCd = p.ac;
-
             if (p.cl !== undefined) m.castLock = p.cl;
             if (p.sa !== undefined) m.staffAnim = p.sa;
             if (p.sw !== undefined) m.swing = p.sw;
+
+            // 🆕 Рывок — только для удалённых игроков.
+            // Локальный игрок управляет своим dashT через clientSelf,
+            // иначе снапшот обрывает рывок раньше времени.
+            if (p.state === "dash") {
+              if (m.dashT <= 0) m.dashT = 0.18;
+            } else if (m.dashT > 0) {
+              m.dashT = 0;
+            }
           }
         }
         // 🆕 Reconciliation по id — сохраняем трейлы живых снарядов
@@ -14468,6 +14518,8 @@
         }
         m.x += m.vx * dt;
         m.y += m.vy * dt;
+        if (!isFinite(m.x)) m.x = CX;
+        if (!isFinite(m.y)) m.y = CY;
         collideWorld(m);
         if (Math.abs(m.mx) > 0.2 && m.dashT <= 0) m.facing = m.mx > 0 ? 1 : -1;
         const s = m.snap[m.snap.length - 1];
