@@ -4915,7 +4915,7 @@
         // Hand 1 (Back Hand)
         c.lineCap = "round";
 
-  // Рукав задней руки (естественная форма)
+        // Рукав задней руки (естественная форма)
         c.beginPath();
         c.moveTo(-f * 5, -16);
         c.bezierCurveTo(-f * 6, -8, -f * 8, -4, -f * 10, -2);
@@ -4929,21 +4929,21 @@
         c.lineJoin = "round";
         c.stroke();
 
-     // 🆕 РИСУЕМ РУКАВ (Естественная форма ткани)
+        // 🆕 РИСУЕМ РУКАВ (Естественная форма ткани)
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        
+
         c.beginPath();
-        c.moveTo(f * 5, -16); // Плечо (внутренняя часть)
-        // Внутренний изгиб вниз к запястью
-        c.bezierCurveTo(f * 8, -4, f * 14, 2, f * 21, 2 + swingRot * 4);
+        c.moveTo(f * 4, -17); // Начинаем ближе к центру и чуть выше (шире плечо)
+        // Внутренний изгиб вниз к запястью (сделали круче и короче)
+        c.bezierCurveTo(f * 7, -8, f * 14, -2, f * 20, 1 + swingRot * 4);
         // Расширяющийся край запястья (манжета)
-        c.quadraticCurveTo(f * 23, 4 + swingRot * 4, f * 23, -4 + swingRot * 4);
+        c.quadraticCurveTo(f * 23, 3 + swingRot * 4, f * 23, -4 + swingRot * 4);
         // Внешний изгиб обратно к плечу
-        c.bezierCurveTo(f * 16, -6, f * 11, -8, f * 9, -16);
+        c.bezierCurveTo(f * 15, -6, f * 11, -10, f * 9, -17);
         c.closePath();
-        
+
         c.fillStyle = pal.sh;
         c.fill();
         c.lineWidth = 3.5;
@@ -8962,6 +8962,7 @@
                 c: col,
               });
             } else {
+              const col = elemColor(p.elem);
               p.staffAnim = 1;
               const f = p.facing;
               const staffX = p.x + f * 20;
@@ -14192,10 +14193,7 @@
           m.mana = p.mana;
           m.kills = p.kills || 0; // 🆕
           m.goldEarn = p.gold || 0; // 🆕
-          m.facing =
-            m === G.player && (B.attack.st || B.ult.st || B.dash.st)
-              ? m.facing
-              : p.facing;
+          if (m !== G.player) m.facing = p.facing;
           m.elem = p.element;
           m.runes = p.runes || [];
           m.ultCharge = p.ultCharge;
@@ -14235,7 +14233,7 @@
             m.vy = p.vy;
             m.dashCd = p.dc;
             m.atkCd = p.ac;
-     
+
             if (p.cl !== undefined) m.castLock = p.cl;
             if (p.sa !== undefined) m.staffAnim = p.sa;
             if (p.sw !== undefined) m.swing = p.sw;
@@ -14261,6 +14259,13 @@
           p.style = q.style || "orb"; // 🆕
           p.col = q.col || null; // 🆕
           p.trail = q.trail || ""; // 🆕
+          // 🆕 Если снаряд телепортировался из-за лага, сбрасываем хвост, чтобы не было линий
+          if (p.trailPts && p.trailPts.length > 0) {
+            const last = p.trailPts[p.trailPts.length - 1];
+            if (Math.hypot(q.x - last.x, q.y - last.y) > 100) {
+              p.trailPts = [{ x: q.x, y: q.y }];
+            }
+          }
           // Позиция/скорость — всегда с сервера (reconciliation)
           p.x = q.x;
           p.y = q.y;
