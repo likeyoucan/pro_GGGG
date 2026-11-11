@@ -3673,10 +3673,10 @@
           burst(ex, ey, "#FF3030", 6, 80, 2.5, 0.3, true);
       }
 
-      function eyeTarget(m) {
+     function eyeTarget(m) {
         const sk = hexRGB(m.skin.eye || "#FFFFFF"),
           em = m.emoT,
-          el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
+          el = ELEMS[m.aura > 0 ? m.auraElem : m.elem] || ELEMS[0], // 🆕
           ec = hexRGB(el.color === "#6A0DAD" ? "#C060FF" : el.color);
         const T = {
           nm: "idle",
@@ -4797,9 +4797,8 @@
         );
       }
 
-      function drawMage(c, m, o) {
-        // 🆕 Защита от сломанных координат
-        if (!isFinite(m.x) || !isFinite(m.y)) return;
+    function drawMage(c, m, o) {
+        if (!m || !isFinite(m.x) || !isFinite(m.y)) return; // 🆕 Защита от NaN координат
         o = o || {};
         const alpha = m.alpha * (o.alpha === undefined ? 1 : o.alpha);
         if (alpha <= 0.01) return;
@@ -6435,10 +6434,9 @@
           t.kvy *= 45 / s;
         }
       }
-      function elemColor(e) {
-        if (e === 4) return "#B040FF";
-        const el = ELEMS[e];
-        return el ? el.color : "#FFFFFF";
+   function elemColor(e) {
+        const el = ELEMS[e] || ELEMS[0]; // 🆕 Защита
+        return e === 4 ? "#B040FF" : el.color;
       }
 
       function spawnProj(own, x, y, ang, e, dmg, o) {
@@ -11092,10 +11090,10 @@
           if (inV(r.x, r.y, 90)) DR.push({ y: r.y + r.r * 0.3, o: r, t: 3 });
         for (const gh of G.ghosts) DR.push({ y: gh.y, o: gh, t: 4 });
         DR.sort((a, b) => a.y - b.y);
-        for (const d of DR) {
-          if (d.t === 0) drawMage(ctx, d.o);
-          else if (d.t === 1) drawMonster(ctx, d.o);
-          else if (d.t === 2) drawPickup(ctx, d.o);
+   for (const d of DR) {
+          if (d.t === 0) { try { drawMage(ctx, d.o); } catch(e) {} } // 🆕
+          else if (d.t === 1) { try { drawMonster(ctx, d.o); } catch(e) {} }
+          else if (d.t === 2) { try { drawPickup(ctx, d.o); } catch(e) {} }
           else if (d.t === 3) drawRock(ctx, d.o, th);
           else if (d.t === 4) {
             const gh = d.o,
@@ -11447,11 +11445,13 @@
         c.translate(cx, cy + 6 * u);
         const k = pr / 22;
         c.scale(k, k);
-        c.translate(-p.x, -(p.y - 30));
-        try {
-          drawMage(c, p, { noShadow: true });
-        } catch (err) {
-          console.error("Ошибка отрисовки мини-мага:", err);
+        if (isFinite(p.x) && isFinite(p.y)) { // 🆕
+          c.translate(-p.x, -(p.y - 30));
+          try {
+            drawMage(c, p, { noShadow: true });
+          } catch (err) {
+            console.error("Ошибка HUD:", err);
+          }
         }
         c.restore();
         c.beginPath();
@@ -12185,7 +12185,7 @@
           );
         const menuBase = IS_TABLET ? H / 150 : IS_MOBILE ? H / 155 : H / 175;
         const order = menuMages.slice().sort((a, b) => a.def.y - b.def.y);
-        for (const m of order) {
+      for (const m of order) {
           m.x = W * m.def.x;
           m.y = H * m.def.y;
           updateVisual(m, rd);
@@ -12193,7 +12193,13 @@
           m.scale = m.def.s * menuBase;
           m.vx = 0;
           m.vy = 0;
-          drawMage(c, m);
+          if (isFinite(m.x) && isFinite(m.y)) { // 🆕
+            try {
+              drawMage(c, m);
+            } catch (e) {
+              console.error("Ошибка меню:", e);
+            }
+          }
         }
         drawParticles(c, -50, -50, W + 50, H + 50);
         const vg = c.createRadialGradient(
@@ -12264,7 +12270,7 @@
         for (const it of items) {
           const d = document.createElement("div");
           d.className = "chip" + (it.v === sel ? " sel" : "");
-          d.innerHTML = it.l; // 🆕 Исправлено на innerHTML, чтобы теги <span> работали
+          d.innerHTML = it.l; // 🆕 Исправлено на innerHTML
           d.onclick = () => {
             sfx("click");
             cb(it.v);
