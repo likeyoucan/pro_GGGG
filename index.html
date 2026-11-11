@@ -3966,10 +3966,11 @@
             c.moveTo(x, yy + 1.6);
             c.lineTo(x, yy - 1.2);
             c.stroke();
-          } else if (pat === "star") {
+   } else if (pat === "star") {
             c.beginPath();
-            c.arc(x, yy, 1.1, 0, TAU);
-            c.fill();
+            c.moveTo(x - 1.5, yy);
+            c.lineTo(x + 1.5, yy);
+            c.stroke();
           } else if (pat === "rune") {
             c.beginPath();
             c.moveTo(x - 1.2, yy - 1.2);
@@ -4915,12 +4916,12 @@
         // Hand 1 (Back Hand)
         c.lineCap = "round";
 
-        // Рукав задней руки (естественная форма)
+     // Рукав задней руки (сделали чуть толще)
         c.beginPath();
         c.moveTo(-f * 5, -16);
-        c.bezierCurveTo(-f * 6, -8, -f * 8, -4, -f * 10, -2);
-        c.quadraticCurveTo(-f * 11, -2, -f * 12, -6);
-        c.bezierCurveTo(-f * 11, -10, -f * 9, -14, -f * 9, -16);
+        c.bezierCurveTo(-f * 6, -12, -f * 9, -8, -f * 11, -6);
+        c.quadraticCurveTo(-f * 12, -6, -f * 13, -10);
+        c.bezierCurveTo(-f * 11, -14, -f * 9, -15, -f * 9, -16);
         c.closePath();
         c.fillStyle = pal.sh;
         c.fill();
@@ -4929,19 +4930,19 @@
         c.lineJoin = "round";
         c.stroke();
 
-     // 🆕 РИСУЕМ РУКАВ (Естественная форма ткани)
+        // РИСУЕМ РУКАВ (Естественная форма ткани, короче и толще)
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
         
         c.beginPath();
         c.moveTo(f * 4, -17); // Плечо
-        // 🆕 Внутренний изгиб ведем точно к новой кисти
-        c.bezierCurveTo(f * 7, -8, f * 14, -4, f * 21, -4 + swingRot * 4);
-        // 🆕 Манжета рукава (сделали поаккуратнее)
-        c.quadraticCurveTo(f * 24, -2 + swingRot * 4, f * 24, -8 + swingRot * 4);
-        // 🆕 Внешний изгиб обратно к плечу
-        c.bezierCurveTo(f * 15, -10, f * 11, -14, f * 9, -17);
+        // Внутренний изгиб ведем точно к кисти
+        c.bezierCurveTo(f * 7, -12, f * 14, -18, f * 21, -20 + swingRot * 4);
+        // Манжета рукава (сделали потолще)
+        c.quadraticCurveTo(f * 24, -18 + swingRot * 4, f * 24, -24 + swingRot * 4);
+        // Внешний изгиб обратно к плечу
+        c.bezierCurveTo(f * 15, -24, f * 10, -18, f * 7, -18);
         c.closePath();
 
         c.fillStyle = pal.sh;
@@ -5149,7 +5150,7 @@
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
         const px = f * 22,
-          py = -4; // 🆕 Подняли кисть выше, чтобы низ посоха торчал
+          py = -20; // Подняли кисть выше для естественного хвата
         const sw =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -5157,30 +5158,23 @@
         c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
         c.translate(-px, -py);
 
-        // 🆕 Уменьшили пропорции кулака (было 4.5, 6)
+        // Увеличили кулак для естественного хвата
         c.beginPath();
-        c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU); 
+        c.ellipse(px, py, 3.5, 5, f * 0.2, 0, TAU); 
         c.fill();
         c.stroke();
 
-        // 🆕 Уменьшили большой палец
+        // Большой палец
         c.beginPath();
-        c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU); 
+        c.ellipse(px - f * 2, py - 1, 2, 2.8, -f * 0.5, 0, TAU); 
         c.fill();
         c.stroke();
 
-        // 🆕 Уменьшили остальные пальцы
+        // Остальные пальцы
         c.beginPath();
         c.ellipse(px - f * 1.5, py + 1, 1.5, 2, -f * 0.4, 0, TAU);
         c.fill();
         c.stroke();
-
-        c.fillStyle = "rgba(255,255,255,.15)";
-        c.beginPath();
-        c.ellipse(px + f * 1, py - 1, 1, 1.5, 0, 0, TAU);
-        c.fill();
-
-        c.restore();
 
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
@@ -10464,6 +10458,10 @@
           : win
             ? t("victory")
             : t("defeat");
+       let coinHTML = "";
+        if (IC.coin) {
+          coinHTML = `<img src="${IC.coin.toDataURL()}" style="width:16px;height:16px;vertical-align:middle;margin-bottom:2px">`;
+        }
         $("resBody").innerHTML =
           line1 +
           "<br>" +
@@ -10474,7 +10472,7 @@
           t("reward") +
           ': <b style="color:#ffd23a">+' +
           total +
-          " 🪙</b>";
+          " " + coinHTML + "</b>";
         $("rematchBtn").style.display = G.online ? "none" : "flex";
         $("backToRoomBtn").style.display = G.online ? "flex" : "none";
         sfx(win ? "win" : "lose");
