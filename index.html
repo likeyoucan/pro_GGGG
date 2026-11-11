@@ -5149,7 +5149,7 @@
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
         const px = f * 22,
-          py = -20; // Подняли кисть выше для естественного хвата
+          py = -4; // 🆕 Подняли кисть выше, чтобы низ посоха торчал
         const sw =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
@@ -5157,23 +5157,30 @@
         c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
         c.translate(-px, -py);
 
-        // Увеличили кулак для естественного хвата
+        // 🆕 Уменьшили пропорции кулака (было 4.5, 6)
         c.beginPath();
-        c.ellipse(px, py, 3.5, 5, f * 0.2, 0, TAU); 
+        c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU); 
         c.fill();
         c.stroke();
 
-        // Большой палец
+        // 🆕 Уменьшили большой палец
         c.beginPath();
-        c.ellipse(px - f * 2, py - 1, 2, 2.8, -f * 0.5, 0, TAU); 
+        c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU); 
         c.fill();
         c.stroke();
 
-        // Остальные пальцы
+        // 🆕 Уменьшили остальные пальцы
         c.beginPath();
         c.ellipse(px - f * 1.5, py + 1, 1.5, 2, -f * 0.4, 0, TAU);
         c.fill();
         c.stroke();
+
+        c.fillStyle = "rgba(255,255,255,.15)";
+        c.beginPath();
+        c.ellipse(px + f * 1, py - 1, 1, 1.5, 0, 0, TAU);
+        c.fill();
+
+        c.restore();
 
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
