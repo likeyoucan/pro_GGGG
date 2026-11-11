@@ -4644,7 +4644,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.4;
             c.beginPath();
-            c.moveTo(bx, 10)
+            c.moveTo(bx, 2);
             c.lineTo(f * 22, topY);
             c.stroke();
             c.strokeStyle = "#FFB6D9";
@@ -4933,15 +4933,15 @@
         const swingRot =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
         c.save();
-        
+
         c.beginPath();
-        c.moveTo(f * 4, -17); // Плечо
-        // 🆕 Внутренний изгиб ведем точно к новой кисти
-        c.bezierCurveTo(f * 7, -8, f * 14, -4, f * 21, -4 + swingRot * 4);
-        // 🆕 Манжета рукава (сделали поаккуратнее)
-        c.quadraticCurveTo(f * 24, -2 + swingRot * 4, f * 24, -8 + swingRot * 4);
-        // 🆕 Внешний изгиб обратно к плечу
-        c.bezierCurveTo(f * 15, -10, f * 11, -14, f * 9, -17);
+        c.moveTo(f * 4, -17); // Начинаем ближе к центру и чуть выше (шире плечо)
+        // Внутренний изгиб вниз к запястью (сделали круче и короче)
+        c.bezierCurveTo(f * 7, -8, f * 14, -2, f * 20, 1 + swingRot * 4);
+        // Расширяющийся край запястья (манжета)
+        c.quadraticCurveTo(f * 23, 3 + swingRot * 4, f * 23, -4 + swingRot * 4);
+        // Внешний изгиб обратно к плечу
+        c.bezierCurveTo(f * 15, -6, f * 11, -10, f * 9, -17);
         c.closePath();
 
         c.fillStyle = pal.sh;
@@ -5149,35 +5149,33 @@
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
         const px = f * 22,
-          py = -4; // 🆕 Подняли кисть выше, чтобы низ посоха торчал
+          py = 2;
         const sw =
           m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
         c.save();
         c.translate(px, py);
+        // Плавный поворот кисти
         c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
         c.translate(-px, -py);
 
-        // 🆕 Уменьшили пропорции кулака (было 4.5, 6)
         c.beginPath();
-        c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU); 
+        c.ellipse(px, py, 4.5, 6, f * 0.2, 0, TAU); // Кулак
         c.fill();
         c.stroke();
 
-        // 🆕 Уменьшили большой палец
         c.beginPath();
-        c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU); 
+        c.ellipse(px - f * 3, py - 1, 2.5, 3.5, -f * 0.5, 0, TAU); // Большой палец
         c.fill();
         c.stroke();
 
-        // 🆕 Уменьшили остальные пальцы
         c.beginPath();
-        c.ellipse(px - f * 1.5, py + 1, 1.5, 2, -f * 0.4, 0, TAU);
+        c.ellipse(px - f * 2, py + 1, 2, 2.5, -f * 0.4, 0, TAU);
         c.fill();
         c.stroke();
 
         c.fillStyle = "rgba(255,255,255,.15)";
         c.beginPath();
-        c.ellipse(px + f * 1, py - 1, 1, 1.5, 0, 0, TAU);
+        c.ellipse(px + f * 1, py - 1.5, 1.5, 2, 0, 0, TAU);
         c.fill();
 
         c.restore();
@@ -8481,7 +8479,7 @@
       }
 
       function spawnCelebration(x, y) {
-       const colors = ["#FFD700", "#FF69B4", "#00FFFF", "#FF4500", "#50FF70", "#FFFFFF"];
+        const items = ["🌹", "⭐", "🎉", "💎", "🍀", "✨"];
         for (let i = 0; i < 18; i++) {
           const a = rnd(-Math.PI, 0) + rnd(-0.4, 0.4),
             sp = rnd(200, 500);
@@ -8492,10 +8490,10 @@
             vy: Math.sin(a) * sp - rnd(100, 300),
             rot: rnd(0, TAU),
             rotSpd: rnd(-8, 8),
-            color: pick(colors),
+            emoji: pick(items),
             life: 2.5,
             maxLife: 2.5,
-            size: rnd(8, 16), // Уменьшили размер, так как это будут фигуры, а не буквы
+            size: rnd(20, 34),
           });
         }
       }
@@ -9247,14 +9245,6 @@
         const c = document.createElement("canvas");
         c.width = c.height = s;
         return c;
-      }
-
-           function getIconUrl(name, size = 20) {
-        if (!IC[name]) return "";
-        const cv = document.createElement("canvas");
-        cv.width = cv.height = size;
-        cv.getContext("2d").drawImage(IC[name], 0, 0, size, size);
-        return cv.toDataURL();
       }
 
       function drawCoin(c) {
@@ -10473,10 +10463,16 @@
             ? t("victory")
             : t("defeat");
         $("resBody").innerHTML =
-          line1 + "<br>" +
-          t("kills") + ": <b>" + p.kills + "</b><br>" +
-          t("reward") + ': <b style="color:#ffd23a; display:flex; align-items:center; justify-content:center; gap:4px">+' +
-          total + ` <img src="${getIconUrl('coin', 20)}" style="width:20px; height:20px;" /></b>`;
+          line1 +
+          "<br>" +
+          t("kills") +
+          ": <b>" +
+          p.kills +
+          "</b><br>" +
+          t("reward") +
+          ': <b style="color:#ffd23a">+' +
+          total +
+          " 🪙</b>";
         $("rematchBtn").style.display = G.online ? "none" : "flex";
         $("backToRoomBtn").style.display = G.online ? "flex" : "none";
         sfx(win ? "win" : "lose");
@@ -10659,14 +10655,14 @@
           c.stroke();
           c.restore();
         } else {
-          // 🆕 Убрали проверку Q.glow, чтобы шар всегда светился
-          c.globalCompositeOperation = "lighter";
-          c.fillStyle = rgba(col, 0.35);
-          c.beginPath();
-          c.arc(p.x, p.y, r * 2.7, 0, TAU);
-          c.fill();
-          c.globalCompositeOperation = "source-over";
-
+          if (Q.glow) {
+            c.globalCompositeOperation = "lighter";
+            c.fillStyle = rgba(col, 0.35);
+            c.beginPath();
+            c.arc(p.x, p.y, r * 2.7, 0, TAU);
+            c.fill();
+            c.globalCompositeOperation = "source-over";
+          }
           c.fillStyle = p.e === 4 ? "#1a0030" : ELEMS[p.e].core;
           c.beginPath();
           c.arc(p.x, p.y, r * 0.8, 0, TAU);
@@ -10684,7 +10680,7 @@
           if (p.trailPts && p.trailPts.length > 1) {
             const tp = p.trailPts,
               N = tp.length;
-            c.globalCompositeOperation = "lighter"; // 🆕 Всегда светимся
+            c.globalCompositeOperation = Q.glow ? "lighter" : "source-over";
             c.lineCap = "round";
             for (let i = 1; i < N; i++) {
               const a = i / N;
@@ -11107,15 +11103,10 @@
           ctx.translate(cel.x, cel.y);
           ctx.rotate(cel.rot);
           ctx.globalAlpha = clamp(k * 1.5, 0, 1);
-          ctx.fillStyle = cel.color || "#FFD700";
-          // Рисуем ромб (звезду)
-          ctx.beginPath();
-          ctx.moveTo(0, -cel.size);
-          ctx.lineTo(cel.size * 0.6, 0);
-          ctx.lineTo(0, cel.size);
-          ctx.lineTo(-cel.size * 0.6, 0);
-          ctx.closePath();
-          ctx.fill();
+          ctx.font = "900 " + cel.size + "px serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(cel.emoji, 0, 0);
           ctx.restore();
         }
         ctx.globalAlpha = 1;
@@ -11409,14 +11400,12 @@
           bw = 160 * u;
         txt(
           c,
-          G.mode === "survival"
-            ? t("wave") + " " + G.wave + "  |  " + (lang === "ru" ? "Убийств: " : "Kills: ") + G.kills
-            : (lang === "ru" ? "Живых: " : "Alive: ") + alive + "/" + G.mages.length,
-          W / 2,
-          54 * u,
-          15 * u,
-          "#ffd23a",
-          "center",
+          p.name + (G.mode === "survival" ? "  Lv." + p.level : ""),
+          bx,
+          py + 15 * u,
+          14 * u,
+          "#fff",
+          "left",
           3,
         );
         const hr = clamp(p.hp / p.maxHp, 0, 1);
@@ -12275,12 +12264,12 @@
         const diffRow = $("diffSel");
         if (setup.mode === "arena") {
           diffRow.style.display = "flex";
-         chipRow(
+          chipRow(
             diffRow,
             [
-              { v: "easy", l: `<span style="color:#50FF70;text-shadow:0 0 6px #50FF70">●</span> ` + DIFF.easy.label[lang] },
-              { v: "normal", l: `<span style="color:#FFD84A;text-shadow:0 0 6px #FFD84A">●</span> ` + DIFF.normal.label[lang] },
-              { v: "hard", l: `<span style="color:#FF4040;text-shadow:0 0 6px #FF4040">●</span> ` + DIFF.hard.label[lang] },
+              { v: "easy", l: "🟢 " + DIFF.easy.label[lang] },
+              { v: "normal", l: "🟡 " + DIFF.normal.label[lang] },
+              { v: "hard", l: "🔴 " + DIFF.hard.label[lang] },
             ],
             SAVE.botDifficulty || "normal",
             (v) => {
@@ -12828,10 +12817,10 @@
         const sec = (title, content) =>
           `<h3 style="color:#ffd23a;margin:14px 0 8px;padding-bottom:4px;border-bottom:2px solid rgba(218,165,32,.4);font-size:16px">${title}</h3>${content}`;
         let h = "";
+        const EMO_E = ["🔥", "❄️", "⚡", "💨", "🌑"];
         let secE = "";
         for (const e of ELEMS) {
-          const icon = getIconUrl("e" + e.id, 32);
-          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><img src="${icon}" style="width:26px;height:26px;object-fit:contain" /><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
+          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><span style="font-size:20px;width:26px;text-align:center">${EMO_E[e.id]}</span><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
         }
         h += sec("⚗️ " + t("codexElems"), secE);
         let secC = "";
@@ -12890,8 +12879,8 @@
               ? lang === "ru"
                 ? "Бесплатно"
                 : "Free"
-               : s.gold
-                ? `Зол: ${s.gold}` + (s.gems ? ` / Гем: ${s.gems}` : "")
+              : s.gold
+                ? `🪙 ${s.gold}` + (s.gems ? ` / 💎 ${s.gems}` : "")
                 : "";
           secS += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${col}"><canvas data-skin="${s.id}" width="80" height="100" style="width:60px;height:75px"></canvas><div style="flex:1"><b style="color:${col};font-size:13px">${s[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${s.rar.toUpperCase()} · ${price}</div></div></div>`;
         }
@@ -14626,12 +14615,14 @@
           if (fps < 30 && Q.lvl < 3) {
             Q.lvl++;
             lowCnt = 0;
-            Q.pmul = Math.max(0.15, Q.pmul * 0.55); // Снижаем только частицы
+            Q.pmul = Math.max(0.15, Q.pmul * 0.55);
+            Q.glow = Q.lvl < 2;
           } else if (fps < 45) {
             if (++lowCnt >= 2 && Q.lvl < 2) {
               Q.lvl++;
               lowCnt = 0;
-              Q.pmul = Math.max(0.25, Q.pmul * 0.65); // Снижаем только частицы
+              Q.pmul = Math.max(0.25, Q.pmul * 0.65);
+              if (Q.lvl >= 2) Q.glow = false;
             }
           } else lowCnt = 0;
         }
