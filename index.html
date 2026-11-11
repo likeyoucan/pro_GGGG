@@ -1207,14 +1207,19 @@
       }
       const _hc = new Map(),
         _sc = new Map();
-      function hexRGB(h) {
-        let r = _hc.get(h);
-        if (!r) {
-          const n = parseInt(h.slice(1), 16);
-          r = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-          _hc.set(h, r);
+    function palOf(hex) {
+        if (!hex) hex = "#4A2A8B";
+        let p = _pal.get(hex);
+        if (!p) {
+          p = {
+            base: hex,
+            hi: shade(hex, 0.22),
+            sh: shade(hex, -0.38),
+            dk: shade(hex, -0.6),
+          };
+          _pal.set(hex, p);
         }
-        return r;
+        return p;
       }
       const _rc = new Map();
       function rgba(h, a) {
@@ -3668,10 +3673,10 @@
           burst(ex, ey, "#FF3030", 6, 80, 2.5, 0.3, true);
       }
 
-      function eyeTarget(m) {
+     function eyeTarget(m) {
         const sk = hexRGB(m.skin.eye || "#FFFFFF"),
           em = m.emoT,
-          el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
+          el = ELEMS[m.aura > 0 ? m.auraElem : m.elem] || ELEMS[0], // 🆕
           ec = hexRGB(el.color === "#6A0DAD" ? "#C060FF" : el.color);
         const T = {
           nm: "idle",
@@ -4396,7 +4401,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 6;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY + 10);
             c.stroke();
             c.strokeStyle = "#FFB6D9";
@@ -4454,7 +4459,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.5;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY + 8);
             c.stroke();
             c.strokeStyle = "#DAA520";
@@ -4521,7 +4526,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 6;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY + 12);
             c.stroke();
             c.strokeStyle = "#110020";
@@ -4595,7 +4600,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.8;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY);
             c.stroke();
             c.strokeStyle = "#3a1008";
@@ -4644,7 +4649,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.4;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 10);
             c.lineTo(f * 22, topY);
             c.stroke();
             c.strokeStyle = "#FFB6D9";
@@ -4710,7 +4715,7 @@
             c.strokeStyle = "#000";
             c.lineWidth = 5.4;
             c.beginPath();
-            c.moveTo(bx, 2);
+            c.moveTo(bx, 14);
             c.lineTo(f * 22, topY);
             c.stroke();
             if (sk === "rainbow") {
@@ -4792,7 +4797,8 @@
         );
       }
 
-      function drawMage(c, m, o) {
+    function drawMage(c, m, o) {
+        if (!m || !isFinite(m.x) || !isFinite(m.y)) return; // 🆕 Защита от NaN координат
         o = o || {};
         const alpha = m.alpha * (o.alpha === undefined ? 1 : o.alpha);
         if (alpha <= 0.01) return;
@@ -4935,13 +4941,13 @@
         c.save();
 
         c.beginPath();
-        c.moveTo(f * 4, -17); // Начинаем ближе к центру и чуть выше (шире плечо)
-        // Внутренний изгиб вниз к запястью (сделали круче и короче)
-        c.bezierCurveTo(f * 7, -8, f * 14, -2, f * 20, 1 + swingRot * 4);
-        // Расширяющийся край запястья (манжета)
-        c.quadraticCurveTo(f * 23, 3 + swingRot * 4, f * 23, -4 + swingRot * 4);
+        c.moveTo(f * 4, -17); // Плечо
+        // Ведем линию вниз к новой опущенной кисти
+        c.bezierCurveTo(f * 7, -5, f * 14, 2, f * 21, 8 + swingRot * 4);
+        // Манжета рукава
+        c.quadraticCurveTo(f * 24, 10 + swingRot * 4, f * 24, 4 + swingRot * 4);
         // Внешний изгиб обратно к плечу
-        c.bezierCurveTo(f * 15, -6, f * 11, -10, f * 9, -17);
+        c.bezierCurveTo(f * 15, -2, f * 11, -10, f * 9, -17);
         c.closePath();
 
         c.fillStyle = pal.sh;
@@ -5145,40 +5151,41 @@
         drawEyes(c, m, fx, -26);
 
         // 2. РИСУЕМ ПОСОХ
-        drawStaff(c, m, f);
+        if (!m.dead) drawStaff(c, m, f);
 
         // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
-        const px = f * 22,
-          py = 2;
-        const sw =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-        c.save();
-        c.translate(px, py);
-        // Плавный поворот кисти
-        c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
-        c.translate(-px, -py);
+if (!m.dead) {
+  const px = f * 22,
+    py = 8;
+  const sw =
+    m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+  c.save();
+  c.translate(px, py);
+  c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
+  c.translate(-px, -py);
 
-        c.beginPath();
-        c.ellipse(px, py, 4.5, 6, f * 0.2, 0, TAU); // Кулак
-        c.fill();
-        c.stroke();
+  c.beginPath();
+  c.ellipse(px, py, 3, 4.5, f * 0.2, 0, TAU);
+  c.fill();
+  c.stroke();
 
-        c.beginPath();
-        c.ellipse(px - f * 3, py - 1, 2.5, 3.5, -f * 0.5, 0, TAU); // Большой палец
-        c.fill();
-        c.stroke();
+  c.beginPath();
+  c.ellipse(px - f * 2, py - 1, 1.8, 2.5, -f * 0.5, 0, TAU);
+  c.fill();
+  c.stroke();
 
-        c.beginPath();
-        c.ellipse(px - f * 2, py + 1, 2, 2.5, -f * 0.4, 0, TAU);
-        c.fill();
-        c.stroke();
+  c.beginPath();
+  c.ellipse(px - f * 1.5, py + 1, 1.5, 2, -f * 0.4, 0, TAU);
+  c.fill();
+  c.stroke();
 
-        c.fillStyle = "rgba(255,255,255,.15)";
-        c.beginPath();
-        c.ellipse(px + f * 1, py - 1.5, 1.5, 2, 0, 0, TAU);
-        c.fill();
+  c.fillStyle = "rgba(255,255,255,.15)";
+  c.beginPath();
+  c.ellipse(px + f * 1, py - 1, 1, 1.5, 0, 0, TAU);
+  c.fill();
 
-        c.restore();
+  c.restore();
+}
 
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
@@ -6411,10 +6418,9 @@
           t.kvy *= 45 / s;
         }
       }
-      function elemColor(e) {
-        if (e === 4) return "#B040FF";
-        const el = ELEMS[e];
-        return el ? el.color : "#FFFFFF";
+   function elemColor(e) {
+        const el = ELEMS[e] || ELEMS[0]; // 🆕 Защита
+        return e === 4 ? "#B040FF" : el.color;
       }
 
       function spawnProj(own, x, y, ang, e, dmg, o) {
@@ -8209,6 +8215,8 @@
         mo.y += mo.vy * dt + mo.kvy;
         mo.kvx *= 0.88;
         mo.kvy *= 0.88;
+        if (!isFinite(mo.x)) mo.x = CX;
+        if (!isFinite(mo.y)) mo.y = CY;
         collideWorld(mo);
         if (
           mo.tg &&
@@ -8479,7 +8487,14 @@
       }
 
       function spawnCelebration(x, y) {
-        const items = ["🌹", "⭐", "🎉", "💎", "🍀", "✨"];
+        const colors = [
+          "#FFD700",
+          "#FF69B4",
+          "#00FFFF",
+          "#FF4500",
+          "#50FF70",
+          "#FFFFFF",
+        ];
         for (let i = 0; i < 18; i++) {
           const a = rnd(-Math.PI, 0) + rnd(-0.4, 0.4),
             sp = rnd(200, 500);
@@ -8490,10 +8505,10 @@
             vy: Math.sin(a) * sp - rnd(100, 300),
             rot: rnd(0, TAU),
             rotSpd: rnd(-8, 8),
-            emoji: pick(items),
+            color: pick(colors),
             life: 2.5,
             maxLife: 2.5,
-            size: rnd(20, 34),
+            size: rnd(8, 16), // Уменьшили размер, так как это будут фигуры, а не буквы
           });
         }
       }
@@ -9245,6 +9260,14 @@
         const c = document.createElement("canvas");
         c.width = c.height = s;
         return c;
+      }
+
+      function getIconUrl(name, size = 20) {
+        if (!IC[name]) return "";
+        const cv = document.createElement("canvas");
+        cv.width = cv.height = size;
+        cv.getContext("2d").drawImage(IC[name], 0, 0, size, size);
+        return cv.toDataURL();
       }
 
       function drawCoin(c) {
@@ -10120,6 +10143,7 @@
               staff: p.staff || "wood",
             });
             m.elem = elemFromColor(p.color);
+            m.baseElem = m.elem; // 🆕
             m.auraElem = m.elem;
             m.isPlayer = p.id === o.myId;
             m.remote = o.role === "host" && p.id !== o.myId;
@@ -10470,9 +10494,9 @@
           p.kills +
           "</b><br>" +
           t("reward") +
-          ': <b style="color:#ffd23a">+' +
+          ': <b style="color:#ffd23a; display:flex; align-items:center; justify-content:center; gap:4px">+' +
           total +
-          " 🪙</b>";
+          ` <img src="${getIconUrl("coin", 20)}" style="width:20px; height:20px;" /></b>`;
         $("rematchBtn").style.display = G.online ? "none" : "flex";
         $("backToRoomBtn").style.display = G.online ? "flex" : "none";
         sfx(win ? "win" : "lose");
@@ -10655,14 +10679,15 @@
           c.stroke();
           c.restore();
         } else {
-          if (Q.glow) {
-            c.globalCompositeOperation = "lighter";
-            c.fillStyle = rgba(col, 0.35);
-            c.beginPath();
-            c.arc(p.x, p.y, r * 2.7, 0, TAU);
-            c.fill();
-            c.globalCompositeOperation = "source-over";
-          }
+          // 🆕 Убрали проверку Q.glow, чтобы шар всегда светился
+          c.globalCompositeOperation = "lighter";
+          const pul = 1 + Math.sin(TM * 15 + p.id) * 0.15;
+          c.fillStyle = rgba(col, 0.35);
+          c.beginPath();
+          c.arc(p.x, p.y, r * 2.2 * pul, 0, TAU);
+          c.fill();
+          c.globalCompositeOperation = "source-over";
+
           c.fillStyle = p.e === 4 ? "#1a0030" : ELEMS[p.e].core;
           c.beginPath();
           c.arc(p.x, p.y, r * 0.8, 0, TAU);
@@ -10676,16 +10701,21 @@
       function drawProjectiles(c) {
         for (const p of PR.active) {
           if (!p.on) continue;
+          // 🆕 Убираем снаряд, если он сломался
+          if (!isFinite(p.x) || !isFinite(p.y)) {
+            p.on = false;
+            continue;
+          }
           const col = p.col || elemColor(p.e);
           if (p.trailPts && p.trailPts.length > 1) {
             const tp = p.trailPts,
               N = tp.length;
-            c.globalCompositeOperation = Q.glow ? "lighter" : "source-over";
+            c.globalCompositeOperation = "lighter"; // 🆕 Всегда светимся
             c.lineCap = "round";
             for (let i = 1; i < N; i++) {
               const a = i / N;
               c.strokeStyle = rgba(col, 0.12 * a);
-              c.lineWidth = p.r * 5 * a;
+              c.lineWidth = Math.max(1, p.r * 2.2 * a);
               c.beginPath();
               c.moveTo(tp[i - 1].x, tp[i - 1].y);
               c.lineTo(tp[i].x, tp[i].y);
@@ -10695,7 +10725,7 @@
             for (let i = 1; i < N; i++) {
               const a = i / N;
               c.strokeStyle = "rgba(255,255,255," + 0.85 * a + ")";
-              c.lineWidth = p.r * 1.3 * a;
+              c.lineWidth = Math.max(0.5, p.r * 0.8 * a);
               c.beginPath();
               c.moveTo(tp[i - 1].x, tp[i - 1].y);
               c.lineTo(tp[i].x, tp[i].y);
@@ -10956,11 +10986,17 @@
         c.globalAlpha = 1;
       }
 
-      function updateCamera(rd) {
+    function updateCamera(rd) {
+        // 🆕 Защита от NaN
+        if (!isFinite(cam.x)) cam.x = CX;
+        if (!isFinite(cam.y)) cam.y = CY;
+        if (!isFinite(FX.zoom)) FX.zoom = 0;
+        if (!isFinite(cam.z)) cam.z = 1;
+
         let tg = G.player && !G.player.dead ? G.player : null;
         if (!tg)
           tg = G.mages.find((m) => !m.dead && m !== G.player) || G.player;
-        if (tg) {
+        if (tg && isFinite(tg.x) && isFinite(tg.y)) {
           const k = 1 - Math.exp(-rd * 9);
           cam.x += (tg.x - cam.x) * k;
           cam.y += (tg.y - 14 - cam.y) * k;
@@ -11038,10 +11074,10 @@
           if (inV(r.x, r.y, 90)) DR.push({ y: r.y + r.r * 0.3, o: r, t: 3 });
         for (const gh of G.ghosts) DR.push({ y: gh.y, o: gh, t: 4 });
         DR.sort((a, b) => a.y - b.y);
-        for (const d of DR) {
-          if (d.t === 0) drawMage(ctx, d.o);
-          else if (d.t === 1) drawMonster(ctx, d.o);
-          else if (d.t === 2) drawPickup(ctx, d.o);
+   for (const d of DR) {
+          if (d.t === 0) { try { drawMage(ctx, d.o); } catch(e) {} } // 🆕
+          else if (d.t === 1) { try { drawMonster(ctx, d.o); } catch(e) {} }
+          else if (d.t === 2) { try { drawPickup(ctx, d.o); } catch(e) {} }
           else if (d.t === 3) drawRock(ctx, d.o, th);
           else if (d.t === 4) {
             const gh = d.o,
@@ -11103,10 +11139,15 @@
           ctx.translate(cel.x, cel.y);
           ctx.rotate(cel.rot);
           ctx.globalAlpha = clamp(k * 1.5, 0, 1);
-          ctx.font = "900 " + cel.size + "px serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(cel.emoji, 0, 0);
+          ctx.fillStyle = cel.color || "#FFD700";
+          // Рисуем ромб (звезду)
+          ctx.beginPath();
+          ctx.moveTo(0, -cel.size);
+          ctx.lineTo(cel.size * 0.6, 0);
+          ctx.lineTo(0, cel.size);
+          ctx.lineTo(-cel.size * 0.6, 0);
+          ctx.closePath();
+          ctx.fill();
           ctx.restore();
         }
         ctx.globalAlpha = 1;
@@ -11379,7 +11420,7 @@
         const cx = px + 42 * u,
           cy = py + ph / 2,
           pr = 30 * u;
-        c.save();
+      c.save();
         c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
         c.fillStyle = "#0a0510";
@@ -11388,26 +11429,24 @@
         c.translate(cx, cy + 6 * u);
         const k = pr / 22;
         c.scale(k, k);
-        c.translate(-p.x, -(p.y - 30));
-        drawMage(c, p, { noShadow: true });
+        if (isFinite(p.x) && isFinite(p.y)) { // 🆕
+          c.translate(-p.x, -(p.y - 30));
+          try {
+            drawMage(c, p, { noShadow: true });
+          } catch (err) {
+            console.error("Ошибка HUD:", err);
+          }
+        }
         c.restore();
         c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
         c.lineWidth = 3 * u;
         c.strokeStyle = "#DAA520";
         c.stroke();
+
+        // 🆕 Переменные bx и bw теперь объявлены здесь, до их использования
         const bx = px + 80 * u,
           bw = 160 * u;
-        txt(
-          c,
-          p.name + (G.mode === "survival" ? "  Lv." + p.level : ""),
-          bx,
-          py + 15 * u,
-          14 * u,
-          "#fff",
-          "left",
-          3,
-        );
         const hr = clamp(p.hp / p.maxHp, 0, 1);
         rr(c, bx, py + 28 * u, bw, 13 * u, 5 * u);
         c.fillStyle = "#000";
@@ -11468,6 +11507,16 @@
           c.fillStyle = "#B060FF";
           c.fill();
         }
+        txt(
+          c,
+          p.name + (G.mode === "survival" ? "  Lv." + p.level : ""),
+          bx,
+          py + 15 * u,
+          14 * u,
+          "#fff",
+          "left",
+          3,
+        );
         if (G.online && NET.ping)
           txt(
             c,
@@ -11482,12 +11531,22 @@
         const ts = Math.floor(G.time),
           tm = Math.floor(ts / 60) + ":" + String(ts % 60).padStart(2, "0");
         txt(c, tm, W / 2, 24 * u, 32 * u, "#fff", "center", (5 * u) / 1.5);
+
+        // 🆕 Оставляем только ОДНО объявление alive
         const alive = G.mages.filter((m) => !m.dead).length;
         txt(
           c,
           G.mode === "survival"
-            ? t("wave") + " " + G.wave + "  ·  ☠ " + G.kills
-            : "👥 " + alive + "/" + G.mages.length,
+            ? t("wave") +
+                " " +
+                G.wave +
+                "  |  " +
+                (lang === "ru" ? "Убийств: " : "Kills: ") +
+                G.kills
+            : (lang === "ru" ? "Живых: " : "Alive: ") +
+                alive +
+                "/" +
+                G.mages.length,
           W / 2,
           54 * u,
           15 * u,
@@ -12110,7 +12169,7 @@
           );
         const menuBase = IS_TABLET ? H / 150 : IS_MOBILE ? H / 155 : H / 175;
         const order = menuMages.slice().sort((a, b) => a.def.y - b.def.y);
-        for (const m of order) {
+      for (const m of order) {
           m.x = W * m.def.x;
           m.y = H * m.def.y;
           updateVisual(m, rd);
@@ -12118,7 +12177,13 @@
           m.scale = m.def.s * menuBase;
           m.vx = 0;
           m.vy = 0;
-          drawMage(c, m);
+          if (isFinite(m.x) && isFinite(m.y)) { // 🆕
+            try {
+              drawMage(c, m);
+            } catch (e) {
+              console.error("Ошибка меню:", e);
+            }
+          }
         }
         drawParticles(c, -50, -50, W + 50, H + 50);
         const vg = c.createRadialGradient(
@@ -12184,12 +12249,12 @@
         showScreen("sc-setup");
         setMenuHero();
       }
-      function chipRow(el, items, sel, cb) {
+     function chipRow(el, items, sel, cb) {
         el.innerHTML = "";
         for (const it of items) {
           const d = document.createElement("div");
           d.className = "chip" + (it.v === sel ? " sel" : "");
-          d.textContent = it.l;
+          d.innerHTML = it.l; // 🆕 Исправлено на innerHTML
           d.onclick = () => {
             sfx("click");
             cb(it.v);
@@ -12267,9 +12332,24 @@
           chipRow(
             diffRow,
             [
-              { v: "easy", l: "🟢 " + DIFF.easy.label[lang] },
-              { v: "normal", l: "🟡 " + DIFF.normal.label[lang] },
-              { v: "hard", l: "🔴 " + DIFF.hard.label[lang] },
+              {
+                v: "easy",
+                l:
+                  `<span style="color:#50FF70;text-shadow:0 0 6px #50FF70">●</span> ` +
+                  DIFF.easy.label[lang],
+              },
+              {
+                v: "normal",
+                l:
+                  `<span style="color:#FFD84A;text-shadow:0 0 6px #FFD84A">●</span> ` +
+                  DIFF.normal.label[lang],
+              },
+              {
+                v: "hard",
+                l:
+                  `<span style="color:#FF4040;text-shadow:0 0 6px #FF4040">●</span> ` +
+                  DIFF.hard.label[lang],
+              },
             ],
             SAVE.botDifficulty || "normal",
             (v) => {
@@ -12817,10 +12897,10 @@
         const sec = (title, content) =>
           `<h3 style="color:#ffd23a;margin:14px 0 8px;padding-bottom:4px;border-bottom:2px solid rgba(218,165,32,.4);font-size:16px">${title}</h3>${content}`;
         let h = "";
-        const EMO_E = ["🔥", "❄️", "⚡", "💨", "🌑"];
         let secE = "";
         for (const e of ELEMS) {
-          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><span style="font-size:20px;width:26px;text-align:center">${EMO_E[e.id]}</span><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
+          const icon = getIconUrl("e" + e.id, 32);
+          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><img src="${icon}" style="width:26px;height:26px;object-fit:contain" /><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
         }
         h += sec("⚗️ " + t("codexElems"), secE);
         let secC = "";
@@ -12880,9 +12960,9 @@
                 ? "Бесплатно"
                 : "Free"
               : s.gold
-                ? `🪙 ${s.gold}` + (s.gems ? ` / 💎 ${s.gems}` : "")
+                ? `Зол: ${s.gold}` + (s.gems ? ` / Гем: ${s.gems}` : "")
                 : "";
-          secS += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${col}"><canvas data-skin="${s.id}" width="80" height="100" style="width:60px;height:75px"></canvas><div style="flex:1"><b style="color:${col};font-size:13px">${s[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${s.rar.toUpperCase()} · ${price}</div></div></div>`;
+          secS += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${col}"><canvas data-skin="${s.id}" width="80" height="100" style="width:60px;height:75px"></canvas><div style="flex:1"><b style="color:${col};font-size:13px">${s[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${t(s.rar).toUpperCase()} · ${price}</div></div></div>`;
         }
         h += sec("🎨 " + (lang === "ru" ? "СКИНЫ" : "SKINS"), secS);
         h += sec(
@@ -14201,11 +14281,6 @@
           m.auraElem = p.ae;
           if (p.dx !== undefined) m.dashX = p.dx;
           if (p.dy !== undefined) m.dashY = p.dy;
-          if (p.state === "dash") {
-            if (m.dashT <= 0) m.dashT = 0.18;
-          } else if (m.dashT > 0) {
-            m.dashT = 0;
-          }
           if (p.ms !== undefined) m.multiStacks = p.ms;
           if (m !== G.player && p.staff && STAFF_BY_ID[p.staff])
             m.staff = STAFF_BY_ID[p.staff];
@@ -14233,10 +14308,18 @@
             m.vy = p.vy;
             m.dashCd = p.dc;
             m.atkCd = p.ac;
-
             if (p.cl !== undefined) m.castLock = p.cl;
             if (p.sa !== undefined) m.staffAnim = p.sa;
             if (p.sw !== undefined) m.swing = p.sw;
+
+            // 🆕 Рывок — только для удалённых игроков.
+            // Локальный игрок управляет своим dashT через clientSelf,
+            // иначе снапшот обрывает рывок раньше времени.
+            if (p.state === "dash") {
+              if (m.dashT <= 0) m.dashT = 0.18;
+            } else if (m.dashT > 0) {
+              m.dashT = 0;
+            }
           }
         }
         // 🆕 Reconciliation по id — сохраняем трейлы живых снарядов
@@ -14439,6 +14522,8 @@
         }
         m.x += m.vx * dt;
         m.y += m.vy * dt;
+        if (!isFinite(m.x)) m.x = CX;
+        if (!isFinite(m.y)) m.y = CY;
         collideWorld(m);
         if (Math.abs(m.mx) > 0.2 && m.dashT <= 0) m.facing = m.mx > 0 ? 1 : -1;
         const s = m.snap[m.snap.length - 1];
@@ -14615,14 +14700,12 @@
           if (fps < 30 && Q.lvl < 3) {
             Q.lvl++;
             lowCnt = 0;
-            Q.pmul = Math.max(0.15, Q.pmul * 0.55);
-            Q.glow = Q.lvl < 2;
+            Q.pmul = Math.max(0.15, Q.pmul * 0.55); // Снижаем только частицы
           } else if (fps < 45) {
             if (++lowCnt >= 2 && Q.lvl < 2) {
               Q.lvl++;
               lowCnt = 0;
-              Q.pmul = Math.max(0.25, Q.pmul * 0.65);
-              if (Q.lvl >= 2) Q.glow = false;
+              Q.pmul = Math.max(0.25, Q.pmul * 0.65); // Снижаем только частицы
             }
           } else lowCnt = 0;
         }
