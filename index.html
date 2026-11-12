@@ -599,6 +599,134 @@
           font-size: 14px;
         }
       }
+
+      /* 🆕 КАСТОМНЫЙ ВЫПАДАЮЩИЙ СПИСОК */
+      .custom-select {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        z-index: 100;
+        user-select: none;
+      }
+      .custom-select-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(20, 10, 30, 0.85);
+        border: 2px solid #daa520;
+        border-radius: 10px;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 10px 14px;
+        cursor: pointer;
+        min-height: 44px;
+        transition: all 0.25s;
+      }
+      .custom-select.open .custom-select-trigger {
+        border-color: #ffe27a;
+        box-shadow: 0 0 12px rgba(255, 200, 60, 0.5);
+      }
+      .custom-select-arrow {
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 6px solid #daa520;
+        margin-left: 10px;
+        transition: transform 0.25s;
+      }
+      .custom-select.open .custom-select-arrow {
+        transform: rotate(180deg);
+      }
+      .custom-select-options {
+        position: absolute;
+        top: calc(100% + 5px);
+        left: 0;
+        right: 0;
+        background: #1a0a24;
+        border: 2px solid #daa520;
+        border-radius: 10px;
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.9);
+      }
+      .custom-select.open .custom-select-options {
+        display: flex;
+      }
+      .custom-select-option {
+        padding: 12px 14px;
+        cursor: pointer;
+        font-weight: 700;
+        color: #ccc;
+        font-size: 14px;
+        transition: all 0.2s;
+      }
+      .custom-select-option:hover {
+        background: rgba(218, 165, 32, 0.2);
+        color: #fff;
+      }
+      .custom-select-option.selected {
+        background: rgba(218, 165, 32, 0.4);
+        color: #ffd23a;
+      }
+      .hidden-select {
+        display: none !important;
+      }
+
+      /* 🆕 СТИЛИЗАЦИЯ ПОЛЗУНКОВ (Range Sliders) */
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 170px;
+        background: transparent;
+        cursor: pointer;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #daa520;
+        margin-top: -6px;
+        border: 2px solid #1a0a24;
+        box-shadow: 0 0 8px rgba(218, 165, 32, 0.6);
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        background: rgba(20, 10, 30, 0.8);
+        border: 1px solid #daa520;
+        border-radius: 4px;
+      }
+      input[type="range"]::-moz-range-thumb {
+        height: 20px;
+        width: 20px;
+        border-radius: 50%;
+        background: #daa520;
+        border: 2px solid #1a0a24;
+        box-shadow: 0 0 8px rgba(218, 165, 32, 0.6);
+      }
+      input[type="range"]::-moz-range-track {
+        width: 100%;
+        height: 8px;
+        background: rgba(20, 10, 30, 0.8);
+        border: 1px solid #daa520;
+        border-radius: 4px;
+      }
+
+      /* 🆕 Улучшение карточек в магазине */
+      .card {
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s,
+          border-color 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(218, 165, 32, 0.25);
+        border-color: rgba(218, 165, 32, 0.8);
+      }
     </style>
   </head>
   <body>
@@ -1593,6 +1721,7 @@
         });
         $("langSelect").value = lang;
         $("qLang").value = lang;
+        if (typeof updateCustomSelectsLanguage === "function") updateCustomSelectsLanguage();
         if (typeof onLangChange === "function") onLangChange();
       }
 
@@ -4257,12 +4386,12 @@
             } else if (e.shape === 2) {
               c.strokeStyle = "rgba(" + col + "," + a + ")";
               c.lineCap = "round";
-              c.lineWidth = 3.5;
+              c.lineWidth = 2.5;
               c.beginPath();
-              c.moveTo(-4.5, -4.5);
-              c.lineTo(4.5, 4.5);
-              c.moveTo(4.5, -4.5);
-              c.lineTo(-4.5, 4.5);
+              c.moveTo(-3.0, -3.0);
+              c.lineTo(3.0, 3.0);
+              c.moveTo(3.0, -3.0);
+              c.lineTo(-3.0, 3.0);
               c.stroke();
             } else if (e.shape === 4) {
               c.beginPath();
@@ -8402,7 +8531,8 @@
               true,
               0.95,
               true,
-            ); // Квадратики (кристаллы)
+            );
+          // Квадратики (кристаллы)
           else if (isMe && SAVE.fxAura === "aura_petals")
             pt(
               x,
@@ -12402,17 +12532,31 @@
           c.restore();
         }
         if (joy.on) {
-          c.globalAlpha = 0.35;
+          c.save();
+          // 🆕 База джойстика (полупрозрачный круг с обводкой)
+          const baseG = c.createRadialGradient(joy.sx, joy.sy, 10, joy.sx, joy.sy, 60 * u);
+          baseG.addColorStop(0, "rgba(255, 255, 255, 0.05)");
+          baseG.addColorStop(1, "rgba(255, 255, 255, 0.15)");
           c.beginPath();
           c.arc(joy.sx, joy.sy, 60 * u, 0, TAU);
-          c.fillStyle = "#fff";
+          c.fillStyle = baseG;
           c.fill();
-          c.globalAlpha = 0.75;
+          c.strokeStyle = "rgba(218, 165, 32, 0.5)";
+          c.lineWidth = 2 * u;
+          c.stroke();
+
+          // 🆕 Стик (сам ползунок)
+          const stickG = c.createRadialGradient(joy.cx, joy.cy, 2, joy.cx, joy.cy, 26 * u);
+          stickG.addColorStop(0, "#FFD84A");
+          stickG.addColorStop(1, "#DAA520");
           c.beginPath();
           c.arc(joy.cx, joy.cy, 26 * u, 0, TAU);
-          c.fillStyle = "#DAA520";
+          c.fillStyle = stickG;
           c.fill();
-          c.globalAlpha = 1;
+          c.strokeStyle = "#1a0a24";
+          c.lineWidth = 3 * u;
+          c.stroke();
+          c.restore();
         }
         if (G.notice) {
           const n = G.notice,
@@ -14450,8 +14594,7 @@
           return;
         }
         // Установка выбранного сервера
-        const server = $("serverSelect").value || "0.peerjs.com";
-        CONFIG.PEERJS_HOST = server;
+         applyServerFromSelect();
         const savedTries = NET.tries;
         netCleanup();
         NET.tries = savedTries;
@@ -15351,7 +15494,7 @@
         PR.sweep();
         // 🆕 Чистим эффекты, таймеры и announce — иначе у клиента
         // накапливаются кольца, молнии, ghosts, announce и т.д.
-        updateTimersAndFx(dt);
+         updateTimersAndFx(dt);
       }
       function netTick(rd) {
         if (!G || !G.online) return;
@@ -15505,6 +15648,114 @@
         $("loadBar").style.width = Math.round(p) + "%";
         if (key) $("loadTxt").textContent = t(key);
       }
+
+            // 🆕 Функция для замены нативных select на кастомные
+      function initCustomSelects() {
+        document.querySelectorAll('select').forEach(select => {
+          if (select.dataset.customInitialized) return;
+          select.dataset.customInitialized = "true";
+          select.classList.add("hidden-select");
+
+          const wrapper = document.createElement("div");
+          wrapper.className = "custom-select";
+          if (select.style.width) wrapper.style.width = select.style.width;
+          if (select.id === 'serverSelect') wrapper.style.width = "100%";
+
+          const trigger = document.createElement("div");
+          trigger.className = "custom-select-trigger";
+          trigger.innerHTML = `<span class="custom-select-value"></span><div class="custom-select-arrow"></div>`;
+
+          const optionsContainer = document.createElement("div");
+          optionsContainer.className = "custom-select-options";
+
+          const updateUI = () => {
+            const selectedOpt = select.options[select.selectedIndex];
+            if (selectedOpt) {
+              trigger.querySelector(".custom-select-value").textContent = selectedOpt.text;
+            }
+            wrapper.querySelectorAll(".custom-select-option").forEach(o => {
+              o.classList.toggle("selected", o.dataset.value === select.value);
+            });
+          };
+
+          Array.from(select.options).forEach(opt => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "custom-select-option";
+            optionDiv.textContent = opt.text;
+            optionDiv.dataset.value = opt.value;
+
+            optionDiv.addEventListener("click", (e) => {
+              e.stopPropagation();
+              select.value = opt.value;
+              select.dispatchEvent(new Event("change", { bubbles: true }));
+              wrapper.classList.remove("open");
+              updateUI();
+              sfx("click");
+            });
+
+            optionsContainer.appendChild(optionDiv);
+          });
+
+          updateUI();
+
+          trigger.addEventListener("click", (e) => {
+            e.stopPropagation();
+            document.querySelectorAll(".custom-select.open").forEach(el => {
+              if (el !== wrapper) el.classList.remove("open");
+            });
+            wrapper.classList.toggle("open");
+            if (wrapper.classList.contains("open")) sfx("hover");
+          });
+
+          wrapper.appendChild(trigger);
+          wrapper.appendChild(optionsContainer);
+          select.parentNode.insertBefore(wrapper, select.nextSibling);
+
+          select.addEventListener("change", updateUI);
+        });
+
+        document.addEventListener("click", () => {
+          document.querySelectorAll(".custom-select.open").forEach(el => el.classList.remove("open"));
+        });
+      }
+
+      // 🆕 Обновление языка в кастомных селектах
+      function updateCustomSelectsLanguage() {
+        document.querySelectorAll('.custom-select').forEach(wrapper => {
+          const select = wrapper.previousElementSibling;
+          if (select && select.tagName === 'SELECT') {
+            const optionsContainer = wrapper.querySelector('.custom-select-options');
+            optionsContainer.innerHTML = '';
+            const updateUI = () => {
+              const selectedOpt = select.options[select.selectedIndex];
+              if (selectedOpt) {
+                wrapper.querySelector('.custom-select-value').textContent = selectedOpt.text;
+              }
+            };
+            Array.from(select.options).forEach(opt => {
+              const optionDiv = document.createElement("div");
+              optionDiv.className = "custom-select-option";
+              if (opt.selected) optionDiv.classList.add("selected");
+              optionDiv.textContent = opt.text;
+              optionDiv.dataset.value = opt.value;
+              optionDiv.addEventListener("click", (e) => {
+                e.stopPropagation();
+                select.value = opt.value;
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+                wrapper.classList.remove("open");
+                wrapper.querySelectorAll(".custom-select-option").forEach(o => o.classList.remove("selected"));
+                optionDiv.classList.add("selected");
+                updateUI();
+                sfx("click");
+              });
+              optionsContainer.appendChild(optionDiv);
+            });
+            updateUI();
+          }
+        });
+      }
+
+      async function boot() {
       async function boot() {
         state = "LOADING";
         $("studioTxt").textContent =
@@ -15560,6 +15811,7 @@
           if (Aud.ctx && Aud.ctx.state === "suspended") Aud.ctx.resume();
         } catch (e) {}
         applyVolumes();
+         initCustomSelects();
         setProg(30, "boot3");
         await buildIcons((p) => setProg(30 + p * 50));
         setProg(82, "boot4");
