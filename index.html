@@ -433,7 +433,7 @@
         box-shadow: 0 0 12px rgba(255, 48, 48, 0.6);
       }
 
-            /* 🆕 Стильный выпадающий список */
+      /* 🆕 Стильный выпадающий список */
       select.styled-select {
         appearance: none;
         -webkit-appearance: none;
@@ -449,15 +449,16 @@
         transition: all 0.25s ease;
         min-height: 48px; /* Удобно нажимать пальцем */
         box-shadow: 0 0 12px rgba(218, 165, 32, 0.2);
-        
+
         /* Своя золотая стрелочка */
         background-image: url('data:image/svg+xml;utf8,<svg fill="%23daa520" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
         background-repeat: no-repeat;
         background-position: right 10px center;
       }
-      
+
       /* Эффекты при наведении и клике */
-      select.styled-select:hover, select.styled-select:focus {
+      select.styled-select:hover,
+      select.styled-select:focus {
         border-color: #ffe27a;
         box-shadow: 0 0 18px rgba(255, 200, 60, 0.5);
         background-color: rgba(40, 20, 60, 0.95);
@@ -649,7 +650,16 @@
           <b id="enV">5</b> <small id="enT" style="opacity: 0.7"></small
         ></span>
       </div>
-       <select id="langSelect" class="styled-select" style="width: auto; min-height: 40px; padding: 8px 35px 8px 12px; font-size: 14px;">
+      <select
+        id="langSelect"
+        class="styled-select"
+        style="
+          width: auto;
+          min-height: 40px;
+          padding: 8px 35px 8px 12px;
+          font-size: 14px;
+        "
+      >
         <option value="ru" style="color: #000">РУССКИЙ</option>
         <option value="en" style="color: #000">ENGLISH</option>
       </select>
@@ -841,8 +851,7 @@
         </div>
         <div class="srow">
           <span data-i18n="language"></span
-          ><select id="qLang" class="styled-select" style="width: 170px;"
-          >
+          ><select id="qLang" class="styled-select" style="width: 170px">
             <option value="ru" style="color: #fff">РУССКИЙ</option>
             <option value="en" style="color: #fff">ENGLISH</option>
           </select>
@@ -865,9 +874,7 @@
         </div>
         <div class="srow">
           <span data-i18n="quality"></span
-          ><select
-            id="qIn" class="styled-select" style="width: 170px;"
-          >
+          ><select id="qIn" class="styled-select" style="width: 170px">
             <option value="auto">Авто</option>
             <option value="high">Высокое</option>
             <option value="low">Низкое</option>
@@ -914,7 +921,11 @@
           "
         >
           <!-- ВЫБОР СЕРВЕРА -->
-          <select id="serverSelect" class="styled-select" style="width: 100%; max-width: 280px;">
+          <select
+            id="serverSelect"
+            class="styled-select"
+            style="width: 100%; max-width: 280px"
+          >
             <option value="0.peerjs.com" data-i18n="serverDefault">
               Сервер: Default (PeerJS Cloud)
             </option>
@@ -3910,7 +3921,7 @@
           );
       }
 
-const _pal = new Map();
+      const _pal = new Map();
 
       function palOf(hex) {
         let p = _pal.get(hex);
@@ -3988,7 +3999,7 @@ const _pal = new Map();
           c.lineTo(R[0][0], R[0][1]);
           c.closePath();
         };
-  const g = c.createLinearGradient(0, -20, 0, 10);
+        const g = c.createLinearGradient(0, -20, 0, 10);
         g.addColorStop(0, pal.hi);
         g.addColorStop(0.5, pal.base);
         g.addColorStop(1, pal.sh);
@@ -4070,7 +4081,7 @@ const _pal = new Map();
         c.lineTo(rp[0][0] - 1, rp[0][1] - 3);
         c.quadraticCurveTo(0, -21, lp[0][0] + 1, lp[0][1] - 3);
         c.closePath();
-      const g = c.createLinearGradient(0, -18, 0, 4);
+        const g = c.createLinearGradient(0, -18, 0, 4);
         g.addColorStop(0, pal.hi);
         g.addColorStop(0.45, pal.base);
         g.addColorStop(1, pal.sh);
@@ -5022,7 +5033,7 @@ const _pal = new Map();
         c.scale(f, 1); // Капюшон смотрит в сторону взгляда
         if (m.skin.sharkSkin) sharkHoodPath(c);
         else hoodPath(c);
-     const hg = c.createLinearGradient(-14, -48, 14, -14);
+        const hg = c.createLinearGradient(-14, -48, 14, -14);
         hg.addColorStop(0, pal.hi);
         hg.addColorStop(0.45, pal.base);
         hg.addColorStop(1, pal.sh);
@@ -5951,7 +5962,7 @@ const _pal = new Map();
         const f = mo.vx >= 0 ? 1 : -1,
           col = mo.col,
           wob = Math.sin(TM * 8 + mo.an);
-      const g = c.createLinearGradient(0, -r * 2, 0, 0);
+        const g = c.createLinearGradient(0, -r * 2, 0, 0);
         g.addColorStop(0, shade(col, 0.25));
         g.addColorStop(1, shade(col, -0.25));
         c.fillStyle = g;
@@ -12026,48 +12037,87 @@ const _pal = new Map();
           "center",
           3,
         );
-        const pb = L.pause;
-        // Рисуем стандартный фон и обводку кнопки
-        c.beginPath();
-        c.arc(pb.x, pb.y, pb.r, 0, TAU);
-        c.fillStyle = "rgba(20,10,30,.7)";
-        c.fill();
-        c.lineWidth = 2;
-        c.strokeStyle = "#DAA520";
-        c.stroke();
 
-        // Рисуем два кристалла
+        const pb = L.pause;
         c.save();
         c.translate(pb.x, pb.y);
+
+        // Масштабируем от базового радиуса 22
         const pScale = pb.r / 22;
         c.scale(pScale, pScale);
-        
+
+        // 1. Пульсирующее магическое свечение вокруг кнопки
+        c.shadowColor = "#DAA520";
+        c.shadowBlur = 12 + Math.sin(TM * 5) * 6;
+
+        // 2. Градиентный фон (от темно-фиолетового к черному)
+        const pbg = c.createRadialGradient(0, -8, 2, 0, 0, 22);
+        pbg.addColorStop(0, "rgba(70, 40, 100, 0.9)");
+        pbg.addColorStop(1, "rgba(15, 5, 25, 0.95)");
+        c.fillStyle = pbg;
+        c.beginPath();
+        c.arc(0, 0, 22, 0, TAU);
+        c.fill();
+        c.shadowBlur = 0; // Сбрасываем тень для четких границ
+
+        // 3. Внешняя золотая рамка
+        c.lineWidth = 3;
+        c.strokeStyle = "#DAA520";
+        c.beginPath();
+        c.arc(0, 0, 22, 0, TAU);
+        c.stroke();
+
+        // 4. Внутренняя декоративная рамка
+        c.lineWidth = 1.5;
+        c.strokeStyle = "rgba(255, 215, 0, 0.4)";
+        c.beginPath();
+        c.arc(0, 0, 18, 0, TAU);
+        c.stroke();
+
+        // 5. Рисуем сами кристаллы паузы (вместо старой картинки)
         c.fillStyle = "#FFD84A";
         c.strokeStyle = "#1a0500";
-        c.lineWidth = 1.5;
+        c.lineWidth = 2;
         c.lineJoin = "round";
-        
+
         // Левый кристалл
         c.beginPath();
-        c.moveTo(-9, -9);
-        c.lineTo(-4, 0);
-        c.lineTo(-9, 9);
-        c.lineTo(-14, 0);
+        c.moveTo(-8, -11);
+        c.lineTo(-3, -9);
+        c.lineTo(-3, 9);
+        c.lineTo(-8, 11);
         c.closePath();
         c.fill();
         c.stroke();
-        
+
         // Правый кристалл
         c.beginPath();
-        c.moveTo(9, -9);
-        c.lineTo(4, 0);
-        c.lineTo(9, 9);
-        c.lineTo(14, 0);
+        c.moveTo(8, -11);
+        c.lineTo(3, -9);
+        c.lineTo(3, 9);
+        c.lineTo(8, 11);
         c.closePath();
         c.fill();
         c.stroke();
-        
+
+        // Блики на кристаллах для объема
+        c.fillStyle = "rgba(255, 255, 255, 0.6)";
+        c.beginPath();
+        c.moveTo(-7, -8);
+        c.lineTo(-4, -7);
+        c.lineTo(-4, 5);
+        c.lineTo(-7, 4);
+        c.fill();
+
+        c.beginPath();
+        c.moveTo(7, -8);
+        c.lineTo(4, -7);
+        c.lineTo(4, 5);
+        c.lineTo(7, 4);
+        c.fill();
+
         c.restore();
+
         const boss = G.boss;
         if (boss) {
           const bw2 = Math.min(360 * u, W * 0.5),
@@ -15288,15 +15338,15 @@ const _pal = new Map();
           renderMenu(rd);
         }
       }
-    function gameLoop(now) {
+      function gameLoop(now) {
         requestAnimationFrame(gameLoop);
         frameNo++;
         const rd = Math.min((now - lastTime) / 1000, 0.1);
         lastTime = now;
         try {
           frame(rd);
-        } catch (e) { 
-          console.error(e); 
+        } catch (e) {
+          console.error(e);
         }
       }
 
