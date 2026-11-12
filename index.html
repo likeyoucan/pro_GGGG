@@ -3890,7 +3890,7 @@
           );
       }
 
-
+const _pal = new Map();
 
       function palOf(hex) {
         let p = _pal.get(hex);
@@ -15241,14 +15241,16 @@
           renderMenu(rd);
         }
       }
-      function gameLoop(now) {
+    function gameLoop(now) {
         requestAnimationFrame(gameLoop);
         frameNo++;
         const rd = Math.min((now - lastTime) / 1000, 0.1);
         lastTime = now;
         try {
           frame(rd);
-        } catch (e) {}
+        } catch (e) { 
+          console.error(e); 
+        }
       }
 
       /* BOOT */
