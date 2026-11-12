@@ -668,8 +668,15 @@
         color: #fff;
       }
       .custom-select-option.selected {
-        background: rgba(218, 165, 32, 0.4);
+        background: rgba(218, 165, 32, 0.6); /* Ярче фон */
+        color: #fff;
+        font-weight: 900;
+      }
+      .custom-select-option.selected::after {
+        content: "✔";
+        float: right;
         color: #ffd23a;
+        font-size: 14px;
       }
       .hidden-select {
         display: none !important;
@@ -1721,7 +1728,8 @@
         });
         $("langSelect").value = lang;
         $("qLang").value = lang;
-        if (typeof updateCustomSelectsLanguage === "function") updateCustomSelectsLanguage();
+        if (typeof updateCustomSelectsLanguage === "function")
+          updateCustomSelectsLanguage();
         if (typeof onLangChange === "function") onLangChange();
       }
 
@@ -12534,7 +12542,14 @@
         if (joy.on) {
           c.save();
           // 🆕 База джойстика (полупрозрачный круг с обводкой)
-          const baseG = c.createRadialGradient(joy.sx, joy.sy, 10, joy.sx, joy.sy, 60 * u);
+          const baseG = c.createRadialGradient(
+            joy.sx,
+            joy.sy,
+            10,
+            joy.sx,
+            joy.sy,
+            60 * u,
+          );
           baseG.addColorStop(0, "rgba(255, 255, 255, 0.05)");
           baseG.addColorStop(1, "rgba(255, 255, 255, 0.15)");
           c.beginPath();
@@ -12546,7 +12561,14 @@
           c.stroke();
 
           // 🆕 Стик (сам ползунок)
-          const stickG = c.createRadialGradient(joy.cx, joy.cy, 2, joy.cx, joy.cy, 26 * u);
+          const stickG = c.createRadialGradient(
+            joy.cx,
+            joy.cy,
+            2,
+            joy.cx,
+            joy.cy,
+            26 * u,
+          );
           stickG.addColorStop(0, "#FFD84A");
           stickG.addColorStop(1, "#DAA520");
           c.beginPath();
@@ -14594,7 +14616,7 @@
           return;
         }
         // Установка выбранного сервера
-         applyServerFromSelect();
+        applyServerFromSelect();
         const savedTries = NET.tries;
         netCleanup();
         NET.tries = savedTries;
@@ -15494,7 +15516,7 @@
         PR.sweep();
         // 🆕 Чистим эффекты, таймеры и announce — иначе у клиента
         // накапливаются кольца, молнии, ghosts, announce и т.д.
-         updateTimersAndFx(dt);
+        updateTimersAndFx(dt);
       }
       function netTick(rd) {
         if (!G || !G.online) return;
@@ -15649,9 +15671,9 @@
         if (key) $("loadTxt").textContent = t(key);
       }
 
-            // 🆕 Функция для замены нативных select на кастомные
+      // 🆕 Функция для замены нативных select на кастомные
       function initCustomSelects() {
-        document.querySelectorAll('select').forEach(select => {
+        document.querySelectorAll("select").forEach((select) => {
           if (select.dataset.customInitialized) return;
           select.dataset.customInitialized = "true";
           select.classList.add("hidden-select");
@@ -15659,7 +15681,7 @@
           const wrapper = document.createElement("div");
           wrapper.className = "custom-select";
           if (select.style.width) wrapper.style.width = select.style.width;
-          if (select.id === 'serverSelect') wrapper.style.width = "100%";
+          if (select.id === "serverSelect") wrapper.style.width = "100%";
 
           const trigger = document.createElement("div");
           trigger.className = "custom-select-trigger";
@@ -15668,17 +15690,23 @@
           const optionsContainer = document.createElement("div");
           optionsContainer.className = "custom-select-options";
 
+          // 🆕 Главная функция синхронизации UI
           const updateUI = () => {
             const selectedOpt = select.options[select.selectedIndex];
             if (selectedOpt) {
-              trigger.querySelector(".custom-select-value").textContent = selectedOpt.text;
+              trigger.querySelector(".custom-select-value").textContent =
+                selectedOpt.text;
             }
-            wrapper.querySelectorAll(".custom-select-option").forEach(o => {
-              o.classList.toggle("selected", o.dataset.value === select.value);
+            // Убираем класс у всех и добавляем только актуальному
+            Array.from(optionsContainer.children).forEach((optDiv) => {
+              optDiv.classList.toggle(
+                "selected",
+                optDiv.dataset.value === select.value,
+              );
             });
           };
 
-          Array.from(select.options).forEach(opt => {
+          Array.from(select.options).forEach((opt) => {
             const optionDiv = document.createElement("div");
             optionDiv.className = "custom-select-option";
             optionDiv.textContent = opt.text;
@@ -15689,68 +15717,71 @@
               select.value = opt.value;
               select.dispatchEvent(new Event("change", { bubbles: true }));
               wrapper.classList.remove("open");
-              updateUI();
+              updateUI(); // Обновляем выделение
               sfx("click");
             });
 
             optionsContainer.appendChild(optionDiv);
           });
 
-          updateUI();
+          updateUI(); // Инициализация при старте
 
           trigger.addEventListener("click", (e) => {
             e.stopPropagation();
-            document.querySelectorAll(".custom-select.open").forEach(el => {
+            document.querySelectorAll(".custom-select.open").forEach((el) => {
               if (el !== wrapper) el.classList.remove("open");
             });
             wrapper.classList.toggle("open");
-            if (wrapper.classList.contains("open")) sfx("hover");
+            if (wrapper.classList.contains("open")) {
+              updateUI(); // 🆕 Принудительно обновляем выделение при открытии
+              sfx("hover");
+            }
           });
 
           wrapper.appendChild(trigger);
           wrapper.appendChild(optionsContainer);
           select.parentNode.insertBefore(wrapper, select.nextSibling);
 
+          // Слушаем изменения нативного селекта (например, из кода)
           select.addEventListener("change", updateUI);
         });
 
         document.addEventListener("click", () => {
-          document.querySelectorAll(".custom-select.open").forEach(el => el.classList.remove("open"));
+          document
+            .querySelectorAll(".custom-select.open")
+            .forEach((el) => el.classList.remove("open"));
         });
       }
 
       // 🆕 Обновление языка в кастомных селектах
       function updateCustomSelectsLanguage() {
-        document.querySelectorAll('.custom-select').forEach(wrapper => {
+        document.querySelectorAll(".custom-select").forEach((wrapper) => {
           const select = wrapper.previousElementSibling;
-          if (select && select.tagName === 'SELECT') {
-            const optionsContainer = wrapper.querySelector('.custom-select-options');
-            optionsContainer.innerHTML = '';
-            const updateUI = () => {
-              const selectedOpt = select.options[select.selectedIndex];
-              if (selectedOpt) {
-                wrapper.querySelector('.custom-select-value').textContent = selectedOpt.text;
+          if (select && select.tagName === "SELECT") {
+            // Обновляем текст в опциях
+            const optionDivs = wrapper.querySelectorAll(
+              ".custom-select-option",
+            );
+            optionDivs.forEach((div, index) => {
+              if (select.options[index]) {
+                div.textContent = select.options[index].text;
               }
-            };
-            Array.from(select.options).forEach(opt => {
-              const optionDiv = document.createElement("div");
-              optionDiv.className = "custom-select-option";
-              if (opt.selected) optionDiv.classList.add("selected");
-              optionDiv.textContent = opt.text;
-              optionDiv.dataset.value = opt.value;
-              optionDiv.addEventListener("click", (e) => {
-                e.stopPropagation();
-                select.value = opt.value;
-                select.dispatchEvent(new Event("change", { bubbles: true }));
-                wrapper.classList.remove("open");
-                wrapper.querySelectorAll(".custom-select-option").forEach(o => o.classList.remove("selected"));
-                optionDiv.classList.add("selected");
-                updateUI();
-                sfx("click");
-              });
-              optionsContainer.appendChild(optionDiv);
             });
-            updateUI();
+            // Обновляем текст в триггере
+            const selectedOpt = select.options[select.selectedIndex];
+            if (selectedOpt) {
+              wrapper.querySelector(".custom-select-value").textContent =
+                selectedOpt.text;
+            }
+            // Синхронизируем выделение
+            wrapper
+              .querySelectorAll(".custom-select-option")
+              .forEach((optDiv) => {
+                optDiv.classList.toggle(
+                  "selected",
+                  optDiv.dataset.value === select.value,
+                );
+              });
           }
         });
       }
@@ -15810,7 +15841,7 @@
           if (Aud.ctx && Aud.ctx.state === "suspended") Aud.ctx.resume();
         } catch (e) {}
         applyVolumes();
-         initCustomSelects();
+        initCustomSelects();
         setProg(30, "boot3");
         await buildIcons((p) => setProg(30 + p * 50));
         setProg(82, "boot4");
