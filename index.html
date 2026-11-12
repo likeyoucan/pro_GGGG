@@ -4556,8 +4556,6 @@
               c.closePath();
               c.fillStyle = "rgba(255,255,255," + a + ")";
               c.fill();
-              if (e.shape === 3) {
-              }
             }
             c.restore();
           }
@@ -8701,7 +8699,7 @@
         }
       }
 
-      function damageRock(rk, dmg, src, x, y) {
+      function damageRock(rk, dmg, src) {
         if (!rk || rk.hp <= 0) return;
         rk.hp -= dmg;
         rk.shakeT = 0.15;
@@ -11023,7 +11021,6 @@
           for (let b = a; b < 5; b++) names.push("c:" + a + "-" + b);
         for (let e = 0; e < 5; e++) names.push("m:" + e);
         names.push("dash");
-        names.push("ico_pause");
         let i = 0;
         for (const nm of names) {
           const S = 64,
@@ -15841,7 +15838,7 @@
             p.age = 0;
             p.trailPts = [{ x: q.x, y: q.y }];
           }
-          p.life = q.life || 0.75; // 🆕
+          p.life = q.life !== undefined ? q.life : 0.75;
           p.style = q.style || "orb"; // 🆕
           p.col = q.col || null; // 🆕
           p.trail = q.trail || ""; // 🆕
@@ -16201,7 +16198,7 @@
             NET.pingT = 0;
             sendTo(NET.hostConn, { type: "ping", t: Date.now() });
           }
-          if (NET.lastRecv && now - NET.lastRecv > 5000 && !G.resultShown) {
+          if (NET.lastRecv && now - NET.lastRecv > 12000 && !G.resultShown) {
             toast(t("hostLeft"));
             NET.lastRecv = 0;
             quitToMenu();
