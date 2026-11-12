@@ -12007,20 +12007,84 @@ const _pal = new Map();
           3,
         );
         const pb = L.pause;
+        c.save();
+        c.translate(pb.x, pb.y);
+        
+        // Масштабируем от базового радиуса 22
+        const pScale = pb.r / 22;
+        c.scale(pScale, pScale);
+
+        // 1. Пульсирующее магическое свечение вокруг кнопки
+        c.shadowColor = "#DAA520";
+        c.shadowBlur = 12 + Math.sin(TM * 5) * 6; 
+
+        // 2. Градиентный фон (от темно-фиолетового к черному)
+        const pbg = c.createRadialGradient(0, -8, 2, 0, 0, 22);
+        pbg.addColorStop(0, "rgba(70, 40, 100, 0.9)");
+        pbg.addColorStop(1, "rgba(15, 5, 25, 0.95)");
+        c.fillStyle = pbg;
         c.beginPath();
-        c.arc(pb.x, pb.y, pb.r, 0, TAU);
-        c.fillStyle = "rgba(20,10,30,.7)";
+        c.arc(0, 0, 22, 0, TAU);
         c.fill();
-        c.lineWidth = 2;
+        c.shadowBlur = 0; // Сбрасываем тень для четких границ
+
+        // 3. Внешняя золотая рамка
+        c.lineWidth = 3;
         c.strokeStyle = "#DAA520";
+        c.beginPath();
+        c.arc(0, 0, 22, 0, TAU);
         c.stroke();
-        c.drawImage(
-          IC.ico_pause,
-          pb.x - pb.r * 0.6,
-          pb.y - pb.r * 0.6,
-          pb.r * 1.2,
-          pb.r * 1.2,
-        );
+
+        // 4. Внутренняя декоративная рамка
+        c.lineWidth = 1.5;
+        c.strokeStyle = "rgba(255, 215, 0, 0.4)";
+        c.beginPath();
+        c.arc(0, 0, 18, 0, TAU);
+        c.stroke();
+
+        // 5. Рисуем сами кристаллы паузы (вместо старой картинки)
+        c.fillStyle = "#FFD84A";
+        c.strokeStyle = "#1a0500";
+        c.lineWidth = 2;
+        c.lineJoin = "round";
+
+        // Левый кристалл
+        c.beginPath();
+        c.moveTo(-8, -11);
+        c.lineTo(-3, -9);
+        c.lineTo(-3, 9);
+        c.lineTo(-8, 11);
+        c.closePath();
+        c.fill();
+        c.stroke();
+
+        // Правый кристалл
+        c.beginPath();
+        c.moveTo(8, -11);
+        c.lineTo(3, -9);
+        c.lineTo(3, 9);
+        c.lineTo(8, 11);
+        c.closePath();
+        c.fill();
+        c.stroke();
+
+        // Блики на кристаллах для объема
+        c.fillStyle = "rgba(255, 255, 255, 0.6)";
+        c.beginPath();
+        c.moveTo(-7, -8);
+        c.lineTo(-4, -7);
+        c.lineTo(-4, 5);
+        c.lineTo(-7, 4);
+        c.fill();
+
+        c.beginPath();
+        c.moveTo(7, -8);
+        c.lineTo(4, -7);
+        c.lineTo(4, 5);
+        c.lineTo(7, 4);
+        c.fill();
+
+        c.restore();
         const boss = G.boss;
         if (boss) {
           const bw2 = Math.min(360 * u, W * 0.5),
