@@ -1000,21 +1000,21 @@
           ><input type="range" id="sfxIn" min="0" max="100" />
         </div>
         <div class="srow">
-  <span data-i18n="vibration"></span
-  ><input type="checkbox" id="vibIn" />
-</div>
-<div class="srow">
-  <span data-i18n="muteAll"></span
-  ><input type="checkbox" id="muteAllIn" />
-</div>
-<div class="srow">
-  <span data-i18n="shakePow">Тряска экрана</span
-  ><input type="range" id="shakeIn" min="0" max="100" />
-</div>
-<div class="srow">
-  <span data-i18n="flashPow">Вспышки</span
-  ><input type="range" id="flashIn" min="0" max="100" />
-</div>
+          <span data-i18n="vibration"></span
+          ><input type="checkbox" id="vibIn" />
+        </div>
+        <div class="srow">
+          <span data-i18n="muteAll"></span
+          ><input type="checkbox" id="muteAllIn" />
+        </div>
+        <div class="srow">
+          <span data-i18n="shakePow">Тряска экрана</span
+          ><input type="range" id="shakeIn" min="0" max="100" />
+        </div>
+        <div class="srow">
+          <span data-i18n="flashPow">Вспышки</span
+          ><input type="range" id="flashIn" min="0" max="100" />
+        </div>
         <div class="srow">
           <span data-i18n="quality"></span
           ><select id="qIn" class="styled-select" style="width: 170px">
@@ -1797,8 +1797,8 @@
         questsReady: [],
         questsClaimed: [],
         botDifficulty: "normal",
-          shakePower: 100,
-  flashPower: 100,
+        shakePower: 100,
+        flashPower: 100,
       });
       let SAVE = DEF_SAVE(),
         _saveTimer = 0;
@@ -2144,7 +2144,7 @@
           Aud.noiseBuf = c.createBuffer(1, len, c.sampleRate);
           const d = Aud.noiseBuf.getChannelData(0);
           for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-              applyVolumes();
+          applyVolumes();
           MUS.next = c.currentTime + 0.1;
           MUS.timer = setInterval(musicTick, 60);
 
@@ -2155,9 +2155,7 @@
             for (let ch = 0; ch < 2; ch++) {
               const d = revBuf.getChannelData(ch);
               for (let i = 0; i < revLen; i++) {
-                d[i] =
-                  (Math.random() * 2 - 1) *
-                  Math.pow(1 - i / revLen, 2.5);
+                d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / revLen, 2.5);
               }
             }
             const conv = c.createConvolver();
@@ -5522,41 +5520,41 @@
         }
         return out;
       }
-function genRocks(seed) {
-  const rng = mulberry32(seed),
-    rocks = [];
-  for (let i = 0; i < 13; i++) {
-    const ang = rng() * TAU,
-      rr = 260 + rng() * (R_ARENA - 520),
-      size = 24 + rng() * 22,
-      poly = [],
-      n = 8;
-    for (let k = 0; k < n; k++) {
-      const a = (k / n) * TAU,
-        r = size * (0.75 + rng() * 0.4);
-      poly.push([Math.cos(a) * r, Math.sin(a) * r]);
-    }
-    const hasCrystal = rng() < 0.4;
-    const hp = 80 + size * 3;
-    rocks.push({
-      x: CX + Math.cos(ang) * rr,
-      y: CY + Math.sin(ang) * rr,
-      r: size * 0.85,
-      poly,
-      h: size * 0.6,
-      hp: hp,
-      maxHp: hp,
-      crystal: hasCrystal,
-      crystalCol: hasCrystal
-        ? ["#00DDFF", "#FF00FF", "#FFD700", "#50FF70"][
-            Math.floor(rng() * 4)
-          ]
-        : null,
-      shakeT: 0,
-    });
-  }
-  return rocks;
-}
+      function genRocks(seed) {
+        const rng = mulberry32(seed),
+          rocks = [];
+        for (let i = 0; i < 13; i++) {
+          const ang = rng() * TAU,
+            rr = 260 + rng() * (R_ARENA - 520),
+            size = 24 + rng() * 22,
+            poly = [],
+            n = 8;
+          for (let k = 0; k < n; k++) {
+            const a = (k / n) * TAU,
+              r = size * (0.75 + rng() * 0.4);
+            poly.push([Math.cos(a) * r, Math.sin(a) * r]);
+          }
+          const hasCrystal = rng() < 0.4;
+          const hp = 80 + size * 3;
+          rocks.push({
+            x: CX + Math.cos(ang) * rr,
+            y: CY + Math.sin(ang) * rr,
+            r: size * 0.85,
+            poly,
+            h: size * 0.6,
+            hp: hp,
+            maxHp: hp,
+            crystal: hasCrystal,
+            crystalCol: hasCrystal
+              ? ["#00DDFF", "#FF00FF", "#FFD700", "#50FF70"][
+                  Math.floor(rng() * 4)
+                ]
+              : null,
+            shakeT: 0,
+          });
+        }
+        return rocks;
+      }
 
       function buildArena(themeId) {
         const th = THEMES[themeId],
@@ -5806,7 +5804,7 @@ function genRocks(seed) {
         }
         drawLayer(c, ARENA.B, vx0, vy0, vx1, vy1);
       }
-            function drawRock(c, rk, th) {
+      function drawRock(c, rk, th) {
         if (rk.hp <= 0) return;
         c.save();
         const sh =
@@ -5892,12 +5890,7 @@ function genRocks(seed) {
           c.fillStyle = "rgba(0,0,0,.8)";
           c.fillRect(-w / 2 - 1, -rk.h - rk.r * 0.5 - 7, w + 2, 4);
           c.fillStyle = "#8B4513";
-          c.fillRect(
-            -w / 2,
-            -rk.h - rk.r * 0.5 - 6,
-            w * (rk.hp / rk.maxHp),
-            2,
-          );
+          c.fillRect(-w / 2, -rk.h - rk.r * 0.5 - 6, w * (rk.hp / rk.maxHp), 2);
         }
         c.restore();
       }
@@ -6459,20 +6452,20 @@ function genRocks(seed) {
 
       /* COMBAT */
       let G = null;
-const FX = {
-  shake: 0,
-  shakeT: 0,
-  shakeBiasX: 0,
-  shakeBiasY: 0,
-  flash: 0,
-  dark: 0,
-  chroma: 0,
-  zoom: 0,
-  hs: 0,
-  slow: { t: 0, s: 1 },
-  vig: 0,
-  flashC: "#fff",
-};
+      const FX = {
+        shake: 0,
+        shakeT: 0,
+        shakeBiasX: 0,
+        shakeBiasY: 0,
+        flash: 0,
+        dark: 0,
+        chroma: 0,
+        zoom: 0,
+        hs: 0,
+        slow: { t: 0, s: 1 },
+        vig: 0,
+        flashC: "#fff",
+      };
       const cam = { x: CX, y: CY, z: 1, sx: 0, sy: 0 };
       const isFoe = (a, b) =>
         a &&
@@ -6480,14 +6473,14 @@ const FX = {
         b !== a &&
         !b.dead &&
         (G.mode === "survival" ? !!a.isMonster !== !!b.isMonster : true);
-function shake(px, dirX, dirY) {
-  const k = (SAVE.shakePower ?? 100) / 100;
-  FX.shake = Math.max(FX.shake, Math.min(px * k, 18));
-  if (dirX !== undefined) {
-    FX.shakeBiasX = -dirX;
-    FX.shakeBiasY = -(dirY || 0);
-  }
-}
+      function shake(px, dirX, dirY) {
+        const k = (SAVE.shakePower ?? 100) / 100;
+        FX.shake = Math.max(FX.shake, Math.min(px * k, 18));
+        if (dirX !== undefined) {
+          FX.shakeBiasX = -dirX;
+          FX.shakeBiasY = -(dirY || 0);
+        }
+      }
       function hitstop(ms) {
         if (!G.online) FX.hs = Math.max(FX.hs, ms);
       }
@@ -6584,14 +6577,14 @@ function shake(px, dirX, dirY) {
           t.dmgTaken += amt;
           if (o.type !== "dot") {
             burst(t.x, t.y - 20, "#FF5050", 8, 140, 3, 0.4);
-if (t === G.player) {
-  vib(30);
-  FX.vig = 0.5;
-  const dxs = src ? t.x - src.x : rnd(-1, 1);
-  const dys = src ? t.y - src.y : rnd(-1, 1);
-  const dl = Math.hypot(dxs, dys) || 1;
-  shake(clamp(1 + amt / 25, 1, 6), dxs / dl, dys / dl);
-}
+            if (t === G.player) {
+              vib(30);
+              FX.vig = 0.5;
+              const dxs = src ? t.x - src.x : rnd(-1, 1);
+              const dys = src ? t.y - src.y : rnd(-1, 1);
+              const dl = Math.hypot(dxs, dys) || 1;
+              shake(clamp(1 + amt / 25, 1, 6), dxs / dl, dys / dl);
+            }
           }
         } else if (o.type !== "dot") {
           burst(t.x, t.y - t.r, "#FFFFFF", 4, 100, 2, 0.25, true);
@@ -6852,19 +6845,20 @@ if (t === G.player) {
             w: 3,
           });
           for (let i = 0; i < 8; i++) {
-            const a2 = ang + rnd(-0.5, 0.5);
-            pt(
-              ex,
-              ey,
-              Math.cos(a2) * rnd(80, 200),
-              Math.sin(a2) * rnd(80, 200),
-              rnd(0.15, 0.3),
-              rnd(2, 4),
-              coreCol,
-              0,
-              true,
-              0.92,
-            );
+            G.debris.push({
+              x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
+              y: rk.y - rnd(0, rk.h),
+              vy: -rnd(80, 220),
+              g: 520,
+              ang: rnd(0, TAU),
+              w: rnd(-8, 8),
+              f: 1,
+              floor: rk.y + 4,
+              t: 0,
+              clat: false,
+              isRockDebris: true, // 🆕
+              col: rk.crystal ? rk.crystalCol : "#666", // 🆕
+            });
           }
           const stStyle = m.staff ? m.staff.atkStyle : "orb",
             stCol = m.staff && m.staff.color ? m.staff.color : null;
@@ -7103,17 +7097,17 @@ if (t === G.player) {
                 break;
               }
             }
-if (hit) {
-  const rk = G.rocks.find((r) => {
-    const ddx = r.x - p.x,
-      ddy = r.y - p.y;
-    return ddx * ddx + ddy * ddy < r.r * r.r;
-  });
-  if (rk) damageRock(rk, p.dmg * 0.8, p.own, p.x, p.y);
-  burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
-  p.on = false;
-  continue;
-}
+            if (hit) {
+              const rk = G.rocks.find((r) => {
+                const ddx = r.x - p.x,
+                  ddy = r.y - p.y;
+                return ddx * ddx + ddy * ddy < r.r * r.r;
+              });
+              if (rk) damageRock(rk, p.dmg * 0.8, p.own);
+              burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
+              p.on = false;
+              continue;
+            }
           }
 
           _pp = p;
@@ -7255,10 +7249,10 @@ if (hit) {
           y: ay,
           mega: !!u.mega,
         });
-      later(u.mega ? 0.6 : 0.35, () => {
-  if (!G || !m || m.dead) return;
-  runUlt(m, u, ax, ay);
-});
+        later(u.mega ? 0.6 : 0.35, () => {
+          if (!G || !m || m.dead) return;
+          runUlt(m, u, ax, ay);
+        });
         return true;
       }
 
@@ -7560,8 +7554,7 @@ if (hit) {
           if (opt.blind) applyStatus(t, "blind", opt.blind);
           if (opt.amp) applyStatus(t, "amp", opt.amp);
         }
-        for (let i = G.rocks.length - 1; i >= 0; i--) {
-          const rk = G.rocks[i];
+        for (const rk of Array.from(G.rocks)) {
           if (dist(rk.x, rk.y, x, y) < r + rk.r) {
             damageRock(rk, dmg * 0.7, o, rk.x, rk.y);
           }
@@ -7641,12 +7634,12 @@ if (hit) {
         m.auraElem = e;
       }
 
-function runUlt(m, u, ax, ay) {
-  if (!G || !m) return;
-  const k = u.key,
-    mx = m.x,
-    my = m.y,
-    E = elemColor;
+      function runUlt(m, u, ax, ay) {
+        if (!G || !m) return;
+        const k = u.key,
+          mx = m.x,
+          my = m.y,
+          E = elemColor;
         switch (k) {
           // --- ОГОНЬ (1 руна) ---
           case "0":
@@ -8545,67 +8538,65 @@ function runUlt(m, u, ax, ay) {
       }
 
       function damageRock(rk, dmg, src, x, y) {
-  if (!rk || rk.hp <= 0) return;
-  rk.hp -= dmg;
-  rk.shakeT = 0.15;
+        if (!rk || rk.hp <= 0) return;
+        rk.hp -= dmg;
+        rk.shakeT = 0.15;
 
-  burst(
-    rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
-    rk.y + rnd(-rk.r * 0.3, rk.r * 0.3),
-    pick([rk.crystalCol || "#999", "#666", "#888"]),
-    4,
-    120,
-    2.5,
-    0.4,
-    false,
-  );
+        burst(
+          rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
+          rk.y + rnd(-rk.r * 0.3, rk.r * 0.3),
+          pick([rk.crystalCol || "#999", "#666", "#888"]),
+          4,
+          120,
+          2.5,
+          0.4,
+          false,
+        );
 
-  if (rk.hp <= 0) {
-    const idx = G.rocks.indexOf(rk);
-    if (idx >= 0) G.rocks.splice(idx, 1);
+        if (rk.hp <= 0) {
+          const idx = G.rocks.indexOf(rk);
+          if (idx >= 0) G.rocks.splice(idx, 1);
 
-    for (let i = 0; i < 8; i++) {
-      G.debris.push({
-        x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
-        y: rk.y - rnd(0, rk.h),
-        vy: -rnd(80, 220),
-        g: 520,
-        ang: rnd(0, TAU),
-        w: rnd(-8, 8),
-        f: 1,
-        floor: rk.y + 4,
-        t: 0,
-        clat: false,
-      });
-    }
+          for (let i = 0; i < 8; i++) {
+            G.debris.push({
+              x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
+              y: rk.y - rnd(0, rk.h),
+              vy: -rnd(80, 220),
+              g: 520,
+              ang: rnd(0, TAU),
+              w: rnd(-8, 8),
+              f: 1,
+              floor: rk.y + 4,
+              t: 0,
+              clat: false,
+            });
+          }
 
-    if (rk.crystal && src) {
-      const col = rk.crystalCol;
-      G.rings.push({
-        x: rk.x,
-        y: rk.y,
-        r0: 5,
-        r1: 120,
-        l: 0.55,
-        m: 0.55,
-        c: col,
-        w: 6,
-      });
-      burst(rk.x, rk.y, [col, "#fff"], 40, 380, 4, 0.7, true);
-      const opt = { kb: 12 };
-      if (col === "#00DDFF") {
-        opt.freeze = 0.8;
-        opt.slow = [2, 0.6];
+          if (rk.crystal && src) {
+            const col = rk.crystalCol;
+            G.rings.push({
+              x: rk.x,
+              y: rk.y,
+              r0: 5,
+              r1: 120,
+              l: 0.55,
+              m: 0.55,
+              c: col,
+              w: 6,
+            });
+            burst(rk.x, rk.y, [col, "#fff"], 40, 380, 4, 0.7, true);
+            const opt = { kb: 12 };
+            if (col === "#00DDFF") {
+              opt.freeze = 0.8;
+              opt.slow = [2, 0.6];
+            }
+            if (col === "#FF00FF") opt.burn = [2, 4];
+            aoe(src, rk.x, rk.y, 130, 35, opt);
+            shake(4);
+          }
+          sfx("impact");
+        }
       }
-      if (col === "#FF00FF") opt.burn = [2, 4];
-      aoe(src, rk.x, rk.y, 130, 35, opt);
-      shake(4);
-    }
-    sfx("impact");
-  }
-}
-
-function collideWorld(e) {
 
       function collideWorld(e) {
         for (const rk of G.rocks) {
@@ -9520,27 +9511,27 @@ function collideWorld(e) {
         Q.lvl = 0;
         resize();
       }
-function resize() {
-  DPR = Math.min(window.devicePixelRatio || 1, Q.dprCap);
-  W = window.innerWidth;
-  H = window.innerHeight;
-  const isPhone = IS_MOBILE && Math.min(W, H) < 700;
-  Q.mobMul = isPhone ? 0.82 : IS_TV ? 1.1 : 1;
-  canvas.width = Math.round(W * DPR);
-  canvas.height = Math.round(H * DPR);
-  UIS = isPhone
-    ? clamp(Math.min(W, H) / 850, 0.55, 0.85)
-    : clamp(Math.min(W, H) / 700, 0.75, 1.25);
-  if (ARENA.ok && Math.abs(ARENA.S - Q.arenaScale) > 0.1) {
-    const th = (G && G.theme) || "lava";
-    ARENA.ok = false;
-    try {
-      buildArena(th);
-    } catch (e) {
-      ARENA.ok = false;
-    }
-  }
-}
+      function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, Q.dprCap);
+        W = window.innerWidth;
+        H = window.innerHeight;
+        const isPhone = IS_MOBILE && Math.min(W, H) < 700;
+        Q.mobMul = isPhone ? 0.82 : IS_TV ? 1.1 : 1;
+        canvas.width = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+        UIS = isPhone
+          ? clamp(Math.min(W, H) / 850, 0.55, 0.85)
+          : clamp(Math.min(W, H) / 700, 0.75, 1.25);
+        if (ARENA.ok && Math.abs(ARENA.S - Q.arenaScale) > 0.1) {
+          const th = (G && G.theme) || "lava";
+          ARENA.ok = false;
+          try {
+            buildArena(th);
+          } catch (e) {
+            ARENA.ok = false;
+          }
+        }
+      }
       window.addEventListener("resize", resize);
       window.addEventListener("orientationchange", () =>
         setTimeout(resize, 150),
@@ -9596,17 +9587,17 @@ function resize() {
         "KeyF",
         "Escape",
       ];
-const isTyping = () => {
-  const a = document.activeElement;
-  if (
-    a &&
-    (a.tagName === "INPUT" ||
-      a.tagName === "SELECT" ||
-      a.tagName === "TEXTAREA")
-  )
-    return true;
-  return !!document.querySelector(".custom-select.open");
-};
+      const isTyping = () => {
+        const a = document.activeElement;
+        if (
+          a &&
+          (a.tagName === "INPUT" ||
+            a.tagName === "SELECT" ||
+            a.tagName === "TEXTAREA")
+        )
+          return true;
+        return !!document.querySelector(".custom-select.open");
+      };
       let _blCache = null,
         _blKey = ""; // 🆕
       function btnLayout() {
@@ -11044,15 +11035,15 @@ const isTyping = () => {
           SAVE.energy--;
           persist();
         }
-o.seed = o.seed || (Math.random() * 1e9) | 0;
-ensureArena(o.theme);
-newGame(o);
-FX.hs = 0;
-FX.shake = 0;
-FX.shakeBiasX = 0;
-FX.shakeBiasY = 0;
-FX.flash = 0;
-FX.vig = 0;
+        o.seed = o.seed || (Math.random() * 1e9) | 0;
+        ensureArena(o.theme);
+        newGame(o);
+        FX.hs = 0;
+        FX.shake = 0;
+        FX.shakeBiasX = 0;
+        FX.shakeBiasY = 0;
+        FX.flash = 0;
+        FX.vig = 0;
         const startAng = rnd(0, TAU);
         if (o.mode === "online") {
           const n = o.players.length;
@@ -11201,6 +11192,8 @@ FX.vig = 0;
         G.uiPause = true;
         FX.shake = 0;
         FX.shakeT = 0;
+        FX.shakeBiasX = 0;
+        FX.shakeBiasY = 0;
         cam.sx = 0;
         cam.sy = 0;
         showScreen("sc-pause");
@@ -11395,7 +11388,7 @@ FX.vig = 0;
         SAVE.stats.matches++;
         SAVE.stats.kills += p.kills;
         if (win) SAVE.stats.wins++;
-                if (SAVE.lb.length > 50) SAVE.lb.length = 50;
+        if (SAVE.lb.length > 50) SAVE.lb.length = 50;
         SAVE.lb.sort((a, b) => b.s - a.s);
         SAVE.lb.length = Math.min(SAVE.lb.length, 20);
         persist();
@@ -11785,16 +11778,33 @@ FX.vig = 0;
           c.save();
           c.translate(d.x, d.y);
           c.rotate(d.ang + 1.2);
-          c.lineCap = "round";
-          c.strokeStyle = "#000";
-          c.lineWidth = 5;
-          c.beginPath();
-          c.moveTo(0, -18);
-          c.lineTo(0, 18);
-          c.stroke();
-          c.strokeStyle = "#8B6F3F";
-          c.lineWidth = 3;
-          c.stroke();
+          if (d.isRockDebris) {
+            // 🆕 Осколок камня — маленький остроугольный полигон
+            const col = d.col || "#666";
+            c.fillStyle = col;
+            c.strokeStyle = "#000";
+            c.lineWidth = 2;
+            c.beginPath();
+            c.moveTo(-6, -5);
+            c.lineTo(6, -3);
+            c.lineTo(4, 5);
+            c.lineTo(-5, 4);
+            c.closePath();
+            c.fill();
+            c.stroke();
+          } else {
+            // Старое — палка-посох
+            c.lineCap = "round";
+            c.strokeStyle = "#000";
+            c.lineWidth = 5;
+            c.beginPath();
+            c.moveTo(0, -18);
+            c.lineTo(0, 18);
+            c.stroke();
+            c.strokeStyle = "#8B6F3F";
+            c.lineWidth = 3;
+            c.stroke();
+          }
           c.restore();
         }
       }
@@ -11949,24 +11959,24 @@ FX.vig = 0;
         FX.flash = Math.max(0, FX.flash - rd * 1.6);
         FX.dark = Math.max(0, FX.dark - rd * 2);
         FX.vig = Math.max(0, FX.vig - rd * 1.6);
-if (state !== "PAUSED") FX.shake *= Math.pow(0.85, rd * 60);
-FX.shakeBiasX *= Math.pow(0.7, rd * 60);
-FX.shakeBiasY *= Math.pow(0.7, rd * 60);
-if (FX.shake > 0.4) {
-  FX.shakeT += rd * 55;
-  cam.sx =
-    Math.sin(FX.shakeT) * FX.shake * 0.75 +
-    FX.shakeBiasX * FX.shake * 0.6;
-  cam.sy =
-    Math.cos(FX.shakeT * 1.7) * FX.shake * 0.55 +
-    FX.shakeBiasY * FX.shake * 0.6;
-} else {
-  FX.shake = 0;
-  FX.shakeBiasX = 0;
-  FX.shakeBiasY = 0;
-  cam.sx = 0;
-  cam.sy = 0;
-}
+        if (state !== "PAUSED") FX.shake *= Math.pow(0.85, rd * 60);
+        FX.shakeBiasX *= Math.pow(0.7, rd * 60);
+        FX.shakeBiasY *= Math.pow(0.7, rd * 60);
+        if (FX.shake > 0.4) {
+          FX.shakeT += rd * 55;
+          cam.sx =
+            Math.sin(FX.shakeT) * FX.shake * 0.75 +
+            FX.shakeBiasX * FX.shake * 0.6;
+          cam.sy =
+            Math.cos(FX.shakeT * 1.7) * FX.shake * 0.55 +
+            FX.shakeBiasY * FX.shake * 0.6;
+        } else {
+          FX.shake = 0;
+          FX.shakeBiasX = 0;
+          FX.shakeBiasY = 0;
+          cam.sx = 0;
+          cam.sy = 0;
+        }
       }
 
       function renderWorld() {
@@ -14247,21 +14257,21 @@ if (FX.shake > 0.4) {
           });
         $("lbBody").innerHTML = h;
       }
-function openSettings() {
-  if (!(G && G.uiPause && G.online)) {
-    state = "SETTINGS";
-  }
-  $("nickIn").value = SAVE.nick;
-  $("musIn").value = Math.round(SAVE.music * 100);
-  $("sfxIn").value = Math.round(SAVE.sfx * 100);
-  $("vibIn").checked = !!SAVE.vib;
-  $("muteAllIn").checked = !!SAVE.muteAll;
-  $("shakeIn").value = SAVE.shakePower ?? 100;
-  $("flashIn").value = SAVE.flashPower ?? 100;
-  $("qIn").value = SAVE.quality;
-  $("qLang").value = lang;
-  showScreen("sc-settings");
-}
+      function openSettings() {
+        if (!(G && G.uiPause && G.online)) {
+          state = "SETTINGS";
+        }
+        $("nickIn").value = SAVE.nick;
+        $("musIn").value = Math.round(SAVE.music * 100);
+        $("sfxIn").value = Math.round(SAVE.sfx * 100);
+        $("vibIn").checked = !!SAVE.vib;
+        $("muteAllIn").checked = !!SAVE.muteAll;
+        $("shakeIn").value = SAVE.shakePower ?? 100;
+        $("flashIn").value = SAVE.flashPower ?? 100;
+        $("qIn").value = SAVE.quality;
+        $("qLang").value = lang;
+        showScreen("sc-settings");
+      }
       $("nickIn").addEventListener("input", (e) => {
         let v = e.target.value.replace(/[<>]/g, "").slice(0, 12);
         e.target.classList.remove("err");
@@ -14297,15 +14307,15 @@ function openSettings() {
         if (SAVE.vib) vib(30);
       });
       $("shakeIn").addEventListener("input", (e) => {
-  SAVE.shakePower = +e.target.value;
-  persist();
-});
-$("shakeIn").addEventListener("change", () => sfx("click"));
-$("flashIn").addEventListener("input", (e) => {
-  SAVE.flashPower = +e.target.value;
-  persist();
-});
-$("flashIn").addEventListener("change", () => sfx("click"));
+        SAVE.shakePower = +e.target.value;
+        persist();
+      });
+      $("shakeIn").addEventListener("change", () => sfx("click"));
+      $("flashIn").addEventListener("input", (e) => {
+        SAVE.flashPower = +e.target.value;
+        persist();
+      });
+      $("flashIn").addEventListener("change", () => sfx("click"));
       $("qIn").addEventListener("change", (e) => {
         SAVE.quality = e.target.value;
         persist();
@@ -14811,23 +14821,23 @@ $("flashIn").addEventListener("change", () => sfx("click"));
         seq: 0,
         tries: 0,
       };
-function netCleanup() {
-  try {
-    for (const p of NET.players) if (p.conn) p.conn.close();
-    if (NET.hostConn) NET.hostConn.close();
-    if (NET.peer) NET.peer.destroy();
-  } catch (e) {}
-  NET.peer = null;
-  NET.hostConn = null;
-  NET.players = [];
-  NET.role = "solo";
-  NET.ping = 0;
-  NET.pend = [];
-  NET.lastRecv = 0;
-  NET.nextId = 2;
-  NET.tries = 0;
-  NET._starting = false;
-}
+      function netCleanup() {
+        try {
+          for (const p of NET.players) if (p.conn) p.conn.close();
+          if (NET.hostConn) NET.hostConn.close();
+          if (NET.peer) NET.peer.destroy();
+        } catch (e) {}
+        NET.peer = null;
+        NET.hostConn = null;
+        NET.players = [];
+        NET.role = "solo";
+        NET.ping = 0;
+        NET.pend = [];
+        NET.lastRecv = 0;
+        NET.nextId = 2;
+        NET.tries = 0;
+        NET._starting = false;
+      }
       const genCode = () => {
         const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         let s = "";
@@ -15099,18 +15109,18 @@ function netCleanup() {
         }
       }
       function hostStart() {
-  if (NET._starting) return;
-  NET._starting = true;
-  setTimeout(() => {
-    NET._starting = false;
-  }, 1000);
-  if (NET.role !== "host" || NET.players.length < 2) {
-    NET._starting = false;
-    toast(t("arenaWait"));
-    return;
-  }
+        if (NET._starting) return;
+        NET._starting = true;
+        setTimeout(() => {
+          NET._starting = false;
+        }, 1000);
+        if (NET.role !== "host" || NET.players.length < 2) {
+          NET._starting = false;
+          toast(t("arenaWait"));
+          return;
+        }
         if (NET.players.length > NET.settings.count) {
-          // 🆕
+          NET._starting = false;
           toast(
             lang === "ru" ? "Игроков больше, чем слотов" : "Too many players",
           );
@@ -15215,13 +15225,13 @@ function netCleanup() {
               }
             }, 10000);
           });
-peer.on("error", (err) => {
-  $("joinStatus").textContent = t("connErr");
-  sfx("error");
-  if (NET.role === "client" && !opened) {
-    setTimeout(() => netCleanup(), 300);
-  }
-});
+          peer.on("error", (err) => {
+            $("joinStatus").textContent = t("connErr");
+            sfx("error");
+            if (NET.role === "client" && !opened) {
+              setTimeout(() => netCleanup(), 300);
+            }
+          });
         } catch (e) {
           $("joinStatus").textContent = t("connErr");
         }
@@ -15394,6 +15404,11 @@ peer.on("error", (err) => {
               core: z.core || 0,
               own: z.own ? z.own.id : 0,
             })),
+          rocks: G.rocks.map((r) => ({
+            x: r.x,
+            y: r.y,
+            hp: r.hp,
+          })),
           ev: evs,
         };
         for (const p of conns) sendTo(p.conn, msg);
@@ -15529,6 +15544,25 @@ peer.on("error", (err) => {
           }));
         } else {
           G.zones = [];
+        }
+        // 🆕 Синхронизация разрушенных камней с хостом
+        if (s.rocks && Array.isArray(s.rocks)) {
+          const alive = new Set();
+          for (const r of s.rocks) {
+            const local = G.rocks.find(
+              (lr) =>
+                !alive.has(lr) &&
+                Math.abs(lr.x - r.x) < 5 &&
+                Math.abs(lr.y - r.y) < 5,
+            );
+            if (local) {
+              local.hp = r.hp;
+              alive.add(local);
+            }
+          }
+          for (let i = G.rocks.length - 1; i >= 0; i--) {
+            if (!alive.has(G.rocks[i])) G.rocks.splice(i, 1);
+          }
         }
         G.safeR = s.sr;
         G.time = s.time;
@@ -15707,23 +15741,23 @@ peer.on("error", (err) => {
                 break;
               }
             }
-if (!a && s.length) {
-  m.x = s[0].x;
-  m.y = s[0].y;
-} else if (a && !b) {
-  m.x = a.x;
-  m.y = a.y;
-} else if (a && b) {
-  const k = clamp((rt - a.t) / (b.t - a.t || 1), 0, 1);
-  m.x = lerp(a.x, b.x, k);
-  m.y = lerp(a.y, b.y, k);
-}
+            if (!a && s.length) {
+              m.x = s[0].x;
+              m.y = s[0].y;
+            } else if (a && !b) {
+              m.x = a.x;
+              m.y = a.y;
+            } else if (a && b) {
+              const k = clamp((rt - a.t) / (b.t - a.t || 1), 0, 1);
+              m.x = lerp(a.x, b.x, k);
+              m.y = lerp(a.y, b.y, k);
+            }
 
-const last = s[s.length - 1];
-if (last && now - last.t > 500) {
-  m.x = lerp(m.x, last.x, Math.min(1, dt * 8));
-  m.y = lerp(m.y, last.y, Math.min(1, dt * 8));
-}
+            const last = s[s.length - 1];
+            if (last && performance.now() - last.t > 500) {
+              m.x = lerp(m.x, last.x, Math.min(1, dt * 8));
+              m.y = lerp(m.y, last.y, Math.min(1, dt * 8));
+            }
           }
           m.atkCd -= dt;
           m.dashCd -= dt;
