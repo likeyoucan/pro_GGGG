@@ -3968,13 +3968,10 @@
           c.lineTo(R[0][0], R[0][1]);
           c.closePath();
         };
-        const g = getGrad("cape_" + m.mantle, () => {
- const g = c.createLinearGradient(0, -20, 0, 10);
+  const g = c.createLinearGradient(0, -20, 0, 10);
         g.addColorStop(0, pal.hi);
         g.addColorStop(0.5, pal.base);
         g.addColorStop(1, pal.sh);
-          return grad;
-        });
         path();
         c.fillStyle = g;
         c.fill();
@@ -4053,13 +4050,10 @@
         c.lineTo(rp[0][0] - 1, rp[0][1] - 3);
         c.quadraticCurveTo(0, -21, lp[0][0] + 1, lp[0][1] - 3);
         c.closePath();
-        const g = getGrad("robe_" + m.mantle, () => {
-    const g = c.createLinearGradient(0, -18, 0, 4);
+      const g = c.createLinearGradient(0, -18, 0, 4);
         g.addColorStop(0, pal.hi);
         g.addColorStop(0.45, pal.base);
         g.addColorStop(1, pal.sh);
-          return grad;
-        });
         c.fillStyle = g;
         c.fill();
         c.lineWidth = 4;
@@ -5008,13 +5002,10 @@
         c.scale(f, 1); // Капюшон смотрит в сторону взгляда
         if (m.skin.sharkSkin) sharkHoodPath(c);
         else hoodPath(c);
-        const hg = getGrad("hood_" + m.mantle, () => {
-  const hg = c.createLinearGradient(-14, -48, 14, -14);
+     const hg = c.createLinearGradient(-14, -48, 14, -14);
         hg.addColorStop(0, pal.hi);
         hg.addColorStop(0.45, pal.base);
         hg.addColorStop(1, pal.sh);
-          return grad;
-        });
         c.fillStyle = hg;
         c.fill();
         c.lineWidth = 4.5;
@@ -5940,12 +5931,9 @@
         const f = mo.vx >= 0 ? 1 : -1,
           col = mo.col,
           wob = Math.sin(TM * 8 + mo.an);
-        const g = getGrad("monster_" + mo.col, () => {
-    const g = c.createLinearGradient(0, -r * 2, 0, 0);
+      const g = c.createLinearGradient(0, -r * 2, 0, 0);
         g.addColorStop(0, shade(col, 0.25));
         g.addColorStop(1, shade(col, -0.25));
-          return grad;
-        });
         c.fillStyle = g;
         c.strokeStyle = "#000";
         c.lineWidth = 3;
