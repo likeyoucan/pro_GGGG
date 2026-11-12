@@ -8623,8 +8623,6 @@
         dx += pushX;
         dy += pushY;
 
-        const l = Math.hypot(mx, my) || 1;
-
         GRID.query(mo.x, mo.y, mo.r * 2.2, (o) => {
           if (o === mo || !o.isMonster || o.dead) return;
           const sx = mo.x - o.x,
