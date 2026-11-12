@@ -3890,7 +3890,17 @@
           );
       }
 
-      const _pal = new Map();
+      const GradCache = new Map();
+
+      function getGrad(key, createFn) {
+        let g = GradCache.get(key);
+        if (!g) {
+          g = createFn();
+          GradCache.set(key, g);
+        }
+        return g;
+      }
+
       function palOf(hex) {
         let p = _pal.get(hex);
         if (!p) {
@@ -3967,15 +3977,13 @@
           c.lineTo(R[0][0], R[0][1]);
           c.closePath();
         };
-        const g = c.createLinearGradient(
-          s[0].x,
-          s[0].y,
-          s[n - 1].x,
-          s[n - 1].y,
-        );
-        g.addColorStop(0, pal.hi);
-        g.addColorStop(0.5, pal.base);
-        g.addColorStop(1, pal.sh);
+        const g = getGrad("cape_" + m.mantle, () => {
+          const grad = c.createLinearGradient(0, -20, 0, 10);
+          grad.addColorStop(0, pal.hi);
+          grad.addColorStop(0.5, pal.base);
+          grad.addColorStop(1, pal.sh);
+          return grad;
+        });
         path();
         c.fillStyle = g;
         c.fill();
@@ -4054,10 +4062,13 @@
         c.lineTo(rp[0][0] - 1, rp[0][1] - 3);
         c.quadraticCurveTo(0, -21, lp[0][0] + 1, lp[0][1] - 3);
         c.closePath();
-        const g = c.createLinearGradient(0, -18, 0, 4);
-        g.addColorStop(0, pal.hi);
-        g.addColorStop(0.45, pal.base);
-        g.addColorStop(1, pal.sh);
+        const g = getGrad("robe_" + m.mantle, () => {
+          const grad = c.createLinearGradient(0, -18, 0, 4);
+          grad.addColorStop(0, pal.hi);
+          grad.addColorStop(0.45, pal.base);
+          grad.addColorStop(1, pal.sh);
+          return grad;
+        });
         c.fillStyle = g;
         c.fill();
         c.lineWidth = 4;
@@ -5006,10 +5017,13 @@
         c.scale(f, 1); // Капюшон смотрит в сторону взгляда
         if (m.skin.sharkSkin) sharkHoodPath(c);
         else hoodPath(c);
-        const hg = c.createLinearGradient(-14, -48, 14, -14);
-        hg.addColorStop(0, pal.hi);
-        hg.addColorStop(0.45, pal.base);
-        hg.addColorStop(1, pal.sh);
+        const hg = getGrad("hood_" + m.mantle, () => {
+          const grad = c.createLinearGradient(-14, -48, 14, -14);
+          grad.addColorStop(0, pal.hi);
+          grad.addColorStop(0.45, pal.base);
+          grad.addColorStop(1, pal.sh);
+          return grad;
+        });
         c.fillStyle = hg;
         c.fill();
         c.lineWidth = 4.5;
@@ -5935,9 +5949,12 @@
         const f = mo.vx >= 0 ? 1 : -1,
           col = mo.col,
           wob = Math.sin(TM * 8 + mo.an);
-        const g = c.createLinearGradient(0, -r * 2, 0, 0);
-        g.addColorStop(0, shade(col, 0.25));
-        g.addColorStop(1, shade(col, -0.25));
+        const g = getGrad("monster_" + mo.col, () => {
+          const grad = c.createLinearGradient(0, -40, 0, 0); // Используем фиксированный размер
+          grad.addColorStop(0, shade(col, 0.25));
+          grad.addColorStop(1, shade(col, -0.25));
+          return grad;
+        });
         c.fillStyle = g;
         c.strokeStyle = "#000";
         c.lineWidth = 3;
@@ -7863,7 +7880,9 @@
               aoe(z.own, z.x, z.y, z.r, 30, { kb: 36 });
               splash(z.x, z.y, z.r, "#DDF4F8", 1.2);
             }
-            G.zones.splice(i, 1);
+            // 🆕 Вместо splice
+            G.zones[i] = G.zones[G.zones.length - 1];
+            G.zones.pop();
           }
         }
       }
@@ -8054,7 +8073,8 @@
           p.t += dt;
           p.life -= dt;
           if (p.life <= 0) {
-            G.pickups.splice(i, 1);
+            G.pickups[i] = G.pickups[G.pickups.length - 1];
+            G.pickups.pop();
             continue;
           }
           for (const m of G.mages) {
@@ -8066,7 +8086,8 @@
             }
             if (d < 35) {
               collect(m, p);
-              G.pickups.splice(i, 1);
+              G.pickups[i] = G.pickups[G.pickups.length - 1];
+              G.pickups.pop();
               break;
             }
           }
@@ -8109,8 +8130,13 @@
         let mx = 0,
           my = 0;
         const dc = dist(m.x, m.y, CX, CY);
-        const wantDist =
+        let wantDist =
           G.mode === "survival" ? 200 : Math.round(260 - a.aggression * 140);
+
+        // 🆕 Если ульта готова, бот идет на сближение, чтобы точно попасть
+        if (m.ultCharge >= 100 && a.tg) {
+          wantDist = 120;
+        }
         if (dc > G.safeR - 110) {
           mx = CX - m.x;
           my = CY - m.y;
@@ -8145,17 +8171,26 @@
             const rx = m.x - p.x,
               ry = m.y - p.y,
               d = Math.hypot(rx, ry);
-            if (d > 150) continue;
-            const sp = Math.hypot(p.vx, p.vy) || 1,
-              dot = (rx * p.vx + ry * p.vy) / (d * sp);
-            if (dot > 0.85 && Math.random() < a.dodgeChance * a.skill) {
-              const side = Math.random() < 0.5 ? 1 : -1;
-              mx = -p.vy * side;
-              my = p.vx * side;
-              a.dodgeCd = 0.6;
-              if (m.dashCd <= 0 && Math.random() < 0.4)
-                mageDash(m, Math.atan2(my, mx));
-              break;
+            if (d > 200) continue;
+            const sp = Math.hypot(p.vx, p.vy) || 1;
+            // 🆕 Умное уклонение: проверяем, пересечет ли снаряд наш хитбокс
+            const dot = (rx * p.vx + ry * p.vy) / sp; // Проекция расстояния на вектор скорости
+            if (dot > 0) {
+              // Снаряд летит в нашу сторону
+              const perpDist = Math.abs(rx * (p.vy / sp) - ry * (p.vx / sp)); // Перпендикулярное расстояние от линии огня
+              if (
+                perpDist < m.r + p.r + 10 &&
+                Math.random() < a.dodgeChance * a.skill
+              ) {
+                const side = Math.random() < 0.5 ? 1 : -1;
+                mx = -p.vy * side;
+                my = p.vx * side;
+                a.dodgeCd = 0.6;
+                if (m.dashCd <= 0 && Math.random() < 0.6)
+                  // Увеличили шанс рывка при уклонении
+                  mageDash(m, Math.atan2(my, mx));
+                break;
+              }
             }
           }
         }
@@ -8566,6 +8601,30 @@
             dy *= 0.1;
           }
         }
+
+        // 🆕 ОБХОД ПРЕПЯТСТВИЙ (Камни)
+        let pushX = 0,
+          pushY = 0;
+        for (const rk of G.rocks) {
+          const rx = mo.x - rk.x,
+            ry = mo.y - rk.y;
+          const rDist = Math.hypot(rx, ry) || 1;
+          const safeDist = mo.r + rk.r + 30; // Дистанция, на которой начинаем объезжать
+          if (rDist < safeDist) {
+            const force = (safeDist - rDist) / safeDist;
+            // Отталкиваемся от камня
+            pushX += (rx / rDist) * force * 2.5;
+            pushY += (ry / rDist) * force * 2.5;
+            // Добавляем тангенциальную (боковую) силу, чтобы скользить вдоль камня
+            pushX += (-ry / rDist) * force * 2.0;
+            pushY += (rx / rDist) * force * 2.0;
+          }
+        }
+        dx += pushX;
+        dy += pushY;
+
+        const l = Math.hypot(mx, my) || 1;
+
         GRID.query(mo.x, mo.y, mo.r * 2.2, (o) => {
           if (o === mo || !o.isMonster || o.dead) return;
           const sx = mo.x - o.x,
@@ -8718,60 +8777,104 @@
       }
 
       function updateTimersAndFx(dt) {
-        for (let i = G.spawnFx.length - 1; i >= 0; i--) {
-          G.spawnFx[i].t -= dt;
-          if (G.spawnFx[i].t <= 0) G.spawnFx.splice(i, 1);
+        let w = 0;
+
+        // 1. Эффекты спавна
+        for (let i = 0; i < G.spawnFx.length; i++) {
+          const sf = G.spawnFx[i];
+          sf.t -= dt;
+          if (sf.t > 0) G.spawnFx[w++] = sf;
         }
-        for (let i = G.celebrate.length - 1; i >= 0; i--) {
+        G.spawnFx.length = w;
+
+        // 2. Праздничные частицы (эмодзи)
+        w = 0;
+        for (let i = 0; i < G.celebrate.length; i++) {
           const c = G.celebrate[i];
           c.life -= dt;
-          if (c.life <= 0) {
-            G.celebrate.splice(i, 1);
-            continue;
+          if (c.life > 0) {
+            c.vy += 400 * dt;
+            c.x += c.vx * dt;
+            c.y += c.vy * dt;
+            c.rot += c.rotSpd * dt;
+            G.celebrate[w++] = c;
           }
-          c.vy += 400 * dt;
-          c.x += c.vx * dt;
-          c.y += c.vy * dt;
-          c.rot += c.rotSpd * dt;
         }
-        for (let i = G.timers.length - 1; i >= 0; i--) {
+        G.celebrate.length = w;
+
+        // 3. Таймеры отложенных действий
+        w = 0;
+        for (let i = 0; i < G.timers.length; i++) {
           const t = G.timers[i];
           t.t -= dt;
-          if (t.t <= 0) {
-            G.timers.splice(i, 1);
+          if (t.t > 0) {
+            G.timers[w++] = t;
+          } else {
             try {
               t.fn();
             } catch (e) {}
           }
         }
-        for (let i = G.emits.length - 1; i >= 0; i--) {
+        G.timers.length = w;
+
+        // 4. Эмиттеры (постоянный спавн частиц)
+        w = 0;
+        for (let i = 0; i < G.emits.length; i++) {
           const e = G.emits[i];
           e.t -= dt;
           e.acc += dt;
           while (e.acc >= e.every) {
             e.acc -= e.every;
-            if (!e.o.dead)
+            if (!e.o.dead) {
               try {
                 e.fn();
               } catch (er) {}
+            }
           }
-          if (e.t <= 0 || e.o.dead) G.emits.splice(i, 1);
+          if (e.t > 0 && !e.o.dead) G.emits[w++] = e;
         }
-        for (const arr of [G.rings, G.bolts, G.arcs])
-          for (let i = arr.length - 1; i >= 0; i--) {
-            arr[i].l -= dt;
-            if (arr[i].l <= 0) arr.splice(i, 1);
+        G.emits.length = w;
+
+        // 5. Кольца, молнии, дуги (у них есть свойство .l)
+        const pruneTimedArr = (arr) => {
+          let lw = 0;
+          for (let i = 0; i < arr.length; i++) {
+            const item = arr[i];
+            item.l -= dt;
+            if (item.l > 0) arr[lw++] = item;
           }
-        for (const arr of [G.tele, G.fall, G.gfx])
-          for (let i = arr.length - 1; i >= 0; i--) {
-            arr[i].t -= dt;
-            if (arr[i].t <= 0) arr.splice(i, 1);
+          arr.length = lw;
+        };
+        pruneTimedArr(G.rings);
+        pruneTimedArr(G.bolts);
+        pruneTimedArr(G.arcs);
+
+        // 6. Телеграфы, падения, gfx (у них есть свойство .t)
+        const pruneTEffArr = (arr) => {
+          let tw = 0;
+          for (let i = 0; i < arr.length; i++) {
+            const item = arr[i];
+            item.t -= dt;
+            if (item.t > 0) arr[tw++] = item;
           }
-        for (let i = G.ghosts.length - 1; i >= 0; i--) {
-          G.ghosts[i].life -= dt;
-          if (G.ghosts[i].life <= 0) G.ghosts.splice(i, 1);
+          arr.length = tw;
+        };
+        pruneTEffArr(G.tele);
+        pruneTEffArr(G.fall);
+        pruneTEffArr(G.gfx);
+
+        // 7. Призраки (ghosts)
+        w = 0;
+        for (let i = 0; i < G.ghosts.length; i++) {
+          const gh = G.ghosts[i];
+          gh.life -= dt;
+          if (gh.life > 0) G.ghosts[w++] = gh;
         }
-        for (let i = G.debris.length - 1; i >= 0; i--) {
+        G.ghosts.length = w;
+
+        // 8. Обломки (debris)
+        w = 0;
+        for (let i = 0; i < G.debris.length; i++) {
           const d = G.debris[i];
           d.t += dt;
           d.vy += d.g * dt;
@@ -8790,16 +8893,35 @@
               d.g = 0;
             }
           }
-          if (d.t > 6) G.debris.splice(i, 1);
+          if (d.t <= 6) G.debris[w++] = d;
         }
-        for (const h of G.headIcons) h.t += dt;
-        G.headIcons = G.headIcons.filter((h) => h.t < 1.2);
+        G.debris.length = w;
+
+        // 9. Иконки над головой
+        w = 0;
+        for (let i = 0; i < G.headIcons.length; i++) {
+          const h = G.headIcons[i];
+          h.t += dt;
+          if (h.t < 1.2) G.headIcons[w++] = h;
+        }
+        G.headIcons.length = w;
+
+        // 10. Уведомление
         if (G.notice) {
           G.notice.t += dt;
           if (G.notice.t > 2) G.notice = null;
         }
-        for (const a of G.ann) a.t += dt;
-        G.ann = G.ann.filter((a) => a.t < 1.8);
+
+        // 11. Анонсы (объявления)
+        w = 0;
+        for (let i = 0; i < G.ann.length; i++) {
+          const a = G.ann[i];
+          a.t += dt;
+          if (a.t < 1.8) G.ann[w++] = a;
+        }
+        G.ann.length = w;
+
+        // 12. Столб света
         if (G.pillar) {
           G.pillar.t -= dt;
           if (G.pillar.t <= 0) G.pillar = null;
@@ -11719,9 +11841,11 @@
           key = "Q/RMB";
         }
         const glow = n === "ult" && ready ? 0.5 + 0.3 * Math.sin(TM * 6) : 0;
-        if (glow || held) {
+        if ((glow || held) && Q.glow) {
           c.shadowColor = held ? rc : "#FFD84A";
           c.shadowBlur = (held ? 22 + pul * 14 : 18 * glow + 8) * u;
+        } else {
+          c.shadowBlur = 0;
         }
         const g = c.createRadialGradient(0, -b.r * 0.3, b.r * 0.1, 0, 0, b.r);
         g.addColorStop(0, "rgba(70,40,100,.9)");
