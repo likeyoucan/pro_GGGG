@@ -2782,6 +2782,24 @@
           en: "Heart Trail",
           gold: 700,
           col: "#FF69B4",
+          shape: 1, // 🆕 Указываем, что это сердечки
+        },
+        // 🆕 НОВЫЕ ЭФФЕКТЫ
+        {
+          id: "trail_fire",
+          type: "trail",
+          ru: "Огненный след",
+          en: "Fire Trail",
+          gold: 600,
+          col: "#FF4500",
+        },
+        {
+          id: "trail_lightning",
+          type: "trail",
+          ru: "Грозовой след",
+          en: "Storm Trail",
+          gold: 700,
+          col: "#FFEE00",
         },
         {
           id: "aura_souls",
@@ -2789,7 +2807,7 @@
           ru: "Аура душ",
           en: "Soul Aura",
           gold: 800,
-          col: "#A0FFE0",
+          col: "#B040FF", // 🆕 Изменено на цвет Пустоты
         },
         {
           id: "aura_petals",
@@ -2798,6 +2816,14 @@
           en: "Petal Aura",
           gold: 500,
           col: "#FF9AC8",
+        },
+        {
+          id: "aura_crystals",
+          type: "aura",
+          ru: "Аура кристаллов",
+          en: "Crystal Aura",
+          gold: 900,
+          col: "#00DDFF",
         },
       ];
       const THEMES = {
@@ -3269,6 +3295,7 @@
         add: false,
         d: 1,
         sq: false,
+        shape: 0, // 🆕 0 - круг, 1 - сердце
         on: false,
         _inActive: false,
       }));
@@ -3315,7 +3342,7 @@
       };
       let _previewMode = false;
       let TM = 0;
-      function pt(x, y, vx, vy, life, size, color, grav, add, drag, sq) {
+      function pt(x, y, vx, vy, life, size, color, grav, add, drag, sq, shape) {
         if (Q.pmul < 1 && Math.random() > Q.pmul) return;
         const p = PP.get();
         p.x = x;
@@ -3330,6 +3357,7 @@
         p.add = !!add;
         p.d = drag || 1;
         p.sq = !!sq;
+        p.shape = shape || 0;
       }
       function burst(x, y, color, n, sp, size, life, add, grav) {
         for (let i = 0; i < n; i++) {
@@ -8358,8 +8386,23 @@
             );
           }
 
+          // 🆕 Ауры
           if (isMe && SAVE.fxAura === "aura_souls")
-            pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#A0FFE0", 0, true);
+            pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#B040FF", 0, true); // Фиолетовый цвет пустоты
+          else if (isMe && SAVE.fxAura === "aura_crystals")
+            pt(
+              x,
+              y,
+              rnd(-10, 10),
+              rnd(-20, 20),
+              1.2,
+              4,
+              "#00DDFF",
+              0,
+              true,
+              0.95,
+              true,
+            ); // Квадратики (кристаллы)
           else if (isMe && SAVE.fxAura === "aura_petals")
             pt(
               x,
@@ -8373,6 +8416,7 @@
               false,
             );
 
+          // 🆕 Следы
           if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
             const tx = m.x + rnd(-6, 6),
               ty = m.y - rnd(5, 30);
@@ -8428,6 +8472,33 @@
                 true,
                 0.94,
               );
+            else if (SAVE.fxTrail === "trail_fire")
+              pt(
+                tx,
+                ty,
+                rnd(-15, 15),
+                rnd(-20, 10),
+                0.8,
+                4,
+                pick(["#FF4500", "#FF8C00", "#FFEE00"]),
+                -50,
+                true,
+                0.95,
+              );
+            else if (SAVE.fxTrail === "trail_lightning")
+              pt(
+                tx,
+                ty,
+                rnd(-15, 15),
+                rnd(-15, 15),
+                0.5,
+                3,
+                pick(["#FFEE00", "#FFFFFF", "#00DDFF"]),
+                0,
+                true,
+                0.9,
+                true, // Квадратики для молний
+              );
             else if (SAVE.fxTrail === "trail_hearts") {
               if (Math.random() < 0.6)
                 pt(
@@ -8441,6 +8512,8 @@
                   0,
                   true,
                   0.94,
+                  false,
+                  1, // 🆕 Передаем 1 в конце, чтобы отрисовалось сердечко
                 );
             }
           }
@@ -11050,6 +11123,23 @@
             if (p.sq) {
               const s = p.s * (0.5 + 0.5 * k);
               c.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+            } else if (p.shape === 1) {
+              const s = p.s * (0.5 + 0.5 * k);
+              c.save();
+              c.translate(p.x, p.y);
+              c.beginPath();
+              c.moveTo(0, s * 0.7);
+              c.bezierCurveTo(
+                -s * 1.5,
+                -s * 0.6,
+                -s * 0.9,
+                -s * 1.7,
+                0,
+                -s * 0.7,
+              );
+              c.bezierCurveTo(s * 0.9, -s * 1.7, s * 1.5, -s * 0.6, 0, s * 0.7);
+              c.fill();
+              c.restore();
             } else {
               c.beginPath();
               c.arc(p.x, p.y, Math.max(0.4, p.s * (0.4 + 0.6 * k)), 0, TAU);
@@ -13174,22 +13264,81 @@
           }
         else if (shopTab === "fx")
           for (const f of EFFECTS) {
-            // 🆕 Используем t(f.type)
             const k = card(f[lang], t(f.type), "#9cf");
             const c = k.cv.getContext("2d");
             k.cv.width = 180;
             k.cv.height = 200;
             c.translate(90, 100);
+
+            // 🆕 Отрисовка превью в зависимости от типа
             for (let i = 0; i < 14; i++) {
+              const px = -60 + i * 9;
+              const py = Math.sin(i * 0.7) * 18;
+              const size = 10 - i * 0.5;
+              c.globalAlpha = 1 - i / 16;
+
               if (f.col === "rainbow")
                 c.fillStyle = "hsl(" + i * 25 + ",100%,60%)";
               else if (f.id === "trail_hearts")
                 c.fillStyle = pick(["#FF69B4", "#FFB6D9", "#FFC0E0"]);
               else c.fillStyle = f.col;
-              c.globalAlpha = 1 - i / 16;
-              c.beginPath();
-              c.arc(-60 + i * 9, Math.sin(i * 0.7) * 18, 10 - i * 0.5, 0, TAU);
-              c.fill();
+
+              if (f.id === "trail_hearts") {
+                // Рисуем сердечки
+                c.save();
+                c.translate(px, py);
+                c.beginPath();
+                c.moveTo(0, size * 0.7);
+                c.bezierCurveTo(
+                  -size * 1.5,
+                  -size * 0.6,
+                  -size * 0.9,
+                  -size * 1.7,
+                  0,
+                  -size * 0.7,
+                );
+                c.bezierCurveTo(
+                  size * 0.9,
+                  -size * 1.7,
+                  size * 1.5,
+                  -size * 0.6,
+                  0,
+                  size * 0.7,
+                );
+                c.fill();
+                c.restore();
+              } else if (f.type === "aura") {
+                // Рисуем ауру (по кругу)
+                const ang = (i / 14) * Math.PI * 2;
+                const radius = 30;
+                c.beginPath();
+                if (f.id === "aura_crystals") {
+                  c.fillRect(
+                    px * 0.5 + Math.cos(ang) * radius - size / 2,
+                    py * 0.5 + Math.sin(ang) * radius - size / 2,
+                    size,
+                    size,
+                  );
+                } else {
+                  c.arc(
+                    px * 0.5 + Math.cos(ang) * radius,
+                    py * 0.5 + Math.sin(ang) * radius,
+                    size * 0.6,
+                    0,
+                    TAU,
+                  );
+                  c.fill();
+                }
+              } else {
+                // Обычный след
+                if (f.id === "trail_lightning") {
+                  c.fillRect(px, py, size, size);
+                } else {
+                  c.beginPath();
+                  c.arc(px, py, size, 0, TAU);
+                  c.fill();
+                }
+              }
             }
             const key = f.type === "trail" ? "fxTrail" : "fxAura";
             k.c.appendChild(
