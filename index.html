@@ -6923,6 +6923,7 @@
           (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
 
         let melee = false;
+        // 🆕 Проверка на врагов
         for (const t of G.all) {
           if (!isFoe(m, t)) continue;
           const d = dist(m.x, m.y, t.x, t.y);
@@ -6932,6 +6933,21 @@
           ) {
             melee = true;
             break;
+          }
+        }
+        // 🆕 Проверка на близкую скалу (маг в упор к камню → бьёт посохом)
+        let meleeRock = null;
+        if (!melee) {
+          for (const rk of G.rocks) {
+            const d = dist(m.x, m.y, rk.x, rk.y);
+            if (
+              d < 80 + rk.r &&
+              Math.abs(angDiff(ang, Math.atan2(rk.y - m.y, rk.x - m.x))) < 1.25
+            ) {
+              melee = true;
+              meleeRock = rk;
+              break;
+            }
           }
         }
         const col = elemColor(m.baseElem || m.elem);
@@ -6952,6 +6968,33 @@
               }
               burst(t.x, t.y - 16, col, 10, 200, 3, 0.35, true);
             }
+          }
+          // 🆕 Удар по скале, если маг бьёт камень в упор
+          if (meleeRock) {
+            damageRock(meleeRock, base, m);
+            // Визуальный эффект удара о камень
+            burst(
+              m.x + Math.cos(ang) * 40,
+              m.y - 14 + Math.sin(ang) * 20,
+              [col, "#999", "#666"],
+              12,
+              180,
+              3,
+              0.35,
+              true,
+            );
+            // Искры от камня
+            G.rings.push({
+              x: m.x + Math.cos(ang) * 40,
+              y: m.y - 14 + Math.sin(ang) * 20,
+              r0: 5,
+              r1: 35,
+              l: 0.25,
+              m: 0.25,
+              c: col,
+              w: 3,
+            });
+            sfx("impact");
           }
         } else {
           m.staffAnim = 1;
@@ -8704,6 +8747,7 @@
         rk.hp -= dmg;
         rk.shakeT = 0.15;
 
+        // Мелкие искры при каждом попадании (не только при разрушении)
         burst(
           rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
           rk.y + rnd(-rk.r * 0.3, rk.r * 0.3),
@@ -8734,27 +8778,57 @@
           });
           if (rk.crystal) spawnPickup(randomPickupType(), rk.x, rk.y);
 
-          // 🆕 Цвет камня берём из текущей темы
+          // 🆕 Вспышка осколков (короткая, яркая) — искры ПЕРЕД разлётом камней
+          for (let i = 0; i < 6; i++) {
+            pt(
+              rk.x + rnd(-rk.r, rk.r),
+              rk.y - rnd(0, rk.h),
+              rnd(-80, 80),
+              rnd(-120, -40),
+              rnd(0.2, 0.4),
+              rnd(2, 4),
+              pick([rk.crystalCol || "#AAA", "#FFF", "#888"]),
+              200,
+              true,
+              0.9,
+            );
+          }
+
+          // 🆕 Эффектный разлёт осколков
           const _th = THEMES[G.theme] || THEMES.lava;
-          for (let i = 0; i < 8; i++) {
-            // примерно 30% осколков — цвета кристалла (если он есть)
+          // Угол от центра камня к точке удара (если известен), иначе случайный
+          const baseAng =
+            src && src.x !== undefined
+              ? Math.atan2(rk.y - (src.y || rk.y), rk.x - (src.x || rk.x))
+              : rnd(0, TAU);
+
+          for (let i = 0; i < 15; i++) {
             const isCrystalPiece = rk.crystalCol && Math.random() < 0.3;
+            // Разлёт веером в стороны + вверх
+            const spread = rnd(-1.4, 1.4);
+            const ang = baseAng + spread;
+            const horizSpeed = rnd(120, 320);
+            const vertSpeed = rnd(100, 260);
+
             G.debris.push({
-              x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
-              y: rk.y - rnd(0, rk.h),
-              vy: -rnd(80, 220),
-              g: 520,
+              x: rk.x + rnd(-rk.r * 0.3, rk.r * 0.3),
+              y: rk.y - rnd(0, rk.h * 0.6),
+              // 🆕 Скорость: в стороны от камня + вверх
+              vx: Math.cos(ang) * horizSpeed,
+              vy: -vertSpeed,
+              // 🆕 Гравитация и вращение
+              g: rnd(400, 650),
               ang: rnd(0, TAU),
-              w: rnd(-8, 8),
+              w: rnd(-15, 15), // быстрее крутятся
               f: 1,
-              floor: rk.y + 2, // совпадает с линией тени
+              floor: rk.y + rnd(-4, 6), // разная высота «пола»
               t: 0,
               clat: false,
-              isRockDebris: true, // 🆕 ключевой флаг — рисуем осколок, а не палку
+              isRockDebris: true,
               col: isCrystalPiece
                 ? rk.crystalCol
-                : shade(_th.rock, rnd(-0.2, 0.15)),
-              _sz: rnd(5, 9), // 🆕 размер конкретного осколка
+                : shade(_th.rock, rnd(-0.25, 0.15)),
+              _sz: rnd(4, 10),
             });
           }
 
@@ -9534,9 +9608,17 @@
           d.t += dt;
           d.vy += d.g * dt;
           d.y += d.vy * dt;
+          // 🆕 Горизонтальное движение осколков (у палок-посоха vx нет)
+          if (d.vx !== undefined) {
+            d.x += d.vx * dt;
+            d.vx *= 0.99; // лёгкое затухание по горизонтали
+          }
           d.ang += d.w * dt;
           if (d.y >= d.floor) {
             d.y = d.floor;
+            if (d.vx !== undefined) {
+              d.vx *= 0.7;
+            }
             if (!d.clat) {
               d.clat = true;
               sfx("impact");
@@ -10100,18 +10182,31 @@
             sfx("shoot", p.elem);
 
             const col = elemColor(p.elem);
-            let melee = false;
-            for (const t of G.all) {
-              if (!isFoe(p, t)) continue;
-              const d = dist(p.x, p.y, t.x, t.y);
-              if (
-                d < 80 + t.r &&
-                Math.abs(angDiff(ang, Math.atan2(t.y - p.y, t.x - p.x))) < 1.25
-              ) {
-                melee = true;
-                break;
-              }
-            }
+let melee = false;
+for (const t of G.all) {
+  if (!isFoe(p, t)) continue;
+  const d = dist(p.x, p.y, t.x, t.y);
+  if (
+    d < 80 + t.r &&
+    Math.abs(angDiff(ang, Math.atan2(t.y - p.y, t.x - p.x))) < 1.25
+  ) {
+    melee = true;
+    break;
+  }
+}
+// 🆕 Проверка на близкую скалу
+if (!melee) {
+  for (const rk of G.rocks) {
+    const d = dist(p.x, p.y, rk.x, rk.y);
+    if (
+      d < 80 + rk.r &&
+      Math.abs(angDiff(ang, Math.atan2(rk.y - p.y, rk.x - p.x))) < 1.25
+    ) {
+      melee = true;
+      break;
+    }
+  }
+}
             if (melee) {
               p.swing = 1;
               sfx("swing");
