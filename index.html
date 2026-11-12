@@ -8694,58 +8694,58 @@ if (mo.aura) {
                false,
              );
 
-               if (rk.hp <= 0) {
-               const idx = G.rocks.indexOf(rk);
-               if (idx >= 0) G.rocks.splice(idx, 1);
+if (rk.hp <= 0) {
+  const idx = G.rocks.indexOf(rk);
+  if (idx >= 0) G.rocks.splice(idx, 1);
 
-               shake(5);
-               FX.flash = 0.3;
-               FX.flashC = rk.crystalCol || "#FFAA00";
-               G.rings.push({
-                 x: rk.x, y: rk.y, r0: 10, r1: 90,
-                 l: 0.4, m: 0.4, c: "#FFF", w: 4,
-               });
-               if (rk.crystal) spawnPickup(randomPickupType(), rk.x, rk.y);
+  shake(5);
+  FX.flash = 0.3;
+  FX.flashC = rk.crystalCol || "#FFAA00";
+  G.rings.push({
+    x: rk.x, y: rk.y, r0: 10, r1: 90,
+    l: 0.4, m: 0.4, c: "#FFF", w: 4,
+  });
+  if (rk.crystal) spawnPickup(randomPickupType(), rk.x, rk.y);
 
-               for (let i = 0; i < 8; i++) {
-                 G.debris.push({
-                   x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
-                   y: rk.y - rnd(0, rk.h),
-                   vy: -rnd(80, 220),
-                   g: 520,
-                   ang: rnd(0, TAU),
-                   w: rnd(-8, 8),
-                   f: 1,
-                   floor: rk.y + 4,
-                   t: 0,
-                   clat: false,
-                 });
-               }
+  // 🆕 Цвет камня берём из текущей темы
+  const _th = THEMES[G.theme] || THEMES.lava;
+  for (let i = 0; i < 8; i++) {
+    // примерно 30% осколков — цвета кристалла (если он есть)
+    const isCrystalPiece = rk.crystalCol && Math.random() < 0.3;
+    G.debris.push({
+      x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
+      y: rk.y - rnd(0, rk.h),
+      vy: -rnd(80, 220),
+      g: 520,
+      ang: rnd(0, TAU),
+      w: rnd(-8, 8),
+      f: 1,
+      floor: rk.y + 2,        // совпадает с линией тени
+      t: 0,
+      clat: false,
+      isRockDebris: true,     // 🆕 ключевой флаг — рисуем осколок, а не палку
+      col: isCrystalPiece
+        ? rk.crystalCol
+        : shade(_th.rock, rnd(-0.2, 0.15)),
+      _sz: rnd(5, 9),         // 🆕 размер конкретного осколка
+    });
+  }
 
-               if (rk.crystal && src) {
-                 const col = rk.crystalCol;
-                 G.rings.push({
-                   x: rk.x,
-                   y: rk.y,
-                   r0: 5,
-                   r1: 120,
-                   l: 0.55,
-                   m: 0.55,
-                   c: col,
-                   w: 6,
-                 });
-                 burst(rk.x, rk.y, [col, "#fff"], 40, 380, 4, 0.7, true);
-                 const opt = { kb: 12 };
-                 if (col === "#00DDFF") {
-                   opt.freeze = 0.8;
-                   opt.slow = [2, 0.6];
-                 }
-                 if (col === "#FF00FF") opt.burn = [2, 4];
-                 aoe(src, rk.x, rk.y, 130, 35, opt);
-                 shake(4);
-               }
-               sfx("impact");
-             }
+  if (rk.crystal && src) {
+    const col = rk.crystalCol;
+    G.rings.push({
+      x: rk.x, y: rk.y, r0: 5, r1: 120,
+      l: 0.55, m: 0.55, c: col, w: 6,
+    });
+    burst(rk.x, rk.y, [col, "#fff"], 40, 380, 4, 0.7, true);
+    const opt = { kb: 12 };
+    if (col === "#00DDFF") { opt.freeze = 0.8; opt.slow = [2, 0.6]; }
+    if (col === "#FF00FF") opt.burn = [2, 4];
+    aoe(src, rk.x, rk.y, 130, 35, opt);
+    shake(4);
+  }
+  sfx("impact");
+}
            }
 
            function collideWorld(e) {
@@ -12015,41 +12015,42 @@ if (mo.aura) {
              }
            }
 
-           function drawDebris(c) {
-             for (const d of G.debris) {
-               c.save();
-               c.translate(d.x, d.y);
-               c.rotate(d.ang + 1.2);
-               if (d.isRockDebris) {
-                 // 🆕 Осколок камня — маленький остроугольный полигон
-                 const col = d.col || "#666";
-                 c.fillStyle = col;
-                 c.strokeStyle = "#000";
-                 c.lineWidth = 2;
-                 c.beginPath();
-                 c.moveTo(-6, -5);
-                 c.lineTo(6, -3);
-                 c.lineTo(4, 5);
-                 c.lineTo(-5, 4);
-                 c.closePath();
-                 c.fill();
-                 c.stroke();
-               } else {
-                 // Старое — палка-посох
-                 c.lineCap = "round";
-                 c.strokeStyle = "#000";
-                 c.lineWidth = 5;
-                 c.beginPath();
-                 c.moveTo(0, -18);
-                 c.lineTo(0, 18);
-                 c.stroke();
-                 c.strokeStyle = "#8B6F3F";
-                 c.lineWidth = 3;
-                 c.stroke();
-               }
-               c.restore();
-             }
-           }
+function drawDebris(c) {
+  for (const d of G.debris) {
+    c.save();
+    c.translate(d.x, d.y);
+    c.rotate(d.ang + 1.2);
+    if (d.isRockDebris) {
+      // 🆕 Осколок камня — остроугольный полигон, размер зависит от _sz
+      const sz = d._sz || 7;
+      const col = d.col || "#666";
+      c.fillStyle = col;
+      c.strokeStyle = "#000";
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.moveTo(-sz * 0.85, -sz * 0.7);
+      c.lineTo( sz * 0.9,  -sz * 0.4);
+      c.lineTo( sz * 0.6,   sz * 0.75);
+      c.lineTo(-sz * 0.7,   sz * 0.55);
+      c.closePath();
+      c.fill();
+      c.stroke();
+    } else {
+      // Палка-посох (маг уронил посох при смерти)
+      c.lineCap = "round";
+      c.strokeStyle = "#000";
+      c.lineWidth = 5;
+      c.beginPath();
+      c.moveTo(0, -18);
+      c.lineTo(0, 18);
+      c.stroke();
+      c.strokeStyle = "#8B6F3F";
+      c.lineWidth = 3;
+      c.stroke();
+    }
+    c.restore();
+  }
+}
            function drawPickup(c, p) {
              const bob = Math.sin(TM * 3 + p.id) * 3,
                col = PK[p.type].col;
@@ -13407,18 +13408,19 @@ if (mo.aura) {
              c.fillStyle = blendTop;
              c.fillRect(0, horizonY - H * 0.15, W, H * 0.2);
              c.fillStyle = "rgba(15,5,10,0.75)";
-             for (let i = 0; i < 8; i++) {
-               const bx = W * (i / 7) + Math.sin(TM * 0.1 + i * 2) * 8,
-                 bh = 40 + Math.sin(i * 1.7) * 25 + Math.cos(i * 3.1) * 15;
-               c.beginPath();
-               c.moveTo(bx - 70, horizonY - 10);
-               c.lineTo(bx - 40, horizonY - bh);
-               c.lineTo(bx - 15, horizonY - bh * 0.85);
-               c.lineTo(bx + 10, horizonY - bh * 1.1);
-               c.lineTo(bx + 40, horizonY - bh * 0.7);
-               c.lineTo(bx + 70, horizonY - 10);
-               c.closePath();
-               c.fill();
+for (let i = 0; i < 8; i++) {
+  G.debris.push({
+    x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
+    y: rk.y - rnd(0, rk.h),
+    vy: -rnd(80, 220),
+    g: 520,
+    ang: rnd(0, TAU),
+    w: rnd(-8, 8),
+    f: 1,
+    floor: rk.y + 4,
+    t: 0,
+    clat: false,
+     });
              }
              for (let i = 0; i < 5; i++) {
                const bx = W * (i / 4) + Math.sin(TM * 0.2 + i * 3) * 20,
