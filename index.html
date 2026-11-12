@@ -13493,18 +13493,17 @@
         c.fillRect(0, horizonY - H * 0.15, W, H * 0.2);
         c.fillStyle = "rgba(15,5,10,0.75)";
         for (let i = 0; i < 8; i++) {
-          G.debris.push({
-            x: rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
-            y: rk.y - rnd(0, rk.h),
-            vy: -rnd(80, 220),
-            g: 520,
-            ang: rnd(0, TAU),
-            w: rnd(-8, 8),
-            f: 1,
-            floor: rk.y + 4,
-            t: 0,
-            clat: false,
-          });
+          const bx = W * (i / 7) + Math.sin(TM * 0.1 + i * 2) * 8,
+            bh = 40 + Math.sin(i * 1.7) * 25 + Math.cos(i * 3.1) * 15;
+          c.beginPath();
+          c.moveTo(bx - 70, horizonY - 10);
+          c.lineTo(bx - 40, horizonY - bh);
+          c.lineTo(bx - 15, horizonY - bh * 0.85);
+          c.lineTo(bx + 10, horizonY - bh * 1.1);
+          c.lineTo(bx + 40, horizonY - bh * 0.7);
+          c.lineTo(bx + 70, horizonY - 10);
+          c.closePath();
+          c.fill();
         }
         for (let i = 0; i < 5; i++) {
           const bx = W * (i / 4) + Math.sin(TM * 0.2 + i * 3) * 20,
