@@ -2302,7 +2302,6 @@
             if (typeof autoPause === "function") autoPause();
           }
         } else {
-          // ← просто `} else {`, без лишней `}`
           if (bgTimer) {
             clearTimeout(bgTimer);
             bgTimer = null;
@@ -3283,7 +3282,7 @@
         dprCap: 2,
         mobMul: 1,
       };
-      let _previewMode = false; // 🆕
+      let _previewMode = false;
       let TM = 0;
       function pt(x, y, vx, vy, life, size, color, grav, add, drag, sq) {
         if (Q.pmul < 1 && Math.random() > Q.pmul) return;
@@ -3730,7 +3729,7 @@
         if (m.dead) {
           T.nm = "death";
           T.shape = 2;
-          T.a = 1 - clamp(m.deathT / 1, 0, 1);
+          T.a = 1;
           T.r = T.g = T.b = 255;
         } else if (m.victory) {
           T.nm = "victory";
@@ -3909,18 +3908,18 @@
       function hoodPath(c) {
         c.beginPath();
         c.moveTo(-14, -14);
-        c.bezierCurveTo(-18, -25, -16, -45, 0, -50); // Симметричный верх
+        c.bezierCurveTo(-18, -25, -16, -45, 0, -50);
         c.bezierCurveTo(16, -45, 18, -25, 14, -14);
         c.quadraticCurveTo(0, -10, -14, -14);
         c.closePath();
       }
       function sharkHoodPath(c) {
         c.beginPath();
-        c.moveTo(14, -14); // Задний низ
-        c.quadraticCurveTo(30, -32, 22, -50); // Нос (смотрит вправо)
-        c.quadraticCurveTo(10, -58, -10, -52); // Макушка
-        c.quadraticCurveTo(-18, -40, -15, -22); // Задняя часть
-        c.quadraticCurveTo(-10, -12, 0, -10); // Подбородок
+        c.moveTo(14, -14);
+        c.quadraticCurveTo(30, -32, 22, -50);
+        c.quadraticCurveTo(10, -58, -10, -52);
+        c.quadraticCurveTo(-18, -40, -15, -22);
+        c.quadraticCurveTo(-10, -12, 0, -10);
         c.closePath();
       }
 
@@ -4203,12 +4202,12 @@
             } else if (e.shape === 2) {
               c.strokeStyle = "rgba(" + col + "," + a + ")";
               c.lineCap = "round";
-              c.lineWidth = 2.2;
+              c.lineWidth = 3.5;
               c.beginPath();
-              c.moveTo(-3, -3);
-              c.lineTo(3, 3);
-              c.moveTo(3, -3);
-              c.lineTo(-3, 3);
+              c.moveTo(-4.5, -4.5);
+              c.lineTo(4.5, 4.5);
+              c.moveTo(4.5, -4.5);
+              c.lineTo(-4.5, 4.5);
               c.stroke();
             } else if (e.shape === 4) {
               c.beginPath();
@@ -4254,12 +4253,11 @@
               c.fillStyle = "rgba(255,255,255," + a + ")";
               c.fill();
               if (e.shape === 3) {
-                /* зрачок при ульте */
               }
             }
-            c.restore(); // ← restore ВНЕ if/else, но ВНУТРИ for(sd)
-          } // ← закрываем for(sd)
-        } // ← закрываем for(cp)
+            c.restore();
+          }
+        }
         c.globalAlpha = ga;
       }
 
@@ -4416,11 +4414,13 @@
       function withStaffTransform(c, m, f, drawShaft, drawTip) {
         const px = f * 22,
           py = -2;
-        const sw =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
+
+        const attackAnim = Math.max(m.swing, m.staffAnim * 1.5);
+        const sw = Math.sin(attackAnim * Math.PI) * 1.9 * f;
         c.save();
         c.translate(px, py);
-        c.rotate(sw - f * 0.04 + (m.staffAnim || 0) * f * 0.45);
+
+        c.rotate(sw - f * 0.04 + (m.staffAnim || 0) * f * 0.3);
         c.translate(-px, -py);
         c.lineCap = "round";
         c.lineJoin = "round";
@@ -4789,7 +4789,7 @@
             c.strokeStyle = "#3A2010";
             c.lineWidth = 3.5;
             c.beginPath();
-            c.moveTo(bx, topY); // Центр
+            c.moveTo(bx, topY);
             c.bezierCurveTo(
               bx - 8 * f,
               topY - 4,
@@ -4974,8 +4974,9 @@
         c.stroke();
 
         // РИСУЕМ РУКАВ (Естественная форма ткани, короче и толще)
-        const swingRot =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f * 0.6 : 0;
+        // 🆕 Объединяем анимацию для стрельбы и удара
+        const attackAnim = Math.max(m.swing, m.staffAnim * 1.5);
+        const swingRot = Math.sin(attackAnim * Math.PI) * 1.9 * f * 0.6;
         c.save();
 
         c.beginPath();
@@ -5194,7 +5195,7 @@
         drawEyes(c, m, fx, -26);
 
         // 2. РИСУЕМ ПОСОХ
-        drawStaff(c, m, f);
+        if (!m.dead) drawStaff(c, m, f);
 
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
@@ -6950,15 +6951,15 @@
 
       function castFeel(m, u) {
         const me = m === G.player,
-          n = u.mega ? 160 : 110;
+          n = u.mega ? 240 : 160;
         burst(
           m.x,
           m.y - 22,
           [elemColor(u.a), elemColor(u.b), "#fff"],
           n,
-          u.mega ? 420 : 300,
-          4,
-          0.9,
+          u.mega ? 500 : 380,
+          4.5,
+          1.0,
           true,
         );
         sfx(u.mega ? "mega" : "ult", u.a, u.b);
@@ -7039,16 +7040,40 @@
             c: "#FF8C00",
             w: 8,
           });
+          G.rings.push({
+            x,
+            y,
+            r0: 5,
+            r1: r * 2.2,
+            l: 1.2,
+            m: 1.2,
+            c: "#FF4500",
+            w: 4,
+          });
           burst(
             x,
             y,
             ["#FF4500", "#FFEE00", "#333"],
-            Math.ceil(60 * (power || 1)),
+            Math.ceil(90 * (power || 1)),
             r * 2.5,
             5,
             0.8,
             true,
           );
+          for (let i = 0; i < 20 * (power || 1); i++) {
+            pt(
+              x + rnd(-r, r),
+              y + rnd(-r, r),
+              rnd(-50, 50),
+              rnd(-150, -50),
+              rnd(1, 2),
+              rnd(3, 6),
+              pick(["#333", "#555", "#222"]),
+              -20,
+              false,
+              0.95,
+            ); // Дым
+          }
         }
         // 🆕 Лёд
         else if (col === ELEMS[1].color || col === "#00DDFF") {
@@ -7062,36 +7087,45 @@
             c: "#E8FFFF",
             w: 5,
           });
+          G.rings.push({
+            x,
+            y,
+            r0: r * 0.1,
+            r1: r * 1.8,
+            l: 1.5,
+            m: 1.5,
+            c: "#00DDFF",
+            w: 3,
+          });
           burst(
             x,
             y,
             ["#E8FFFF", "#00DDFF", "#FFFFFF"],
-            Math.ceil(50 * (power || 1)),
+            Math.ceil(80 * (power || 1)),
             r * 1.8,
             5,
             1,
             true,
           );
-          for (let i = 0; i < 8; i++) {
-            // Осколки льда (квадратики)
+          for (let i = 0; i < 15 * (power || 1); i++) {
             pt(
               x + rnd(-r, r),
               y + rnd(-r, r),
-              rnd(-50, 50),
-              rnd(-100, -20),
-              rnd(0.8, 1.5),
-              rnd(3, 6),
+              rnd(-80, 80),
+              rnd(-150, -50),
+              rnd(1, 2),
+              rnd(4, 8),
               "#A0F0FF",
-              200,
+              250,
               true,
-              0.95,
+              0.98,
               true,
-            );
+            ); // Ледяные осколки
           }
         }
         // 🆕 Молния
         else if (col === ELEMS[2].color || col === "#FFEE00") {
-          for (let i = 0; i < 4; i++) {
+          for (let i = 0; i < 6; i++) {
             G.bolts.push({
               pts: bolt(
                 x + rnd(-r, r),
@@ -7106,29 +7140,44 @@
               w: 5,
             });
           }
-          FX.flash = 0.5;
+          FX.flash = 0.6;
           FX.flashC = "#FFFFC0";
           burst(
             x,
             y,
             ["#FFEE00", "#FFFFFF"],
-            Math.ceil(40 * (power || 1)),
+            Math.ceil(60 * (power || 1)),
             r * 2,
             3,
             0.6,
             true,
           );
+          for (let i = 0; i < 20 * (power || 1); i++) {
+            pt(
+              x + rnd(-r, r),
+              y + rnd(-r, r),
+              rnd(-200, 200),
+              rnd(-200, 200),
+              rnd(0.2, 0.5),
+              rnd(2, 4),
+              "#FFFFFF",
+              0,
+              true,
+              0.9,
+              true,
+            ); // Искры
+          }
         }
         // 🆕 Воздух
         else if (col === ELEMS[3].color || col === "#B0E0E6") {
-          for (let i = 0; i < 6; i++) {
+          for (let i = 0; i < 8; i++) {
             G.rings.push({
               x,
               y,
-              r0: r * 0.5,
-              r1: r * (1.5 + i * 0.2),
-              l: 0.6,
-              m: 0.6,
+              r0: r * 0.2,
+              r1: r * (1.8 + i * 0.3),
+              l: 0.8,
+              m: 0.8,
               c: "#FFFFFF",
               w: 2,
             });
@@ -7137,20 +7186,35 @@
             x,
             y,
             ["#E8FAFF", "#B0E0E6"],
-            Math.ceil(70 * (power || 1)),
+            Math.ceil(100 * (power || 1)),
             r * 2.5,
             4,
             0.9,
             true,
           );
+          for (let i = 0; i < 15 * (power || 1); i++) {
+            const a = rnd(0, TAU);
+            pt(
+              x,
+              y,
+              Math.cos(a) * rnd(100, 300),
+              Math.sin(a) * rnd(100, 300),
+              rnd(0.5, 1),
+              rnd(3, 5),
+              "#E8FAFF",
+              0,
+              true,
+              0.96,
+            );
+          }
         }
         // 🆕 Пустота (по умолчанию)
         else {
           burst(
             x,
             y,
-            [col, "#fff"],
-            Math.ceil(40 * (power || 1)),
+            [col, "#fff", "#FF00FF"],
+            Math.ceil(60 * (power || 1)),
             r * 2.2,
             4,
             0.7,
@@ -7344,7 +7408,7 @@
             splash(ax, ay, 250, E(0), 1.5);
             FX.flash = 0.6;
             FX.flashC = "#FF4500";
-            if (!G.online) FX.dark = 0.3;
+            if (!G.online) FX.dark = 0.15;
             break;
 
           // --- КОМБО: ОГОНЬ + ЛЁД ---
@@ -7476,7 +7540,7 @@
               });
             }
             splash(mx, my, 200, E(2), 1.2);
-            FX.dark = 0.3;
+            FX.dark = 0.1;
             break;
 
           // --- КОМБО: МОЛНИЯ + ВОЗДУХ ---
@@ -7559,7 +7623,7 @@
               style: "hole",
             });
             splash(ax, ay, 220, E(4), 1.5);
-            FX.dark = 0.4;
+            FX.dark = 0.15;
             shake(5);
             break;
 
@@ -7594,7 +7658,7 @@
             splash(mx, my, 500, E(0), 2.0);
             FX.flash = 1.0;
             FX.flashC = "#FF8C00";
-            if (!G.online) FX.dark = 0.5;
+            if (!G.online) FX.dark = 0.25;
             break;
 
           // --- МЕГА: ЛЁД (ЛЕДНИКОВЫЙ ПЕРИОД) ---
@@ -7687,7 +7751,7 @@
                 true,
               );
             });
-            FX.dark = 0.7;
+            FX.dark = 0.3;
             FX.flash = 0.8;
             FX.flashC = "#6A0DAD";
             if (!G.online) FX.zoom = -0.1;
@@ -12168,6 +12232,7 @@
             c.fillStyle = "rgba(20,20,40,.25)";
             c.fillRect(0, 0, W, H);
           } else if (g.k === "oblivion") {
+            // 🆕 УМЕНЬШЕНО ЗАТЕМНЕНИЕ
             const gr = c.createRadialGradient(
               W / 2,
               H / 2,
@@ -12176,17 +12241,18 @@
               H / 2,
               Math.max(W, H) * 0.7,
             );
-            gr.addColorStop(0, "rgba(0,0,0,.6)");
+            gr.addColorStop(0, "rgba(0,0,0,.25)"); // Было .6
             gr.addColorStop(
               1,
-              "rgba(40,0,70," + 0.5 * Math.min(1, k * 3) + ")",
+              "rgba(40,0,70," + 0.2 * Math.min(1, k * 3) + ")", // Было 0.5
             );
             c.fillStyle = gr;
             c.fillRect(0, 0, W, H);
           }
         }
         if (FX.dark > 0) {
-          c.fillStyle = "rgba(0,0,0," + FX.dark * 0.6 + ")";
+          // 🆕 УМЕНЬШЕН МНОЖИТЕЛЬ
+          c.fillStyle = "rgba(0,0,0," + FX.dark * 0.3 + ")"; // Было * 0.6
           c.fillRect(0, 0, W, H);
         }
         if (FX.flash > 0) {
@@ -12196,6 +12262,7 @@
           c.globalAlpha = 1;
         }
       }
+
       function renderGame() {
         renderWorld();
         drawNameplates();
@@ -14866,8 +14933,8 @@
           m.atkCd -= dt;
           m.dashCd -= dt;
           m.castLock -= dt;
-          m.swing = Math.max(0, m.swing - dt * 5);
-          m.staffAnim = Math.max(0, m.staffAnim - dt * 6);
+          m.swing = Math.max(0, m.swing - dt * 8);
+          m.staffAnim = Math.max(0, m.staffAnim - dt * 10);
           // 🆕 Ограничиваем dashT только для удалённых игроков
           // (у локального игрока это делает clientSelf)
           if (m !== g.player && m.dashT > 0) {
