@@ -3890,16 +3890,7 @@
           );
       }
 
-      const GradCache = new Map();
 
-      function getGrad(key, createFn) {
-        let g = GradCache.get(key);
-        if (!g) {
-          g = createFn();
-          GradCache.set(key, g);
-        }
-        return g;
-      }
 
       function palOf(hex) {
         let p = _pal.get(hex);
@@ -3978,10 +3969,10 @@
           c.closePath();
         };
         const g = getGrad("cape_" + m.mantle, () => {
-          const grad = c.createLinearGradient(0, -20, 0, 10);
-          grad.addColorStop(0, pal.hi);
-          grad.addColorStop(0.5, pal.base);
-          grad.addColorStop(1, pal.sh);
+ const g = c.createLinearGradient(0, -20, 0, 10);
+        g.addColorStop(0, pal.hi);
+        g.addColorStop(0.5, pal.base);
+        g.addColorStop(1, pal.sh);
           return grad;
         });
         path();
@@ -4063,10 +4054,10 @@
         c.quadraticCurveTo(0, -21, lp[0][0] + 1, lp[0][1] - 3);
         c.closePath();
         const g = getGrad("robe_" + m.mantle, () => {
-          const grad = c.createLinearGradient(0, -18, 0, 4);
-          grad.addColorStop(0, pal.hi);
-          grad.addColorStop(0.45, pal.base);
-          grad.addColorStop(1, pal.sh);
+    const g = c.createLinearGradient(0, -18, 0, 4);
+        g.addColorStop(0, pal.hi);
+        g.addColorStop(0.45, pal.base);
+        g.addColorStop(1, pal.sh);
           return grad;
         });
         c.fillStyle = g;
@@ -5018,10 +5009,10 @@
         if (m.skin.sharkSkin) sharkHoodPath(c);
         else hoodPath(c);
         const hg = getGrad("hood_" + m.mantle, () => {
-          const grad = c.createLinearGradient(-14, -48, 14, -14);
-          grad.addColorStop(0, pal.hi);
-          grad.addColorStop(0.45, pal.base);
-          grad.addColorStop(1, pal.sh);
+  const hg = c.createLinearGradient(-14, -48, 14, -14);
+        hg.addColorStop(0, pal.hi);
+        hg.addColorStop(0.45, pal.base);
+        hg.addColorStop(1, pal.sh);
           return grad;
         });
         c.fillStyle = hg;
@@ -5950,9 +5941,9 @@
           col = mo.col,
           wob = Math.sin(TM * 8 + mo.an);
         const g = getGrad("monster_" + mo.col, () => {
-          const grad = c.createLinearGradient(0, -40, 0, 0); // Используем фиксированный размер
-          grad.addColorStop(0, shade(col, 0.25));
-          grad.addColorStop(1, shade(col, -0.25));
+    const g = c.createLinearGradient(0, -r * 2, 0, 0);
+        g.addColorStop(0, shade(col, 0.25));
+        g.addColorStop(1, shade(col, -0.25));
           return grad;
         });
         c.fillStyle = g;
