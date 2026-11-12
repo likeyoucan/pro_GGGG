@@ -1183,7 +1183,7 @@
         PEERJS_SECURE: true,
         YANDEX_SDK_URL: "https://yandex.ru/games/sdk/v2",
       };
-            // 🆕 Карта серверов для динамического переключения
+      // 🆕 Карта серверов для динамического переключения
       const SERVERS = {
         "0.peerjs.com": {
           host: "0.peerjs.com",
@@ -5196,31 +5196,6 @@
         // 2. РИСУЕМ ПОСОХ
         drawStaff(c, m, f);
 
-        // 3. РИСУЕМ КИСТЬ (ПОВЕРХ ПОСОХА)
-        const px = f * 21,
-          py = -12;
-        const sw =
-          m.swing > 0 ? Math.sin((1 - m.swing) * Math.PI) * 1.9 * f : 0;
-        c.save();
-        c.translate(px, py);
-        c.rotate(sw * 0.8 + (m.staffAnim || 0) * f * 0.3);
-        c.translate(-px, -py);
-
-        c.fillStyle = "#2a1508"; // Цвет кожи/перчатки
-        c.strokeStyle = "#000";
-        c.lineWidth = 2;
-        // Рисуем кулак, который обхватывает посох
-        c.beginPath();
-        c.ellipse(px, py, 4.5, 6, f * 0.2, 0, TAU);
-        c.fill();
-        c.stroke();
-        // Большой палец
-        c.beginPath();
-        c.ellipse(px - f * 2.5, py - 1, 2.5, 3.5, -f * 0.5, 0, TAU);
-        c.fill();
-        c.stroke();
-        c.restore();
-
         if (m.fx.slow > 0 && m.fx.freeze <= 0) {
           c.globalAlpha = alpha * 0.28;
           c.fillStyle = "#5080FF";
@@ -7289,25 +7264,148 @@
           my = m.y,
           E = elemColor;
         switch (k) {
-          case "0": // Одиночная ульта Огня
+          // --- ОГОНЬ (1 руна) ---
+          case "0":
             aoe(m, mx, my, 170, 40, { kb: 18, burn: [3, 6] });
             splash(mx, my, 180, E(0), 1.2);
             shake(6);
             FX.flash = 0.3;
             FX.flashC = "#FF4500";
             break;
-          case "1": // Одиночная ульта
+
+          // --- ЛЁД (1 руна) ---
+          case "1":
             aoe(m, ax, ay, 150, 30, { freeze: 1.5 });
             splash(ax, ay, 150, E(1), 1.2);
             FX.flash = 0.4;
             FX.flashC = "#00DDFF";
             shake(4);
             break;
-          case "1-1": // Комбо (Ледяная тюрьма)
+
+          // --- МОЛНИЯ (1 руна) ---
+          case "2":
+            chainBolt(m, mx, my - 18, 3, 25, 320, "#FFEE00");
+            splash(mx, my, 100, E(2), 1);
+            FX.flash = 0.4;
+            FX.flashC = "#FFFFC0";
+            break;
+
+          // --- ВОЗДУХ (1 руна) ---
+          case "3":
+            aoe(m, mx, my, 220, 20, { kb: 28 });
+            splash(mx, my, 220, "#DDF4F8", 1.2);
+            for (let i = 1; i <= 3; i++) {
+              G.rings.push({
+                x: mx,
+                y: my,
+                r0: 50 * i,
+                r1: 150 * i,
+                l: 0.5,
+                m: 0.5,
+                c: "#FFFFFF",
+                w: 2,
+              });
+            }
+            break;
+
+          // --- ПУСТОТА (1 руна) ---
+          case "4":
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 110,
+              life: 2.5,
+              dps: 30,
+              pull: 240,
+              elem: 4,
+              style: "hole",
+            });
+            splash(ax, ay, 110, E(4), 1);
+            G.gfx.push({ k: "oblivion", t: 1, m: 1, x: ax, y: ay });
+            break;
+
+          // --- КОМБО: ОГОНЬ + ОГОНЬ ---
+          case "0-0":
+            for (let i = 0; i < 8; i++) {
+              later(i * 0.1, () => {
+                if (!m.dead) {
+                  meteor(
+                    m,
+                    ax + rnd(-130, 130),
+                    ay + rnd(-130, 130),
+                    75,
+                    35,
+                    0.5,
+                  );
+                  if (i % 2 === 0) shake(4);
+                }
+              });
+            }
+            splash(ax, ay, 250, E(0), 1.5);
+            FX.flash = 0.6;
+            FX.flashC = "#FF4500";
+            if (!G.online) FX.dark = 0.3;
+            break;
+
+          // --- КОМБО: ОГОНЬ + ЛЁД ---
+          case "0-1":
+            aoe(m, ax, ay, 150, 35, { slow: [4, 0.5], blind: 4 });
+            splash(ax, ay, 150, "#E8F8FF", 1);
+            break;
+
+          // --- КОМБО: ОГОНЬ + МОЛНИЯ ---
+          case "0-2":
+            chainBolt(m, mx, my - 18, 5, 35, 320, "#FF8C00");
+            splash(mx, my, 150, "#FF9040", 1);
+            aoe(m, mx, my, 100, 15, { kb: 10 });
+            break;
+
+          // --- КОМБО: ОГОНЬ + ВОЗДУХ (Смерч) ---
+          case "0-3": {
+            const distToCenter = dist(ax, ay, CX, CY);
+            let targetX = ax,
+              targetY = ay;
+            if (distToCenter > G.safeR) {
+              const ang = Math.atan2(ay - CY, ax - CX);
+              targetX = CX + Math.cos(ang) * (G.safeR - 50);
+              targetY = CY + Math.sin(ang) * (G.safeR - 50);
+            }
+            addZone(m, {
+              x: targetX,
+              y: targetY,
+              r: 75,
+              life: 6,
+              dps: 60,
+              chase: 130,
+              pull: 40,
+              elem: 0,
+              style: "tornado",
+            });
+            splash(targetX, targetY, 100, E(0), 0.8);
+            break;
+          }
+
+          // --- КОМБО: ОГОНЬ + ПУСТОТА ---
+          case "0-4":
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 160,
+              life: 3,
+              dps: 50,
+              pull: 300,
+              elem: 0,
+              style: "hole",
+              burn: true,
+            });
+            splash(ax, ay, 160, "#FF3000", 1);
+            break;
+
+          // --- КОМБО: ЛЁД + ЛЁД ---
+          case "1-1":
             aoe(m, CX, CY, 5000, 20, { freeze: 3 });
             splash(mx, my, 300, E(1), 1.4);
-            G.gfx.push({ k: "ice", t: 4, m: 4 }); // Долгое замерзание экрана
-            // 🆕 Спавним ледяные глыбы вокруг игрока
+            G.gfx.push({ k: "ice", t: 4, m: 4 });
             for (let i = 0; i < 12; i++) {
               const a = (i / 12) * TAU;
               addZone(m, {
@@ -7323,24 +7421,50 @@
             FX.flash = 0.6;
             FX.flashC = "#FFFFFF";
             break;
-          case "1-1-1": // МЕГА (Ледниковый период)
-            giveAura(m, 1, 10);
-            aoe(m, CX, CY, 5000, 30, { freeze: 5 });
-            G.gfx.push({ k: "ice", t: 6, m: 6 });
-            splash(mx, my, 500, E(1), 1.8);
-            // 🆕 Эффект "разбивания" всего экрана
-            FX.flash = 1.0;
-            FX.flashC = "#A0F0FF";
-            if (!G.online) FX.slow = { t: 1.5, s: 0.2 };
-            shake(12);
+
+          // --- КОМБО: ЛЁД + МОЛНИЯ ---
+          case "1-2":
+            for (let i = 0; i < 6; i++) {
+              const x = ax + rnd(-130, 130),
+                y = ay + rnd(-130, 130);
+              G.tele.push({ x, y, r: 70, t: 0.9, m: 0.9, c: "#9FE8FF" });
+              addZone(m, {
+                x,
+                y,
+                r: 60,
+                life: 1.2,
+                slow: 0.5,
+                elem: 1,
+                style: "ice",
+              });
+              later(0.9 + i * 0.12, () => strike(m, x, y, 70, 50));
+            }
             break;
-          case "2": // Одиночная ульта
-            chainBolt(m, mx, my - 18, 3, 25, 320, "#FFEE00");
-            splash(mx, my, 100, E(2), 1);
-            FX.flash = 0.4;
-            FX.flashC = "#FFFFC0";
+
+          // --- КОМБО: ЛЁД + ВОЗДУХ ---
+          case "1-3":
+            G.gfx.push({ k: "blizzard", t: 6, m: 6 });
+            addZone(m, {
+              x: CX,
+              y: CY,
+              r: 1e5,
+              life: 6,
+              dps: 20,
+              slow: 0.6,
+              elem: 1,
+              style: "global",
+            });
+            splash(mx, my, 300, "#E8FFFF", 1.2);
             break;
-          case "2-2": // Комбо (Цепная перегрузка)
+
+          // --- КОМБО: ЛЁД + ПУСТОТА ---
+          case "1-4":
+            aoe(m, ax, ay, 170, 40, { freeze: 2, amp: 5 });
+            splash(ax, ay, 170, "#B0F8FF", 1.2);
+            break;
+
+          // --- КОМБО: МОЛНИЯ + МОЛНИЯ ---
+          case "2-2":
             for (let i = 0; i < 8; i++) {
               later(i * 0.08, () => {
                 if (m.dead) return;
@@ -7352,13 +7476,143 @@
               });
             }
             splash(mx, my, 200, E(2), 1.2);
-            FX.dark = 0.3; // Кратковременное затемнение
+            FX.dark = 0.3;
             break;
-          case "2-2-2": // МЕГА (Гнев Богов)
+
+          // --- КОМБО: МОЛНИЯ + ВОЗДУХ ---
+          case "2-3":
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 75,
+              life: 5,
+              dps: 20,
+              chase: 110,
+              pull: 60,
+              zap: 25,
+              elem: 2,
+              style: "tornado",
+            });
+            splash(ax, ay, 100, E(2), 0.8);
+            break;
+
+          // --- КОМБО: МОЛНИЯ + ПУСТОТА ---
+          case "2-4":
+            for (let i = 0; i < 6; i++) {
+              later(i * 0.1, () => {
+                if (!m.dead)
+                  spawnProj(m, mx, my - 22, rnd(0, TAU), 4, 35, {
+                    speed: 340,
+                    life: 2.5,
+                    home: true,
+                    r: 10,
+                    kind: 1,
+                  });
+              });
+            }
+            splash(mx, my, 140, E(4), 1);
+            break;
+
+          // --- КОМБО: ВОЗДУХ + ВОЗДУХ ---
+          case "3-3":
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 200,
+              life: 5,
+              dps: 20,
+              pull: 260,
+              elem: 3,
+              style: "tornado",
+              end: "throw",
+            });
+            splash(ax, ay, 200, "#DDF4F8", 1.4);
+            if (!G.online) FX.zoom = 0.1;
+            break;
+
+          // --- КОМБО: ВОЗДУХ + ПУСТОТА ---
+          case "3-4":
+            for (const t of G.all) {
+              if (!isFoe(m, t)) continue;
+              const a = Math.atan2(t.y - CY, t.x - CX),
+                rr = G.safeR * 0.9;
+              burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
+              t.x = CX + Math.cos(a) * rr;
+              t.y = CY + Math.sin(a) * rr;
+              if (t.resetVerlet) t.resetVerlet();
+              burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
+              dealDamage(m, t, 30, { type: "zone" });
+            }
+            splash(mx, my, 300, E(4), 1.2);
+            break;
+
+          // --- КОМБО: ПУСТОТА + ПУСТОТА ---
+          case "4-4":
+            addZone(m, {
+              x: ax,
+              y: ay,
+              r: 220,
+              life: 5,
+              dps: 50,
+              pull: 320,
+              elem: 4,
+              style: "hole",
+            });
+            splash(ax, ay, 220, E(4), 1.5);
+            FX.dark = 0.4;
+            shake(5);
+            break;
+
+          // --- МЕГА: ОГОНЬ (АРМАГЕДДОН) ---
+          case "0-0-0":
+            giveAura(m, 0, 10);
+            G.gfx.push({ k: "lava", t: 10, m: 10 });
+            emitter(m, 10, 0.15, () => {
+              const t = randFoe(m);
+              let x, y;
+              if (t && Math.random() < 0.8) {
+                x = t.x + rnd(-80, 80);
+                y = t.y + rnd(-80, 80);
+              } else {
+                const a = rnd(0, TAU),
+                  r = Math.sqrt(Math.random()) * G.safeR * 0.9;
+                x = CX + Math.cos(a) * r;
+                y = CY + Math.sin(a) * r;
+              }
+              meteor(m, x, y, 85, 25, 0.4);
+              if (Math.random() < 0.4) shake(3);
+            });
+            addZone(m, {
+              x: CX,
+              y: CY,
+              r: 1e5,
+              life: 10,
+              dps: 15,
+              elem: 0,
+              style: "global",
+            });
+            splash(mx, my, 500, E(0), 2.0);
+            FX.flash = 1.0;
+            FX.flashC = "#FF8C00";
+            if (!G.online) FX.dark = 0.5;
+            break;
+
+          // --- МЕГА: ЛЁД (ЛЕДНИКОВЫЙ ПЕРИОД) ---
+          case "1-1-1":
+            giveAura(m, 1, 10);
+            aoe(m, CX, CY, 5000, 30, { freeze: 5 });
+            G.gfx.push({ k: "ice", t: 6, m: 6 });
+            splash(mx, my, 500, E(1), 1.8);
+            FX.flash = 1.0;
+            FX.flashC = "#A0F0FF";
+            if (!G.online) FX.slow = { t: 1.5, s: 0.2 };
+            shake(12);
+            break;
+
+          // --- МЕГА: МОЛНИЯ (ГНЕВ БОГОВ) ---
+          case "2-2-2":
             giveAura(m, 2, 10);
             G.gfx.push({ k: "wrath", t: 8, m: 8 });
-
-            // 🆕 Постоянные удары молний по всей арене
             emitter(m, 8, 0.12, () => {
               const t = randFoe(m);
               if (t && Math.random() < 0.7)
@@ -7373,48 +7627,16 @@
                 );
               if (Math.random() < 0.3) shake(2);
             });
-
             splash(mx, my, 500, E(2), 2.0);
             FX.flash = 1.0;
             FX.flashC = "#FFFFC0";
             if (!G.online) FX.slow = { t: 1, s: 0.1 };
             shake(15);
             break;
-          case "3": // Одиночная ульта
-            aoe(m, mx, my, 220, 20, { kb: 28 });
-            splash(mx, my, 220, "#DDF4F8", 1.2);
-            // 🆕 Расходящиеся кольца ветра
-            for (let i = 1; i <= 3; i++) {
-              G.rings.push({
-                x: mx,
-                y: my,
-                r0: 50 * i,
-                r1: 150 * i,
-                l: 0.5,
-                m: 0.5,
-                c: "#FFFFFF",
-                w: 2,
-              });
-            }
-            break;
-          case "3-3": // Комбо (Циклон)
-            addZone(m, {
-              x: ax,
-              y: ay,
-              r: 200,
-              life: 5,
-              dps: 20,
-              pull: 260,
-              elem: 3,
-              style: "tornado",
-              end: "throw",
-            });
-            splash(ax, ay, 200, "#DDF4F8", 1.4);
-            if (!G.online) FX.zoom = 0.1; // Легкий зум
-            break;
-          case "3-3-3": // МЕГА (Ураган)
+
+          // --- МЕГА: ВОЗДУХ (УРАГАН) ---
+          case "3-3-3":
             giveAura(m, 3, 10);
-            // 🆕 Огромный, медленно движущийся ураган
             addZone(m, {
               x: mx,
               y: my,
@@ -7433,37 +7655,8 @@
             shake(10);
             break;
 
-          case "4": // Одиночная ульта
-            addZone(m, {
-              x: ax,
-              y: ay,
-              r: 110,
-              life: 2.5,
-              dps: 30,
-              pull: 240,
-              elem: 4,
-              style: "hole",
-            });
-            splash(ax, ay, 110, E(4), 1);
-            // 🆕 Искажение пространства
-            G.gfx.push({ k: "oblivion", t: 1, m: 1, x: ax, y: ay });
-            break;
-          case "4-4": // Комбо (Чёрная дыра)
-            addZone(m, {
-              x: ax,
-              y: ay,
-              r: 220,
-              life: 5,
-              dps: 50,
-              pull: 320,
-              elem: 4,
-              style: "hole",
-            });
-            splash(ax, ay, 220, E(4), 1.5);
-            FX.dark = 0.4;
-            shake(5);
-            break;
-          case "4-4-4": // МЕГА (Забвение)
+          // --- МЕГА: ПУСТОТА (ЗАБВЕНИЕ) ---
+          case "4-4-4":
             giveAura(m, 4, 10);
             addZone(m, {
               x: mx,
@@ -7479,10 +7672,9 @@
             });
             G.gfx.push({ k: "oblivion", t: 6, m: 6, x: mx, y: my });
             splash(mx, my, 600, E(4), 2.0);
-            // 🆕 Жесткое затягивание в центр
             emitter(m, 6, 0.05, () => {
-              const a = rnd(0, TAU);
-              const r = 800;
+              const a = rnd(0, TAU),
+                r = 800;
               pt(
                 mx + Math.cos(a) * r,
                 my + Math.sin(a) * r,
@@ -7499,291 +7691,6 @@
             FX.flash = 0.8;
             FX.flashC = "#6A0DAD";
             if (!G.online) FX.zoom = -0.1;
-            break;
-          case "0-0":
-            for (let i = 0; i < 8; i++) {
-              later(i * 0.1, () => {
-                if (!m.dead) {
-                  meteor(
-                    m,
-                    ax + rnd(-130, 130),
-                    ay + rnd(-130, 130),
-                    75,
-                    35,
-                    0.5,
-                  );
-                  if (i % 2 === 0) shake(4); // Тряска на каждом втором метеоре
-                }
-              });
-            }
-            splash(ax, ay, 250, E(0), 1.5); // Увеличили взрыв
-            FX.flash = 0.6;
-            FX.flashC = "#FF4500"; // Мощная вспышка
-            if (!G.online) FX.dark = 0.3; // Легкое затемнение экрана
-            break;
-          case "0-1":
-            aoe(m, ax, ay, 150, 35, { slow: [4, 0.5], blind: 4 });
-            splash(ax, ay, 150, "#E8F8FF", 1);
-            break;
-          case "0-2":
-            chainBolt(m, mx, my - 18, 5, 35, 320, "#FF8C00");
-            splash(mx, my, 150, "#FF9040", 1);
-            aoe(m, mx, my, 100, 15, { kb: 10 });
-            break;
-          case "0-3":
-            // Проверка границ
-            const distToCenter = dist(ax, ay, CX, CY);
-            let targetX = ax,
-              targetY = ay;
-            if (distToCenter > G.safeR) {
-              const ang = Math.atan2(ay - CY, ax - CX);
-              targetX = CX + Math.cos(ang) * (G.safeR - 50);
-              targetY = CY + Math.sin(ang) * (G.safeR - 50);
-            }
-
-            addZone(m, {
-              x: targetX,
-              y: targetY,
-              r: 75,
-              life: 6,
-              dps: 60,
-              chase: 130,
-              pull: 40,
-              elem: 0,
-              style: "tornado",
-            });
-            splash(targetX, targetY, 100, E(0), 0.8);
-            break;
-          case "0-4":
-            addZone(m, {
-              x: ax,
-              y: ay,
-              r: 160,
-              life: 3,
-              dps: 50,
-              pull: 300,
-              elem: 0,
-              style: "hole",
-              burn: true,
-            });
-            splash(ax, ay, 160, "#FF3000", 1);
-            break;
-          case "1-1":
-            aoe(m, CX, CY, 5000, 20, { freeze: 3 });
-            splash(mx, my, 300, E(1), 1.4);
-            G.gfx.push({ k: "ice", t: 3, m: 3 });
-            break;
-          case "1-2":
-            for (let i = 0; i < 6; i++) {
-              const x = ax + rnd(-130, 130),
-                y = ay + rnd(-130, 130);
-              G.tele.push({ x, y, r: 70, t: 0.9, m: 0.9, c: "#9FE8FF" });
-              addZone(m, {
-                x,
-                y,
-                r: 60,
-                life: 1.2,
-                slow: 0.5,
-                elem: 1,
-                style: "ice",
-              });
-              later(0.9 + i * 0.12, () => strike(m, x, y, 70, 50));
-            }
-            break;
-          case "1-3":
-            G.gfx.push({ k: "blizzard", t: 6, m: 6 });
-            addZone(m, {
-              x: CX,
-              y: CY,
-              r: 1e5,
-              life: 6,
-              dps: 20,
-              slow: 0.6,
-              elem: 1,
-              style: "global",
-            });
-            splash(mx, my, 300, "#E8FFFF", 1.2);
-            break;
-          case "1-4":
-            aoe(m, ax, ay, 170, 40, { freeze: 2, amp: 5 });
-            splash(ax, ay, 170, "#B0F8FF", 1.2);
-            break;
-          case "2-2":
-            for (let i = 0; i < 10; i++)
-              later(i * 0.12, () => {
-                if (m.dead) return;
-                const t = randFoe(m);
-                if (t)
-                  chainBolt(
-                    m,
-                    t.x + rnd(-120, 120),
-                    t.y - 200,
-                    1,
-                    30,
-                    300,
-                    "#FFEE00",
-                  );
-                else
-                  strike(m, mx + rnd(-300, 300), my + rnd(-300, 300), 50, 30);
-              });
-            splash(mx, my, 200, E(2), 1);
-            break;
-          case "2-3":
-            addZone(m, {
-              x: ax, // 🆕
-              y: ay, // 🆕
-              r: 75,
-              life: 5,
-              dps: 20,
-              chase: 110,
-              pull: 60,
-              zap: 25,
-              elem: 2,
-              style: "tornado",
-            });
-            splash(ax, ay, 100, E(2), 0.8);
-            break;
-          case "2-4":
-            for (let i = 0; i < 6; i++)
-              later(i * 0.1, () => {
-                if (!m.dead)
-                  spawnProj(m, mx, my - 22, rnd(0, TAU), 4, 35, {
-                    speed: 340,
-                    life: 2.5,
-                    home: true,
-                    r: 10,
-                    kind: 1,
-                  });
-              });
-            splash(mx, my, 140, E(4), 1);
-            break;
-          case "3-3":
-            addZone(m, {
-              x: ax,
-              y: ay,
-              r: 200,
-              life: 4,
-              dps: 20,
-              pull: 260,
-              elem: 3,
-              style: "tornado",
-              end: "throw",
-            });
-            splash(ax, ay, 200, "#DDF4F8", 1.2);
-            break;
-          case "3-4":
-            for (const t of G.all) {
-              if (!isFoe(m, t)) continue;
-              const a = Math.atan2(t.y - CY, t.x - CX),
-                rr = G.safeR * 0.9;
-              burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
-              t.x = CX + Math.cos(a) * rr;
-              t.y = CY + Math.sin(a) * rr;
-              if (t.resetVerlet) t.resetVerlet();
-              burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
-              dealDamage(m, t, 30, { type: "zone" });
-            }
-            splash(mx, my, 300, E(4), 1.2);
-            break;
-          case "4-4":
-            addZone(m, {
-              x: ax,
-              y: ay,
-              r: 220,
-              life: 5,
-              dps: 50,
-              pull: 320,
-              elem: 4,
-              style: "hole",
-            });
-            splash(ax, ay, 220, E(4), 1.4);
-            break;
-          case "0-0-0":
-            giveAura(m, 0, 10);
-            G.gfx.push({ k: "lava", t: 10, m: 10 }); // Эффект лавы на фоне
-
-            // Ускорили вызов метеоров (0.15 вместо 0.25) и увеличили урон
-            emitter(m, 10, 0.15, () => {
-              const t = randFoe(m);
-              let x, y;
-              // 80% шанс, что метеор упадет прямо на врага
-              if (t && Math.random() < 0.8) {
-                x = t.x + rnd(-80, 80);
-                y = t.y + rnd(-80, 80);
-              } else {
-                const a = rnd(0, TAU),
-                  r = Math.sqrt(Math.random()) * G.safeR * 0.9;
-                x = CX + Math.cos(a) * r;
-                y = CY + Math.sin(a) * r;
-              }
-              meteor(m, x, y, 85, 25, 0.4); // Увеличили радиус
-              if (Math.random() < 0.4) shake(3); // Частая тряска
-            });
-
-            // Глобальное горение (увеличили DPS)
-            addZone(m, {
-              x: CX,
-              y: CY,
-              r: 1e5,
-              life: 10,
-              dps: 15,
-              elem: 0,
-              style: "global",
-            });
-
-            splash(mx, my, 500, E(0), 2.0); // Огромный взрыв при активации
-            FX.flash = 1.0;
-            FX.flashC = "#FF8C00"; // Яркая вспышка
-            if (!G.online) FX.dark = 0.5; // Сильное затемнение
-            break;
-          case "1-1-1":
-            giveAura(m, 1, 10);
-            aoe(m, CX, CY, 5000, 30, { freeze: 5 });
-            G.gfx.push({ k: "ice", t: 5, m: 5 });
-            splash(mx, my, 500, E(1), 1.6);
-            break;
-          case "2-2-2":
-            giveAura(m, 2, 10);
-            G.gfx.push({ k: "wrath", t: 8, m: 8 });
-            emitter(m, 8, 0.2, () => {
-              const t = randFoe(m);
-              if (t) strike(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 65, 20);
-              else strike(m, mx + rnd(-400, 400), my + rnd(-400, 400), 65, 20);
-            });
-            splash(mx, my, 400, E(2), 1.6);
-            break;
-          case "3-3-3":
-            giveAura(m, 3, 10);
-            addZone(m, {
-              x: mx,
-              y: my,
-              r: 260,
-              life: 8,
-              dps: 35,
-              chase: 150,
-              pull: 170,
-              elem: 3,
-              style: "tornado",
-              end: "throw",
-            });
-            splash(mx, my, 400, "#DDF4F8", 1.6);
-            break;
-          case "4-4-4":
-            giveAura(m, 4, 10);
-            addZone(m, {
-              x: mx,
-              y: my,
-              r: 1e5,
-              life: 6,
-              dps: 0,
-              pull: 230,
-              elem: 4,
-              style: "global",
-              core: 260,
-              coreDps: 70,
-            });
-            G.gfx.push({ k: "oblivion", t: 6, m: 6, x: mx, y: my });
-            splash(mx, my, 500, E(4), 1.8);
             break;
         }
       }
@@ -8046,12 +7953,6 @@
             m.mana = Math.min(100, m.mana + 60);
             break;
           case "mana3":
-            m.mana = 100;
-            break;
-          case "hp":
-            heal(m, m.maxHp * 0.5);
-            break;
-          case "mana":
             m.mana = 100;
             break;
           case "haste":
