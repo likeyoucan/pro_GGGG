@@ -1,3 +1,3 @@
 const { PeerServer } = require("peer");
 const port = process.env.PORT || 9000;
-PeerServer({ port, path: "/peerjs", proxied: true });
+PeerServer({ port, host: "0.0.0.0", path: "/peerjs", proxied: true });
