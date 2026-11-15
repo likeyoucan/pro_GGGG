@@ -601,8 +601,11 @@
         }
         /* 🆕 компактные карточки магазина на мобилке */
         .card {
-          height: 250px !important;
+          height: 250px;
           width: 140px;
+        }
+        .card.card-energy {
+          height: 170px;
         }
         .card > canvas {
           width: 100px;
@@ -612,9 +615,9 @@
           min-height: 64px;
         }
         .shop-btn {
-          min-height: 30px !important;
-          height: 30px !important;
-          font-size: 12px !important;
+          min-height: 30px;
+          height: 30px;
+          font-size: 12px;
         }
       }
 
@@ -814,7 +817,7 @@
           font-size: 14px;
         "
       >
-          <option value="ru" style="color: #ffd23a">РУССКИЙ</option>
+        <option value="ru" style="color: #ffd23a">РУССКИЙ</option>
         <option value="en" style="color: #ffd23a">ENGLISH</option>
       </select>
     </div>
@@ -1449,22 +1452,26 @@
       }
       const _rc = new Map();
       function rgba(h, a) {
-        const k = h + "|" + a;
+        const qa = Math.round(a * 20) / 20;
+        const k = h + "|" + qa;
         let s = _rc.get(k);
         if (!s) {
           const c = hexRGB(h);
-          s = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
+          s = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + qa + ")";
+          if (_rc.size > 8000) _rc.clear();
           _rc.set(k, s);
         }
         return s;
       }
+
       function shade(h, a) {
-        const k = h + "|" + a;
+        const qa = Math.round(a * 40) / 40;
+        const k = h + "|" + qa;
         let s = _sc.get(k);
         if (!s) {
           const c = hexRGB(h),
-            tg = a < 0 ? 0 : 255,
-            p = Math.abs(a);
+            tg = qa < 0 ? 0 : 255,
+            p = Math.abs(qa);
           s =
             "rgb(" +
             Math.round(c[0] + (tg - c[0]) * p) +
@@ -1473,6 +1480,7 @@
             "," +
             Math.round(c[2] + (tg - c[2]) * p) +
             ")";
+          if (_sc.size > 4000) _sc.clear();
           _sc.set(k, s);
         }
         return s;
@@ -1883,13 +1891,17 @@
           const s = document.createElement("script");
           s.src = url;
           s.async = true;
-          const tm = setTimeout(() => j(new Error("timeout")), to);
+          const tm = setTimeout(() => {
+            console.warn("[loadScript] timeout:", url);
+            j(new Error("timeout"));
+          }, to);
           s.onload = () => {
             clearTimeout(tm);
             r();
           };
           s.onerror = () => {
             clearTimeout(tm);
+            console.warn("[loadScript] error:", url);
             j(new Error("load"));
           };
           document.head.appendChild(s);
@@ -2022,8 +2034,10 @@
         if (_bannerShown) return;
         try {
           if (window.ysdk && ysdk.adv && ysdk.adv.showBannerAdv) {
-            ysdk.adv.showBannerAdv();
-            _bannerShown = true;
+            const r = ysdk.adv.showBannerAdv();
+            if (r && r.then)
+              r.then(() => (_bannerShown = true)).catch(() => {});
+            else _bannerShown = true;
           }
         } catch (e) {}
       }
@@ -2031,7 +2045,8 @@
         if (!_bannerShown) return;
         try {
           if (window.ysdk && ysdk.adv && ysdk.adv.hideBannerAdv) {
-            ysdk.adv.hideBannerAdv();
+            const r = ysdk.adv.hideBannerAdv();
+            if (r && r.catch) r.catch(() => {});
           }
         } catch (e) {}
         _bannerShown = false;
@@ -2490,7 +2505,7 @@
         } catch (e) {}
       }
       // 🆕 Пространственный звук для чужих выстрелов
-        function sfxSpatial(n, a, b, worldX, worldY) {
+      function sfxSpatial(n, a, b, worldX, worldY) {
         if (!Aud.ctx || SAVE.muteAll || SAVE.sfx <= 0) return;
         if (!G || !G.player) return sfx(n, a, b);
         const p = G.player;
@@ -2552,6 +2567,7 @@
       function musicTick() {
         const c = Aud.ctx;
         if (!c || c.state !== "running") return;
+        if (SAVE.muteAll || SAVE.music <= 0) return;
         MUS.cur += (MUS.tgt - MUS.cur) * 0.05;
         const ia = clamp(1 - MUS.cur * 0.6, 0.3, 1),
           ic = clamp(MUS.cur * 2, 0, 1),
@@ -2623,7 +2639,7 @@
         } catch (e) {}
         _keepAliveNode = null;
       }
-            document.addEventListener("visibilitychange", () => {
+      document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           // 🆕 Яндекс мог сам скрыть баннер — сбрасываем флаг
           _bannerShown = false;
@@ -2656,6 +2672,7 @@
       function bgLoop() {
         bgTimer = null;
         if (!G || !G.online || G.role !== "host" || state !== "PLAYING") return;
+        frameNo++;
         const now = performance.now(),
           rd = Math.min((now - lastTime) / 1000, 3);
         lastTime = now;
@@ -2669,7 +2686,7 @@
             simStep(FIXED_DT);
             acc -= FIXED_DT;
             steps++;
-            if (steps % 3 === 0 && hasC()) {
+            if (steps % 4 === 0 && hasC()) {
               hostSendState();
               NET.stT = 0;
             }
@@ -4011,7 +4028,7 @@
             }
         }
       }
-      const GRID = new Grid(200);
+      const GRID = new Grid(140);
 
       class VerletSegment {
         constructor(x, y) {
@@ -5083,7 +5100,7 @@
         );
       }
 
-            function drawStaffVoid(c, m, f) {
+      function drawStaffVoid(c, m, f) {
         const bx = f * 22,
           topY = -50;
         withStaffTransform(
@@ -5207,15 +5224,17 @@
             c.arc(ox, oy, 2.5, 0, TAU);
             c.fill();
 
-            // 8) 🆕 Частицы, притягивающиеся к центру
-            if (Math.random() < 0.4) {
+            // 8) 🆕 Частицы в МИРОВЫХ координатах (у посоха)
+            if (Q.pmul >= 0.4 && Math.random() < 0.08) {
               const a = rnd(0, TAU);
               const r = 35 + rnd(0, 20);
+              const worldX = m.x + f * 22 + Math.cos(a) * r;
+              const worldY = m.y - 54 - m.lev + Math.sin(a) * r * 0.55;
               pt(
-                ox + Math.cos(a) * r,
-                oy + Math.sin(a) * r,
+                worldX,
+                worldY,
                 -Math.cos(a) * 80,
-                -Math.sin(a) * 80,
+                -Math.sin(a) * 80 - 20,
                 0.4,
                 rnd(1.5, 3),
                 pick(["#FF00FF", "#B040FF", "#D070FF"]),
@@ -7123,6 +7142,7 @@
       }
 
       function killEntity(t, src) {
+        if (!t || t.dead) return;
         // 🆕 phoenix — воскрешение
         if (!t.isMonster && t.phoenix && !t.phoenixUsed && t.hp <= 0) {
           t.phoenixUsed = true;
@@ -7802,6 +7822,7 @@
             trailType: m === G.player ? SAVE.fxTrail : "",
           });
         }
+        if (G.ghosts.length > 32) G.ghosts.splice(0, G.ghosts.length - 24);
 
         G.events.push({ k: "dash", id: m.id, a: ang });
         if (m === G.player) {
@@ -7837,7 +7858,7 @@
         for (let i = 0; i < 4; i++) {
           if (slots[i] === a) sameCount++;
         }
-                // Мега — если 4 одинаковых (базовая + 3 руны). Самый сильный ульт.
+        // Мега — если 4 одинаковых (базовая + 3 руны). Самый сильный ульт.
         if (sameCount >= 4) {
           return { key: a + "-" + a + "-" + a, mega: true, e: a, a, b: a };
         }
@@ -9011,7 +9032,7 @@
         }
       }
 
-        function randomPickupType() {
+      function randomPickupType() {
         // 🆕 руна пустоты спавнится всегда.
         // Подобрать её смогут только игроки со скином/посохом Пустоты
         // (проверка доступа в collect() и updatePickups()).
@@ -9056,7 +9077,7 @@
       function addMulti(m) {
         m.multiStacks = Math.min(15, m.multiStacks + 1);
       }
-            function addRune(m, e) {
+      function addRune(m, e) {
         if (!m.ultSlots) m.ultSlots = [m.elem, null, null, null];
 
         const _commit = (slot) => {
@@ -9236,10 +9257,9 @@
           a.t = rnd(0.3, 0.45);
           a.pk = null;
           let bs = 1e9;
-                if (m.hp < m.maxHp * (0.4 + a.aggression * 0.2) || m.mana < 30) {
+          if (m.hp < m.maxHp * (0.4 + a.aggression * 0.2) || m.mana < 30) {
             const _botHasVoid =
-              !!(m.skin && m.skin.voidElem) ||
-              !!(m.staff && m.staff.voidElem);
+              !!(m.skin && m.skin.voidElem) || !!(m.staff && m.staff.voidElem);
             for (const p of G.pickups) {
               // 🆕 бот без доступа к void игнорирует r4
               if (p.type === "r4" && !_botHasVoid) continue;
@@ -10040,7 +10060,7 @@
 
       function matchLogic(dt) {
         const g = G;
-               if (g.mode !== "survival") {
+        if (g.mode !== "survival") {
           const PH = [1250, 1000, 780, 580, 400, 250];
           const SHRINK_DUR = 20;
           g.matchTime = (g.matchTime || 0) + dt;
@@ -10049,7 +10069,8 @@
             const alive = g.mages.filter((m) => !m.dead);
             if (alive.length > 1) {
               alive.sort((a, b) => b.hp / b.maxHp - a.hp / a.maxHp);
-              for (let i = 1; i < alive.length; i++) killEntity(alive[i], alive[0]);
+              for (let i = 1; i < alive.length; i++)
+                killEntity(alive[i], alive[0]);
               announce(lang === "ru" ? "ВРЕМЯ!" : "TIME'S UP!", "#ffd23a");
             }
           }
@@ -10353,6 +10374,7 @@
       }
 
       function spawnCelebration(x, y) {
+        if (G.celebrate.length > 40) return;
         const items = ["🌹", "⭐", "🎉", "💎", "🍀", "✨"];
         for (let i = 0; i < 18; i++) {
           const a = rnd(-Math.PI, 0) + rnd(-0.4, 0.4),
@@ -10460,14 +10482,16 @@
       let touchMode = IS_MOBILE;
 
       function applyQuality() {
-        const q =
-          SAVE.quality === "auto"
-            ? IS_MOBILE && (navigator.hardwareConcurrency || 4) <= 4
-              ? "low"
-              : IS_MOBILE
-                ? "mid"
-                : "high"
-            : SAVE.quality;
+        let q;
+        if (SAVE.quality === "auto") {
+          const cores = navigator.hardwareConcurrency || 4;
+          const mem = navigator.deviceMemory || 4;
+          const isLowEnd = cores <= 4 || mem <= 2;
+          if (IS_TV) q = "mid";
+          else if (IS_MOBILE && isLowEnd) q = "low";
+          else if (IS_MOBILE) q = "mid";
+          else q = "high";
+        } else q = SAVE.quality;
         if (q === "high") {
           Q.pmul = 1;
           Q.arenaScale = 0.8;
@@ -10498,6 +10522,13 @@
         UIS = isPhone
           ? clamp(Math.min(W, H) / 850, 0.55, 0.85)
           : clamp(Math.min(W, H) / 700, 0.75, 1.25);
+        // 🆕 Дополнительное снижение масштаба арены на low-end
+        if (
+          Q.lvl >= 2 ||
+          (navigator.deviceMemory && navigator.deviceMemory <= 2)
+        ) {
+          Q.arenaScale = Math.min(Q.arenaScale, 0.4);
+        }
         if (ARENA.ok && Math.abs(ARENA.S - Q.arenaScale) > 0.1) {
           const th = (G && G.theme) || "lava";
           ARENA.ok = false;
@@ -10583,7 +10614,7 @@
         const u = UIS;
         const low = H < 560; // 🆕 компактный режим
         const cancelY = low ? H - 200 * u : H - 260 * u;
-           return (_blCache = {
+        return (_blCache = {
           attack: { x: W - 120 * u, y: H - 110 * u, r: 45 * u },
           ult: { x: W - 62 * u, y: H - 218 * u, r: 42 * u },
           // 🆕 Сдвинута влево-вверх, чтобы не пересекаться с attack/dash/ult/cancel
@@ -10798,12 +10829,12 @@
         }
       }
       function cancelAim() {
-  for (const n in B) {
-    B[n].st = 0;
-    B[n].pid = -1;
-  }
-  if (aiming) endAimFx();
-}
+        for (const n in B) {
+          B[n].st = 0;
+          B[n].pid = -1;
+        }
+        if (aiming) endAimFx();
+      }
       function cycleUlt() {
         const p = G && G.player;
         if (!p || !p.ultSlots) return;
@@ -10821,7 +10852,7 @@
           }
         }
       }
-         function cycleAtkStyle() {
+      function cycleAtkStyle() {
         const p = G && G.player;
         if (!p || p.dead) return;
         // 🆕 проверяем доступ к void
@@ -11951,14 +11982,15 @@
         // 🆕 void доступен только если явно разрешён (скин/посох)
         if (!hex) return rndi(0, 3);
         const h = hex.toLowerCase().replace("#", "");
-        // 🆕 фиолетовый (purple/shadow) — только при allowVoid → void, иначе случайная
+        // 🆕 Фиолетовый #4A2A8B: с void-доступом → void, без — стабильно fire
+        if (h.includes("4a2a8b")) return allowVoid ? 4 : 0;
+        // 🆕 void-цвета: только с доступом, иначе — ice
         if (
-          h.includes("4a2a8b") ||
           h.includes("1a1a2e") ||
-          h.includes("0a0020")
-        ) {
-          return allowVoid ? 4 : rndi(0, 3);
-        }
+          h.includes("0a0020") ||
+          h.includes("6a0dad")
+        )
+          return allowVoid ? 4 : 1;
         if (
           h.includes("8b2f3f") ||
           h.includes("d45a20") ||
@@ -12066,7 +12098,7 @@
         _spawnLastWave = 0;
         applyQuality(); // Восстанавливает Q.glow и Q.pmul согласно настройкам
         ARENA.ok = false; // Заставляем арену перестроиться под нужный масштаб
-             if (!o.online) {
+        if (!o.online) {
           energyTick();
           if (SAVE.energy < 1) {
             $("sc-noenergy").classList.add("show");
@@ -12137,7 +12169,7 @@
 
           // 🆕 определяем стихию один раз
           let chosenElem;
-                if (skinId === "shark" || skinId === "cat") chosenElem = 1;
+          if (skinId === "shark" || skinId === "cat") chosenElem = 1;
           else if (skinId === "archmage") chosenElem = 2;
           else if (skinId === "arcanvoid") chosenElem = 4;
           else if (skinId === "infernal") chosenElem = 0;
@@ -12247,7 +12279,7 @@
         return true;
       }
 
-           function pauseGame() {
+      function pauseGame() {
         if (!G || state !== "PLAYING") return;
         if (G.uiPause) {
           resumeGame();
@@ -12280,7 +12312,7 @@
       }
       function resumeGame() {
         if (!G) return;
-        if (state === "PAUSED") {
+        if (state !== "PLAYING") {
           state = "PLAYING";
           try {
             gameplayStart();
@@ -12290,7 +12322,6 @@
         showScreen(null);
         canvas.focus();
         lastTime = performance.now();
-        // 🆕 Скрываем баннер при возобновлении
         hideBannerSafe();
       }
       function autoPause() {
@@ -12444,12 +12475,39 @@
         if (available.length) choices.push({ s: pick(available) });
         while (choices.length < 3 && regular.length)
           choices.push({ u: regular.pop() });
+        // 🆕 Fallback: если карточек < 3 — золото
+        while (choices.length < 3)
+          choices.push({ gold: 30 + totalStacks * 10 });
 
         for (const ch of choices) {
           const d = document.createElement("div");
           d.className = "card";
           d.style.cssText =
             "cursor:pointer;width:180px;padding:16px;position:relative";
+          if (ch.gold) {
+            d.style.borderColor = "#FFD84A";
+            d.style.boxShadow = "0 0 18px #FFD84A88";
+            d.innerHTML =
+              '<div style="font-size:44px">🪙</div>' +
+              '<b style="font-size:16px;color:#FFD84A">+' +
+              ch.gold +
+              "</b>" +
+              '<div style="opacity:.85">' +
+              t("gold") +
+              "</div>";
+            d.onclick = () => {
+              sfx("purchase");
+              SAVE.gold += ch.gold;
+              persist();
+              state = "PLAYING";
+              showScreen(null);
+              canvas.focus();
+              lastTime = performance.now();
+              if (G.pendingLevel > 0) openLevelUp();
+            };
+            row.appendChild(d);
+            continue;
+          }
           if (ch.s) {
             const s = ch.s;
             d.style.borderColor = "#FF60FF";
@@ -12722,24 +12780,122 @@
           }
           c.restore();
         } else if (style === "void") {
+          // 🆕 Энергетический шар Пустоты: ядро + вихри + орбиты
+          const t = TM * 6 + p.id * 0.37;
+          const pulse = 0.85 + 0.15 * Math.sin(t);
+          const rv = r * pulse;
+
+          // 1) Большой внешний ореол (магента → прозрачный)
           c.globalCompositeOperation = "lighter";
-          const gr = c.createRadialGradient(p.x, p.y, 1, p.x, p.y, r * 2.5);
-          gr.addColorStop(0, "rgba(176,64,255,.6)");
-          gr.addColorStop(1, "rgba(176,64,255,0)");
-          c.fillStyle = gr;
+          const gOuter = c.createRadialGradient(
+            p.x,
+            p.y,
+            rv * 0.4,
+            p.x,
+            p.y,
+            rv * 3.4,
+          );
+          gOuter.addColorStop(0, "rgba(255,120,255,.55)");
+          gOuter.addColorStop(0.35, "rgba(190,60,255,.28)");
+          gOuter.addColorStop(1, "rgba(106,13,173,0)");
+          c.fillStyle = gOuter;
           c.beginPath();
-          c.arc(p.x, p.y, r * 2.5, 0, TAU);
+          c.arc(p.x, p.y, rv * 3.4, 0, TAU);
+          c.fill();
+
+          // 2) Средний слой — фиолетовое свечение
+          const gMid = c.createRadialGradient(
+            p.x,
+            p.y,
+            rv * 0.3,
+            p.x,
+            p.y,
+            rv * 1.9,
+          );
+          gMid.addColorStop(0, "rgba(230,130,255,.75)");
+          gMid.addColorStop(1, "rgba(140,30,210,0)");
+          c.fillStyle = gMid;
+          c.beginPath();
+          c.arc(p.x, p.y, rv * 1.9, 0, TAU);
           c.fill();
           c.globalCompositeOperation = "source-over";
-          c.fillStyle = "#0a0010";
+
+          // 3) Тёмное тело шара с объёмным бликом
+          const gBody = c.createRadialGradient(
+            p.x - rv * 0.3,
+            p.y - rv * 0.35,
+            rv * 0.1,
+            p.x,
+            p.y,
+            rv,
+          );
+          gBody.addColorStop(0, "#3a0a5a");
+          gBody.addColorStop(0.55, "#1a0030");
+          gBody.addColorStop(1, "#05000a");
+          c.fillStyle = gBody;
           c.beginPath();
-          c.arc(p.x, p.y, r * 0.9, 0, TAU);
+          c.arc(p.x, p.y, rv, 0, TAU);
           c.fill();
-          c.strokeStyle = "#B040FF";
-          c.lineWidth = 2;
+
+          // 4) Ободок — светлая фиолетовая кромка
+          c.strokeStyle = "rgba(220,120,255,.9)";
+          c.lineWidth = 1.8;
           c.beginPath();
-          c.arc(p.x, p.y, r * 0.9, 0, TAU);
+          c.arc(p.x, p.y, rv, 0, TAU);
           c.stroke();
+
+          // 5) Яркое ядро — пульсирует и слегка смещается
+          const coreX = p.x + Math.cos(t * 0.7) * rv * 0.18;
+          const coreY = p.y + Math.sin(t * 0.7) * rv * 0.18;
+          c.globalCompositeOperation = "lighter";
+          const gCore = c.createRadialGradient(
+            coreX,
+            coreY,
+            1,
+            coreX,
+            coreY,
+            rv * 0.7,
+          );
+          gCore.addColorStop(0, "rgba(255,255,255,.95)");
+          gCore.addColorStop(0.35, "rgba(255,180,255,.75)");
+          gCore.addColorStop(1, "rgba(180,64,255,0)");
+          c.fillStyle = gCore;
+          c.beginPath();
+          c.arc(coreX, coreY, rv * 0.7, 0, TAU);
+          c.fill();
+          c.globalCompositeOperation = "source-over";
+
+          // 6) Спиральные вихри (2 дуги, вращаются)
+          c.strokeStyle = "rgba(255,160,255,.8)";
+          c.lineWidth = 1.6;
+          c.lineCap = "round";
+          for (let i = 0; i < 2; i++) {
+            const start = t + i * Math.PI;
+            c.beginPath();
+            for (let k = 0; k <= 9; k++) {
+              const ang = start + k * 0.55;
+              const rad = rv * (0.25 + k * 0.075);
+              const x = p.x + Math.cos(ang) * rad;
+              const y = p.y + Math.sin(ang) * rad;
+              if (k === 0) c.moveTo(x, y);
+              else c.lineTo(x, y);
+            }
+            c.stroke();
+          }
+
+          // 7) Орбитальные искры (3 маленькие точки, вращаются вокруг)
+          c.globalCompositeOperation = "lighter";
+          c.fillStyle = "rgba(255,220,255,.95)";
+          for (let i = 0; i < 3; i++) {
+            const ang = t * 1.3 + (i * TAU) / 3;
+            const rad = rv * (1.35 + 0.1 * Math.sin(t + i));
+            const px = p.x + Math.cos(ang) * rad;
+            const py = p.y + Math.sin(ang) * rad;
+            c.beginPath();
+            c.arc(px, py, 1.8, 0, TAU);
+            c.fill();
+          }
+          c.globalCompositeOperation = "source-over";
         } else if (style === "rainbow") {
           const hue = (TM * 200) % 360;
           c.globalCompositeOperation = "lighter";
@@ -12805,7 +12961,7 @@
           c.stroke();
           c.restore();
         } else {
-          // 🆕 Убрали проверку Q.glow, чтобы шар всегда светился
+          // 🆕 Кэш цветов вместо градиента (быстрее на мобилках)
           c.globalCompositeOperation = "lighter";
           c.fillStyle = rgba(col, 0.35);
           c.beginPath();
@@ -13315,6 +13471,14 @@
         if (f.freeze > 0) r.push(["e1", f.freeze / 3]);
         else if (f.slow > 0) r.push(["e1", f.slow / 3]);
         if (f.amp > 0) r.push(["e4", f.amp / 5]);
+        // 🆕 Индикатор кулдауна Крепости (fortress)
+        if (
+          m.synergies &&
+          m.synergies.includes("fortress") &&
+          f.shieldCd > 0 &&
+          f.shield <= 0
+        )
+          r.push(["shield", 1 - f.shieldCd / 20]);
         return r;
       }
       function drawBuffRow(c, m, cx, y, u) {
@@ -13581,7 +13745,23 @@
         const k = pr / 22;
         c.scale(k, k);
         c.translate(-p.x, -(p.y - 30));
-        drawMage(c, p, { noShadow: true });
+        // 🆕 Портрет без «грязных» эффектов
+        const portraitMage = Object.assign({}, p, {
+          dead: false,
+          alpha: 1,
+          lev: 0,
+          aura: 0,
+          fx: Object.assign({}, p.fx, {
+            shield: 0,
+            freeze: 0,
+            stun: 0,
+            slow: 0,
+            slowF: 1,
+            burn: 0,
+            amp: 0,
+          }),
+        });
+        drawMage(c, portraitMage, { noShadow: true });
         c.restore();
         c.beginPath();
         c.arc(cx, cy, pr, 0, TAU);
@@ -13847,7 +14027,18 @@
             2,
           );
         }
-        for (const mo of G.monsters) {
+        // 🆕 Ограничиваем 40 ближайшими монстрами
+        const _pView = G.player || { x: CX, y: CY };
+        const _mons = G.monsters
+          .filter((mo) => !mo.dead)
+          .sort(
+            (a, b) =>
+              (a.x - _pView.x) ** 2 +
+              (a.y - _pView.y) ** 2 -
+              ((b.x - _pView.x) ** 2 + (b.y - _pView.y) ** 2),
+          )
+          .slice(0, 40);
+        for (const mo of _mons) {
           c.fillStyle = mo.boss ? "#ff00ff" : "#ff4040";
           const sz = mo.boss ? 4 : 2;
           c.fillRect(
@@ -14462,7 +14653,13 @@
         const sc = Math.max(W / 1000, H / 650);
         c.scale(sc, sc * 0.55);
         c.translate(-CX, -(CY + 250));
-        if (ARENA.ok) drawArenaLayers(c, 0, 0, 2500, 2500, THEMES.lava);
+        if (!ARENA.ok || ARENA.theme !== "lava") {
+          try {
+            ensureArena("lava");
+          } catch (e) {}
+        }
+        if (ARENA.ok && ARENA.theme === "lava")
+          drawArenaLayers(c, 0, 0, 2500, 2500, THEMES.lava);
         c.restore();
         const fg = c.createLinearGradient(0, horizonY, 0, horizonY + H * 0.12);
         fg.addColorStop(0, "rgba(20,6,10,.95)");
@@ -14562,6 +14759,8 @@
       let shopTab = "skins",
         shopTimer = 0;
 
+      let _dailyShown = false;
+
       function goMenu() {
         clearInterval(shopTimer);
         state = "MENU";
@@ -14569,7 +14768,10 @@
         initMenuMages();
         updateQuestsBadge();
         setTimeout(() => {
-          if (state === "MENU" && dailyReady()) showDaily();
+          if (state === "MENU" && !_dailyShown && dailyReady()) {
+            _dailyShown = true;
+            showDaily();
+          }
         }, 300);
       }
       function openSetup(mode) {
@@ -14636,7 +14838,7 @@
         for (const c of MAGE_COLORS) {
           const d = document.createElement("div");
           // 🆕 "shadow" требует доступа к void
-          const needVoid = c.id === "shadow" || c.id === "purple";
+          const needVoid = c.id === "shadow";
           const isLocked = needVoid && !canVoid;
           d.className =
             "sw" +
@@ -15241,7 +15443,7 @@
           ];
           for (const it of items) {
             const c = document.createElement("div");
-            c.className = "card";
+            c.className = "card card-energy";
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML = `
@@ -15549,7 +15751,7 @@
             ? `<b>WASD</b>/стик — движение<br><b>ЛКМ</b>(удерживать) — прицел+атака<br><b>Пробел</b>/кнопка — рывок<br><b>Q/E/ПКМ</b> — ульта<br><b>F</b> — полный экран<br><b>Esc</b> — пауза<br><br>⏱ Удержание замедляет время`
             : `<b>WASD</b>/stick — move<br><b>LMB</b>(hold) — aim+attack<br><b>Space</b>/button — dash<br><b>Q/E/RMB</b> — ultimate<br><b>F</b> — fullscreen<br><b>Esc</b> — pause<br><br>⏱ Holding slows time`,
         );
-            h += sect(
+        h += sect(
           "🔥",
           isRu ? "РУНЫ И УЛЬТА" : "RUNES & ULT",
           isRu
@@ -15587,7 +15789,7 @@
         $("tutorialBody").innerHTML = h;
       }
 
-      function openLB() {
+      async function openLB() {
         state = "LB";
         showScreen("sc-lb");
         let h = "";
@@ -15610,6 +15812,53 @@
               "</b></div>";
           });
         $("lbBody").innerHTML = h;
+
+        // 🆕 Yandex-лидерборд
+        try {
+          if (window.ysdk && ysdk.getLeaderboards && window.player) {
+            const lb = await ysdk.getLeaderboards();
+            const entries = await lb.getLeaderboardEntries("arcane", {
+              quantityTop: 10,
+              includeUser: true,
+              quantityAround: 3,
+            });
+            if (entries && entries.entries && entries.entries.length) {
+              let myUid = null;
+              try {
+                myUid = player.getUniqueID
+                  ? player.getUniqueID()
+                  : player.uniqueID || null;
+              } catch (e) {}
+              let yh =
+                '<div style="text-align:center;color:#ffd23a;font-weight:900;margin:14px 0 8px;font-size:14px">🌐 YANDEX TOP</div>';
+              entries.entries.forEach((e, i) => {
+                const name = (e.player && e.player.publicName) || "Anon";
+                const rank = e.rank || i + 1;
+                const score = e.score || 0;
+                const isMe =
+                  myUid &&
+                  e.player &&
+                  e.player.uniqueID &&
+                  e.player.uniqueID === myUid;
+                yh +=
+                  '<div class="lbrow"' +
+                  (isMe
+                    ? ' style="background:rgba(255,210,58,.15);border-radius:6px"'
+                    : "") +
+                  "><span>" +
+                  rank +
+                  ". " +
+                  esc(name) +
+                  " 🌐</span><b>" +
+                  score +
+                  "</b></div>";
+              });
+              $("lbBody").innerHTML = h + yh;
+            }
+          }
+        } catch (e) {
+          console.warn("[LB]", e);
+        }
       }
       function openSettings() {
         if (!(G && G.uiPause && G.online)) {
@@ -15968,6 +16217,7 @@
         return true;
       }
       function claimDaily() {
+        _dailyShown = false;
         const day = (SAVE.dailyDay || 0) % 7,
           amt = DAILY_REWARDS[day];
         SAVE.gold += amt;
@@ -16030,9 +16280,17 @@
             openLB();
             break;
           case "back":
-            if (state === "SETTINGS" && G && G.uiPause) {
-              state = "PAUSED";
-              showScreen("sc-pause");
+            if (G && G.uiPause) {
+              if (G.online) {
+                G.uiPause = false;
+                showScreen(null);
+                canvas.focus();
+                lastTime = performance.now();
+                hideBannerSafe();
+              } else {
+                state = "PAUSED";
+                showScreen("sc-pause");
+              }
             } else goMenu();
             break;
           case "startSetup":
@@ -16067,11 +16325,11 @@
             break;
           }
           case "confirmNo": {
-  $("sc-confirm").classList.remove("show");
-  if (G && G.uiPause) {
-    if (!G.online) state = "PAUSED";
-    showScreen("sc-pause");
-  } else if (G && state === "PLAYING") {
+            $("sc-confirm").classList.remove("show");
+            if (G && G.uiPause) {
+              if (!G.online) state = "PAUSED";
+              showScreen("sc-pause");
+            } else if (G && state === "PLAYING") {
               showScreen(null);
               canvas.focus();
               lastTime = performance.now();
@@ -16120,10 +16378,18 @@
               persist();
               $("sc-noenergy").classList.remove("show");
               toast("+3 ⚡");
+              // 🆕 Авто-старт, если игрок пришёл из setup
+              if (setup && setup.mode && SAVE.energy >= 1) {
+                setTimeout(() => startFromSetup(), 250);
+              }
             });
             break;
           case "closeModal":
             $("sc-noenergy").classList.remove("show");
+            // 🆕 Возвращаем игрока в setup, где он может выбрать/купить энергию
+            if (state === "MENU" || state === "ONLINE") {
+              openSetup(setup.mode || "arena");
+            }
             break;
           case "claimDaily":
             claimDaily();
@@ -16430,7 +16696,7 @@
                   m.ultActive = a.idx;
                 continue;
               }
-                       if (a.k === "asel" && a.atk !== undefined) {
+              if (a.k === "asel" && a.atk !== undefined) {
                 const hasVoid =
                   !!(m.skin && m.skin.voidElem) ||
                   !!(m.staff && m.staff.voidElem);
@@ -17293,7 +17559,7 @@
         const now = performance.now();
         if (G.role === "host") {
           NET.stT += rd;
-          if (NET.stT >= 0.05) {
+          if (NET.stT >= 1 / 15) {
             NET.stT = 0;
             hostSendState();
           }
@@ -17518,11 +17784,14 @@
           select.addEventListener("change", updateUI);
         });
 
-        document.addEventListener("click", () => {
-          document
-            .querySelectorAll(".custom-select.open")
-            .forEach((el) => el.classList.remove("open"));
-        });
+        if (!document._customSelectListenerAdded) {
+          document._customSelectListenerAdded = true;
+          document.addEventListener("click", () => {
+            document
+              .querySelectorAll(".custom-select.open")
+              .forEach((el) => el.classList.remove("open"));
+          });
+        }
       }
 
       // 🆕 Обновление языка в кастомных селектах
@@ -17584,11 +17853,39 @@
             SAVE.lang = lang;
           }
         } catch (e) {}
-              try {
+        try {
           const saved = await loadCloud();
           if (saved && saved.v) {
             Object.assign(SAVE, saved);
-            // 🆕 Защита от поврежденных данных
+            // 🆕 Полная валидация
+            if (!Array.isArray(SAVE.skins) || !SAVE.skins.length)
+              SAVE.skins = ["base"];
+            if (!Array.isArray(SAVE.staffs) || !SAVE.staffs.length)
+              SAVE.staffs = ["wood"];
+            if (!Array.isArray(SAVE.fx)) SAVE.fx = [];
+            if (!Array.isArray(SAVE.arenas) || !SAVE.arenas.length)
+              SAVE.arenas = ["lava"];
+            if (!Array.isArray(SAVE.colors) || !SAVE.colors.length)
+              SAVE.colors = ["purple"];
+            if (!Array.isArray(SAVE.lb)) SAVE.lb = [];
+            if (!Array.isArray(SAVE.questsReady)) SAVE.questsReady = [];
+            if (!Array.isArray(SAVE.questsClaimed)) SAVE.questsClaimed = [];
+            if (!SKIN_BY_ID[SAVE.skin]) SAVE.skin = "base";
+            if (!STAFF_BY_ID[SAVE.staff]) SAVE.staff = "wood";
+            if (!THEMES[SAVE.arenaSel]) SAVE.arenaSel = "lava";
+            if (typeof SAVE.gold !== "number" || !isFinite(SAVE.gold))
+              SAVE.gold = 150;
+            if (typeof SAVE.gems !== "number" || !isFinite(SAVE.gems))
+              SAVE.gems = 0;
+            if (typeof SAVE.energy !== "number" || !isFinite(SAVE.energy))
+              SAVE.energy = 5;
+            SAVE.energy = Math.max(0, Math.min(99, Math.round(SAVE.energy)));
+            if (SAVE.vip === undefined) SAVE.vip = false;
+            if (SAVE.vib === undefined) SAVE.vib = true;
+            if (SAVE.muteAll === undefined) SAVE.muteAll = false;
+            if (SAVE.devMode === undefined) SAVE.devMode = false;
+            if (!SAVE.botDifficulty || !DIFF[SAVE.botDifficulty])
+              SAVE.botDifficulty = "normal";
             SAVE.stats = Object.assign(
               {
                 matches: 0,
@@ -17600,9 +17897,11 @@
                 runesCollected: 0,
               },
               saved && typeof saved.stats === "object" ? saved.stats : {},
-            ); // 🆕
+            );
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error("[SAVE]", e);
+        }
         if (SAVE.dailyDay === undefined) SAVE.dailyDay = 0;
         if (SAVE.dailyLast === undefined) SAVE.dailyLast = 0;
         if (!Array.isArray(SAVE.questsReady)) SAVE.questsReady = [];
@@ -17635,6 +17934,21 @@
         } catch (e) {}
         applyVolumes();
         initCustomSelects();
+        // 🆕 Проверка конфигурации лидерборда (без падения)
+        try {
+          if (window.ysdk && ysdk.getLeaderboards) {
+            ysdk
+              .getLeaderboards()
+              .then((lb) => {
+                if (lb.getLeaderboardDescription)
+                  return lb.getLeaderboardDescription("arcane");
+              })
+              .catch(() =>
+                console.warn("[LB] leaderboard 'arcane' not configured"),
+              );
+          }
+        } catch (e) {}
+
         setProg(30, "boot3");
         await buildIcons((p) => setProg(30 + p * 50));
         setProg(82, "boot4");
@@ -17663,8 +17977,11 @@
         showScreen("sc-menu");
         updateQuestsBadge();
         canvas.focus();
-         setTimeout(() => {
-          if (state === "MENU" && dailyReady()) showDaily();
+        setTimeout(() => {
+          if (state === "MENU" && !_dailyShown && dailyReady()) {
+            _dailyShown = true;
+            showDaily();
+          }
         }, 600);
       }
       // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
