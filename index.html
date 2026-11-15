@@ -1965,7 +1965,7 @@
           clearTimeout(guard);
         }
       }
-            function showRewarded(onR) {
+      function showRewarded(onR) {
         let rw = false,
           op = false,
           closed = false;
@@ -6443,30 +6443,65 @@
       function spawnMonster() {
         const p =
           G.player && !G.player.dead ? G.player : G.mages.find((m) => !m.dead);
-        const cand = [];
         if (!p) return;
+
+        // 🆕 Взвешенный выбор: все монстры доступны, но вероятность
+        // зависит от волны. Слабые — частые, сильные — редкие.
+        const wave = Math.max(1, G.wave);
+        const weights = [];
+        let totalW = 0;
         MONSTERS.forEach((m, i) => {
-          if (m[2] <= G.wave) cand.push(i);
+          const minWave = m[2]; // минимальная волна для появления
+          // Базовый вес: чем ниже minWave — тем чаще (слабые)
+          // Но если волна далеко ушла — сильные тоже становятся частыми
+          let w = 1;
+          // Поощряем монстров, чья minWave близка к текущей волне
+          const diff = wave - minWave;
+          if (diff >= 0) {
+            // Доступен
+            w = 1 + Math.min(diff, 15) * 0.15; // чем дольше доступен — тем чаще
+            // Но сильные (высокий minWave) — всё равно реже слабых
+            w *= 1 / (1 + minWave * 0.08);
+          } else {
+            // Ещё не должен появляться — но с малым шансом может
+            // (чтобы игрок увидел «предвестников» сильных врагов)
+            const ahead = minWave - wave;
+            w = Math.max(0, 0.15 - ahead * 0.02);
+          }
+          weights.push(w);
+          totalW += w;
         });
+
+        // Если всё нулевое (не должно быть) — fallback
+        if (totalW <= 0) {
+          for (let i = 0; i < weights.length; i++) weights[i] = 1;
+          totalW = weights.length;
+        }
+
+        // Взвешенный random
+        let r = Math.random() * totalW;
+        let ti = 0;
+        for (let i = 0; i < weights.length; i++) {
+          r -= weights[i];
+          if (r <= 0) {
+            ti = i;
+            break;
+          }
+        }
+
         let aura = "";
         if (G.wave >= 3 && Math.random() < 0.22)
           aura = pick(["red", "yellow", "blue"]);
-        const ti = pick(cand);
-        const monR = MONSTERS[ti][6] * Q.mobMul; // радиус монстра
+        const monR = MONSTERS[ti][6] * Q.mobMul;
         let x = CX,
           y = CY,
           ok = false;
         for (let i = 0; i < 40; i++) {
-          // ↑ попыток больше
           const a = rnd(0, TAU),
             r = Math.sqrt(Math.random()) * (G.safeR - 80);
           x = CX + Math.cos(a) * r;
           y = CY + Math.sin(a) * r;
-
-          // 🆕 Не спавнить близко к игроку
           if (p && dist(x, y, p.x, p.y) < 240) continue;
-
-          // 🆕 Не спавнить в камнях (запас = радиус монстра + 20)
           let rockHit = false;
           for (const rk of G.rocks) {
             if (dist(x, y, rk.x, rk.y) < rk.r + monR + 20) {
@@ -6475,7 +6510,6 @@
             }
           }
           if (rockHit) continue;
-
           ok = true;
           break;
         }
@@ -7677,42 +7711,30 @@
       function ultKey(m) {
         const slots = m.ultSlots || [m.elem, null, null, null];
         const idx = m.ultActive || 0;
-        // Активная ячейка и следующая за ней (если занята) = комбо
         const a = slots[idx];
         if (a == null) {
           const e = m.elem;
           return { key: "" + e, a: e, b: e, e, single: true };
         }
-        const order = [idx];
-        for (let k = 1; k < 4; k++) {
-          const cand = (idx + k) % 4;
-          if (cand !== 0 && slots[cand] != null && slots[cand] === slots[idx])
-            order.push(cand);
+        // 🆕 Считаем ВСЕ слоты с той же стихией (включая базовый)
+        let sameCount = 0;
+        for (let i = 0; i < 4; i++) {
+          if (slots[i] === a) sameCount++;
         }
-        if (order.length >= 3 && slots[idx] === slots[order[2]]) {
-          const e = slots[idx];
-          return { key: e + "-" + e + "-" + e, mega: true, e, a: e, b: e };
+        // Мега — если 3+ одинаковых
+        if (sameCount >= 3) {
+          return { key: a + "-" + a + "-" + a, mega: true, e: a, a, b: a };
         }
-        let b = null;
-        for (let k = 1; k < 4; k++) {
-          const cand = (idx + k) % 4;
-          if (cand === 0) continue;
-          if (slots[cand] != null) {
-            b = slots[cand];
-            break;
+        // Комбо — ищем ЛЮБОЙ другой слот с другой стихией
+        for (let i = 0; i < 4; i++) {
+          if (i === idx) continue;
+          if (slots[i] != null && slots[i] !== a) {
+            const lo = Math.min(a, slots[i]),
+              hi = Math.max(a, slots[i]);
+            return { key: lo + "-" + hi, a: lo, b: hi, e: a };
           }
         }
-        if (b != null && b !== a) {
-          return {
-            key: Math.min(a, b) + "-" + Math.max(a, b),
-            a: Math.min(a, b),
-            b: Math.max(a, b),
-            e: a,
-          };
-        }
-        const cnt = slots.filter((x) => x === a).length;
-        if (cnt >= 3)
-          return { key: a + "-" + a + "-" + a, mega: true, e: a, a, b: a };
+        // Одиночная
         return { key: "" + a, a, b: a, e: a, single: true };
       }
       const ULT_AIM = {
@@ -8194,12 +8216,43 @@
         m.auraElem = e;
       }
 
+      function ultLevel(u) {
+        if (u.mega) return 3;
+        if (u.key.includes("-")) return 2;
+        return 1;
+      }
+
       function runUlt(m, u, ax, ay) {
         if (!G || !m) return;
         const k = u.key,
           mx = m.x,
           my = m.y,
           E = elemColor;
+
+        // 🆕 Модификаторы по уровню ульты
+        const lvl = ultLevel(u);
+        const rMul = 1 + (lvl - 1) * 0.35; // 1.0 / 1.35 / 1.7
+        const dmgMul = 1 + (lvl - 1) * 0.5; // 1.0 / 1.5 / 2.0
+
+        // 🆕 Локальные обёртки — автоматически масштабируют радиус и урон
+        const aoeM = (o, x, y, r, dmg, opt) =>
+          aoe(o, x, y, r * rMul, dmg * dmgMul, opt);
+        const splashM = (x, y, r, col, pw) => splash(x, y, r * rMul, col, pw);
+        const meteorM = (o, x, y, r, dmg, dl) =>
+          meteor(o, x, y, r * rMul, dmg * dmgMul, dl);
+        const addZoneM = (o, z) =>
+          addZone(o, {
+            ...z,
+            r: z.r * rMul,
+            dps: (z.dps || 0) * dmgMul,
+            coreDps: (z.coreDps || 0) * dmgMul,
+            core: (z.core || 0) * rMul,
+            zap: (z.zap || 0) * dmgMul,
+          });
+        const chainBoltM = (o, x, y, n, dmg, range, col) =>
+          chainBolt(o, x, y, n, dmg * dmgMul, range, col);
+        const strikeM = (o, x, y, r, dmg) =>
+          strike(o, x, y, r * rMul, dmg * dmgMul);
 
         // 💥 Ульты сносят камни в зоне удара
         const aimType = ULT_AIM[k] ? ULT_AIM[k][0] : "circle";
@@ -8211,8 +8264,8 @@
         switch (k) {
           // --- ОГОНЬ (1 руна) ---
           case "0":
-            aoe(m, mx, my, 170, 40, { kb: 18, burn: [3, 6] });
-            splash(mx, my, 180, E(0), 1.2);
+            aoeM(m, mx, my, 170, 40, { kb: 18, burn: [3, 6] });
+            splashM(mx, my, 180, E(0), 1.2);
             shake(6);
             FX.flash = 0.3;
             FX.flashC = "#FF4500";
@@ -8220,8 +8273,8 @@
 
           // --- ЛЁД (1 руна) ---
           case "1":
-            aoe(m, ax, ay, 150, 30, { freeze: 1.5 });
-            splash(ax, ay, 150, E(1), 1.2);
+            aoeM(m, ax, ay, 150, 30, { freeze: 1.5 });
+            splashM(ax, ay, 150, E(1), 1.2);
             FX.flash = 0.4;
             FX.flashC = "#00DDFF";
             shake(4);
@@ -8229,16 +8282,16 @@
 
           // --- МОЛНИЯ (1 руна) ---
           case "2":
-            chainBolt(m, mx, my - 18, 3, 25, 320, "#FFEE00");
-            splash(mx, my, 100, E(2), 1);
+            chainBoltM(m, mx, my - 18, 3, 25, 320, "#FFEE00");
+            splashM(mx, my, 100, E(2), 1);
             FX.flash = 0.4;
             FX.flashC = "#FFFFC0";
             break;
 
           // --- ВОЗДУХ (1 руна) ---
           case "3":
-            aoe(m, mx, my, 220, 20, { kb: 28 });
-            splash(mx, my, 220, "#DDF4F8", 1.2);
+            aoeM(m, mx, my, 220, 20, { kb: 28 });
+            splashM(mx, my, 220, "#DDF4F8", 1.2);
             for (let i = 1; i <= 3; i++) {
               G.rings.push({
                 x: mx,
@@ -8255,7 +8308,7 @@
 
           // --- ПУСТОТА (1 руна) ---
           case "4":
-            addZone(m, {
+            addZoneM(m, {
               x: ax,
               y: ay,
               r: 110,
@@ -8265,7 +8318,7 @@
               elem: 4,
               style: "hole",
             });
-            splash(ax, ay, 110, E(4), 1);
+            splashM(ax, ay, 110, E(4), 1);
             G.gfx.push({ k: "oblivion", t: 1, m: 1, x: ax, y: ay });
             break;
 
@@ -8274,7 +8327,7 @@
             for (let i = 0; i < 8; i++) {
               later(i * 0.1, () => {
                 if (!m.dead) {
-                  meteor(
+                  meteorM(
                     m,
                     ax + rnd(-130, 130),
                     ay + rnd(-130, 130),
@@ -8286,7 +8339,7 @@
                 }
               });
             }
-            splash(ax, ay, 250, E(0), 1.5);
+            splashM(ax, ay, 250, E(0), 1.5);
             FX.flash = 0.6;
             FX.flashC = "#FF4500";
             if (!G.online) FX.dark = 0.15;
@@ -8294,15 +8347,15 @@
 
           // --- КОМБО: ОГОНЬ + ЛЁД ---
           case "0-1":
-            aoe(m, ax, ay, 150, 35, { slow: [4, 0.5], blind: 4 });
-            splash(ax, ay, 150, "#E8F8FF", 1);
+            aoeM(m, ax, ay, 150, 35, { slow: [4, 0.5], blind: 4 });
+            splashM(ax, ay, 150, "#E8F8FF", 1);
             break;
 
           // --- КОМБО: ОГОНЬ + МОЛНИЯ ---
           case "0-2":
-            chainBolt(m, mx, my - 18, 5, 35, 320, "#FF8C00");
-            splash(mx, my, 150, "#FF9040", 1);
-            aoe(m, mx, my, 100, 15, { kb: 10 });
+            chainBoltM(m, mx, my - 18, 5, 35, 320, "#FF8C00");
+            splashM(mx, my, 150, "#FF9040", 1);
+            aoeM(m, mx, my, 100, 15, { kb: 10 });
             break;
 
           // --- КОМБО: ОГОНЬ + ВОЗДУХ (Смерч) ---
@@ -8315,7 +8368,7 @@
               targetX = CX + Math.cos(ang) * (G.safeR - 50);
               targetY = CY + Math.sin(ang) * (G.safeR - 50);
             }
-            addZone(m, {
+            addZoneM(m, {
               x: targetX,
               y: targetY,
               r: 75,
@@ -8326,13 +8379,13 @@
               elem: 0,
               style: "tornado",
             });
-            splash(targetX, targetY, 100, E(0), 0.8);
+            splashM(targetX, targetY, 100, E(0), 0.8);
             break;
           }
 
           // --- КОМБО: ОГОНЬ + ПУСТОТА ---
           case "0-4":
-            addZone(m, {
+            addZoneM(m, {
               x: ax,
               y: ay,
               r: 160,
@@ -8343,17 +8396,17 @@
               style: "hole",
               burn: true,
             });
-            splash(ax, ay, 160, "#FF3000", 1);
+            splashM(ax, ay, 160, "#FF3000", 1);
             break;
 
           // --- КОМБО: ЛЁД + ЛЁД ---
           case "1-1":
-            aoe(m, CX, CY, 5000, 20, { freeze: 3 });
-            splash(mx, my, 300, E(1), 1.4);
+            aoeM(m, CX, CY, 5000, 20, { freeze: 3 });
+            splashM(mx, my, 300, E(1), 1.4);
             G.gfx.push({ k: "ice", t: 4, m: 4 });
             for (let i = 0; i < 12; i++) {
               const a = (i / 12) * TAU;
-              addZone(m, {
+              addZoneM(m, {
                 x: mx + Math.cos(a) * 150,
                 y: my + Math.sin(a) * 150,
                 r: 30,
@@ -8373,7 +8426,7 @@
               const x = ax + rnd(-130, 130),
                 y = ay + rnd(-130, 130);
               G.tele.push({ x, y, r: 70, t: 0.9, m: 0.9, c: "#9FE8FF" });
-              addZone(m, {
+              addZoneM(m, {
                 x,
                 y,
                 r: 60,
@@ -8382,14 +8435,14 @@
                 elem: 1,
                 style: "ice",
               });
-              later(0.9 + i * 0.12, () => strike(m, x, y, 70, 50));
+              later(0.9 + i * 0.12, () => strikeM(m, x, y, 70, 50));
             }
             break;
 
           // --- КОМБО: ЛЁД + ВОЗДУХ ---
           case "1-3":
             G.gfx.push({ k: "blizzard", t: 6, m: 6 });
-            addZone(m, {
+            addZoneM(m, {
               x: CX,
               y: CY,
               r: 1e5,
@@ -8399,13 +8452,13 @@
               elem: 1,
               style: "global",
             });
-            splash(mx, my, 300, "#E8FFFF", 1.2);
+            splashM(mx, my, 300, "#E8FFFF", 1.2);
             break;
 
           // --- КОМБО: ЛЁД + ПУСТОТА ---
           case "1-4":
-            aoe(m, ax, ay, 170, 40, { freeze: 2, amp: 5 });
-            splash(ax, ay, 170, "#B0F8FF", 1.2);
+            aoeM(m, ax, ay, 170, 40, { freeze: 2, amp: 5 });
+            splashM(ax, ay, 170, "#B0F8FF", 1.2);
             break;
 
           // --- КОМБО: МОЛНИЯ + МОЛНИЯ ---
@@ -8415,18 +8468,18 @@
                 if (m.dead) return;
                 const t = randFoe(m);
                 if (t)
-                  strike(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 80, 35);
+                  strikeM(m, t.x + rnd(-40, 40), t.y + rnd(-40, 40), 80, 35);
                 else
-                  strike(m, mx + rnd(-200, 200), my + rnd(-200, 200), 80, 35);
+                  strikeM(m, mx + rnd(-200, 200), my + rnd(-200, 200), 80, 35);
               });
             }
-            splash(mx, my, 200, E(2), 1.2);
+            splashM(mx, my, 200, E(2), 1.2);
             FX.dark = 0.1;
             break;
 
           // --- КОМБО: МОЛНИЯ + ВОЗДУХ ---
           case "2-3":
-            addZone(m, {
+            addZoneM(m, {
               x: ax,
               y: ay,
               r: 75,
@@ -8438,7 +8491,7 @@
               elem: 2,
               style: "tornado",
             });
-            splash(ax, ay, 100, E(2), 0.8);
+            splashM(ax, ay, 100, E(2), 0.8);
             break;
 
           // --- КОМБО: МОЛНИЯ + ПУСТОТА ---
@@ -8455,12 +8508,12 @@
                   });
               });
             }
-            splash(mx, my, 140, E(4), 1);
+            splashM(mx, my, 140, E(4), 1);
             break;
 
           // --- КОМБО: ВОЗДУХ + ВОЗДУХ ---
           case "3-3":
-            addZone(m, {
+            addZoneM(m, {
               x: ax,
               y: ay,
               r: 200,
@@ -8471,7 +8524,7 @@
               style: "tornado",
               end: "throw",
             });
-            splash(ax, ay, 200, "#DDF4F8", 1.4);
+            splashM(ax, ay, 200, "#DDF4F8", 1.4);
             if (!G.online) FX.zoom = 0.1;
             break;
 
@@ -8488,12 +8541,12 @@
               burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
               dealDamage(m, t, 30, { type: "zone" });
             }
-            splash(mx, my, 300, E(4), 1.2);
+            splashM(mx, my, 300, E(4), 1.2);
             break;
 
           // --- КОМБО: ПУСТОТА + ПУСТОТА ---
           case "4-4":
-            addZone(m, {
+            addZoneM(m, {
               x: ax,
               y: ay,
               r: 220,
@@ -8503,7 +8556,7 @@
               elem: 4,
               style: "hole",
             });
-            splash(ax, ay, 220, E(4), 1.5);
+            splashM(ax, ay, 220, E(4), 1.5);
             FX.dark = 0.15;
             shake(5);
             break;
@@ -8524,10 +8577,10 @@
                 x = CX + Math.cos(a) * r;
                 y = CY + Math.sin(a) * r;
               }
-              meteor(m, x, y, 85, 25, 0.4);
+              meteorM(m, x, y, 85, 25, 0.4);
               if (Math.random() < 0.4) shake(3);
             });
-            addZone(m, {
+            addZoneM(m, {
               x: CX,
               y: CY,
               r: 1e5,
@@ -8536,7 +8589,7 @@
               elem: 0,
               style: "global",
             });
-            splash(mx, my, 500, E(0), 2.0);
+            splasM(mx, my, 500, E(0), 2.0);
             FX.flash = 1.0;
             FX.flashC = "#FF8C00";
             if (!G.online) FX.dark = 0.25;
@@ -8545,9 +8598,9 @@
           // --- МЕГА: ЛЁД (ЛЕДНИКОВЫЙ ПЕРИОД) ---
           case "1-1-1":
             giveAura(m, 1, 10);
-            aoe(m, CX, CY, 5000, 30, { freeze: 5 });
+            aoeM(m, CX, CY, 5000, 30, { freeze: 5 });
             G.gfx.push({ k: "ice", t: 6, m: 6 });
-            splash(mx, my, 500, E(1), 1.8);
+            splashM(mx, my, 500, E(1), 1.8);
             FX.flash = 1.0;
             FX.flashC = "#A0F0FF";
             if (!G.online) FX.slow = { t: 1.5, s: 0.2 };
@@ -8561,9 +8614,9 @@
             emitter(m, 8, 0.12, () => {
               const t = randFoe(m);
               if (t && Math.random() < 0.7)
-                strike(m, t.x + rnd(-60, 60), t.y + rnd(-60, 60), 70, 25);
+                strikeM(m, t.x + rnd(-60, 60), t.y + rnd(-60, 60), 70, 25);
               else
-                strike(
+                strikeM(
                   m,
                   CX + rnd(-G.safeR, G.safeR),
                   CY + rnd(-G.safeR, G.safeR),
@@ -8572,7 +8625,7 @@
                 );
               if (Math.random() < 0.3) shake(2);
             });
-            splash(mx, my, 500, E(2), 2.0);
+            splashM(mx, my, 500, E(2), 2.0);
             FX.flash = 1.0;
             FX.flashC = "#FFFFC0";
             if (!G.online) FX.slow = { t: 1, s: 0.1 };
@@ -8582,7 +8635,7 @@
           // --- МЕГА: ВОЗДУХ (УРАГАН) ---
           case "3-3-3":
             giveAura(m, 3, 10);
-            addZone(m, {
+            addZoneM(m, {
               x: mx,
               y: my,
               r: 350,
@@ -8594,7 +8647,7 @@
               style: "tornado",
               end: "throw",
             });
-            splash(mx, my, 500, "#DDF4F8", 1.8);
+            splashM(mx, my, 500, "#DDF4F8", 1.8);
             FX.flash = 0.5;
             FX.flashC = "#FFFFFF";
             shake(10);
@@ -8603,7 +8656,7 @@
           // --- МЕГА: ПУСТОТА (ЗАБВЕНИЕ) ---
           case "4-4-4":
             giveAura(m, 4, 10);
-            addZone(m, {
+            addZoneM(m, {
               x: mx,
               y: my,
               r: 1e5,
@@ -8616,7 +8669,7 @@
               coreDps: 80,
             });
             G.gfx.push({ k: "oblivion", t: 6, m: 6, x: mx, y: my });
-            splash(mx, my, 600, E(4), 2.0);
+            splashM(mx, my, 600, E(4), 2.0);
             emitter(m, 6, 0.05, () => {
               const a = rnd(0, TAU),
                 r = 800;
@@ -10382,7 +10435,6 @@
         return (_blCache = {
           attack: { x: W - 120 * u, y: H - 110 * u, r: 45 * u },
           ult: { x: W - 62 * u, y: H - 218 * u, r: 42 * u },
-          ultSwitch: { x: W - 62 * u, y: H - 285 * u, r: 28 * u },
           atkSwitch: { x: W - 175 * u, y: H - 150 * u, r: 28 * u },
           dash: { x: W - 222 * u, y: H - 62 * u, r: 33 * u },
           pause: { x: W - 30 * u, y: 30 * u, r: 22 * u },
@@ -10605,18 +10657,19 @@
         const p = G && G.player;
         if (!p || !p.ultSlots) return;
         const slots = p.ultSlots;
-        let n = p.ultActive || 0;
+        const start = p.ultActive || 0;
+        // 🆕 Ищем следующий НЕПУСТОЙ слот
         for (let k = 1; k <= 4; k++) {
-          const cand = (n + k) % 4;
+          const cand = (start + k) % 4;
           if (slots[cand] != null) {
             p.ultActive = cand;
-            break;
+            sfx("click");
+            if (G.role === "client")
+              netSendAct({ k: "usel", idx: p.ultActive });
+            return;
           }
         }
-        sfx("click");
-        if (G.role === "client") netSendAct({ k: "usel", idx: p.ultActive });
       }
-
       function cycleAtkStyle() {
         const p = G && G.player;
         if (!p || p.dead) return;
@@ -10629,7 +10682,10 @@
         if (idx < 0) idx = 0;
         p.elem = allowed[(idx + 1) % allowed.length];
         p.baseElem = p.elem;
-        if (p.ultSlots && p.ultSlots[0] != null) p.ultSlots[0] = p.elem;
+        if (p.ultSlots) {
+          p.ultSlots[0] = p.elem; // 🆕 базовая ульта = текущая стихия
+          p.ultActive = 0; // 🆕 всегда возвращаемся к базовой
+        }
         sfx("pickup");
         G.events.push({ k: "atkstyle", id: p.id, e: p.elem });
         if (G.role === "client") netSendAct({ k: "asel", atk: p.elem });
@@ -10820,15 +10876,7 @@
             return;
           }
         }
-
-        // 🆕 Кнопки переключения
-        if (
-          Math.hypot(x - L.ultSwitch.x, y - L.ultSwitch.y) <
-          L.ultSwitch.r * 1.3
-        ) {
-          cycleUlt();
-          return;
-        }
+        // 🆕 Кнопка смены стихии (меняет и ульту автоматически)
         if (
           Math.hypot(x - L.atkSwitch.x, y - L.atkSwitch.y) <
           L.atkSwitch.r * 1.3
@@ -13722,43 +13770,6 @@
           txt(c, lbl, mx2 + 15 * u, ry, 14 * u, "#FFB0FF", "left", 3);
         }
 
-        // 🆕 Кнопки переключения
-        {
-          const us = L.ultSwitch;
-          c.save();
-          c.translate(us.x, us.y);
-          const g = c.createRadialGradient(0, -us.r * 0.3, 2, 0, 0, us.r);
-          g.addColorStop(0, "rgba(90,50,140,.95)");
-          g.addColorStop(1, "rgba(25,10,40,.95)");
-          c.beginPath();
-          c.arc(0, 0, us.r, 0, TAU);
-          c.fillStyle = g;
-          c.fill();
-          c.lineWidth = 2.5;
-          c.strokeStyle = "#DAA520";
-          c.stroke();
-          // Стрелка «вверх» / символ переключения
-          c.fillStyle = "#FFD84A";
-          c.beginPath();
-          c.moveTo(0, -us.r * 0.5);
-          c.lineTo(-us.r * 0.4, 0);
-          c.lineTo(us.r * 0.4, 0);
-          c.closePath();
-          c.fill();
-          c.beginPath();
-          c.moveTo(0, us.r * 0.5);
-          c.lineTo(-us.r * 0.4, 0);
-          c.lineTo(us.r * 0.4, 0);
-          c.closePath();
-          c.fill();
-          // Подпись
-          c.font = "800 " + 9 * u + "px Arial";
-          c.textAlign = "center";
-          c.textBaseline = "middle";
-          c.fillStyle = "#fff";
-          c.fillText("ULT", 0, us.r + 10 * u);
-          c.restore();
-        }
         {
           const asw = L.atkSwitch;
           c.save();
@@ -14572,8 +14583,11 @@
         m.resetVerlet();
         m.ey.a = 0.95;
         _previewMode = true;
-        for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
-        _previewMode = false;
+        try {
+          for (let i = 0; i < 5; i++) updateVisual(m, 0.016);
+        } finally {
+          _previewMode = false;
+        }
         c.save();
         c.translate(90, 180);
         c.scale(2.6, 2.6);
@@ -14606,8 +14620,8 @@
         };
 
         c.save();
-        // 🆕 Точное центрирование: центр (90) минус (22 * 2.4)
-        c.translate(37.2, 175);
+        // 🆕 Центрируем посох: x=90, y=110 — середина canvas
+        c.translate(90, 110);
         c.scale(2.4, 2.4);
         drawStaff(c, fakeMage, 1);
         c.restore();
@@ -15204,7 +15218,7 @@
         let secB = "";
         for (const wave in BOSSES) {
           const b = BOSSES[wave];
-          secB += `<div style="padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${b[6]}"><b style="color:${b[6]};font-size:13px">💀 ${lang === "ru" ? b[0] : b[1]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${lang === "ru" ? "Волна" : "Wave"} ${wave} · HP ${b[2]} · DMG ${b[4]}</div></div>`;
+          secB += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${b[6]}"><canvas data-boss="${wave}" width="80" height="80" style="width:60px;height:60px"></canvas><div style="flex:1"><b style="color:${b[6]};font-size:13px">💀 ${lang === "ru" ? b[0] : b[1]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${lang === "ru" ? "Волна" : "Wave"} ${wave} · HP ${b[2]} · DMG ${b[4]}</div></div></div>`;
         }
         h += sec("☠️ " + (lang === "ru" ? "БОССЫ" : "BOSSES"), secB);
         let secS = "";
@@ -15231,8 +15245,9 @@
             md = MONSTERS.find((m) => m[0] === nm);
           if (!md) return;
           const c = cv.getContext("2d"),
-            previewScale = IS_MOBILE && Math.min(W, H) < 700 ? 0.8 : 1,
-            scale = Math.min(70 / (md[6] * 3), 1.5) * previewScale;
+            previewScale = IS_MOBILE && Math.min(W, H) < 700 ? 0.9 : 1,
+            // 🆕 Увеличили: 60 вместо 70 — монстры крупнее
+            scale = Math.min(60 / (md[6] * 2.2), 1.8) * previewScale;
           c.save();
           c.translate(40, 60);
           c.scale(scale, scale);
@@ -15276,6 +15291,62 @@
             lastHit: null,
             hp: md[3],
             maxHp: md[3],
+          };
+          drawMonster(c, mo);
+          c.restore();
+        });
+        // 🆕 Отрисовка боссов в бестиарии (статично)
+        document.querySelectorAll("canvas[data-boss]").forEach((cv) => {
+          const wave = +cv.getAttribute("data-boss");
+          const bd = BOSSES[wave];
+          if (!bd) return;
+          const c = cv.getContext("2d");
+          const previewScale = IS_MOBILE && Math.min(W, H) < 700 ? 0.8 : 1;
+          const scale = Math.min(70 / (bd[5] * 3), 1.5) * previewScale;
+          c.save();
+          c.translate(40, 60);
+          c.scale(scale, scale);
+          const mo = {
+            isMonster: true,
+            id: 0,
+            x: 0,
+            y: 0,
+            vx: 1,
+            vy: 0,
+            kvx: 0,
+            kvy: 0,
+            r: bd[5],
+            col: bd[6],
+            shape: bd[7],
+            dead: false,
+            alpha: 1,
+            scale: 1,
+            inv: 0,
+            aura: "",
+            boss: true,
+            bossPhase: 1, // 🆕 чтобы аура босса рисовалась
+            fx: {
+              haste: 0,
+              shield: 0,
+              slow: 0,
+              slowF: 1,
+              freeze: 0,
+              burn: 0,
+              stun: 0,
+              blind: 0,
+              amp: 0,
+              tslow: 0,
+            },
+            atkCd: 999,
+            an: 0,
+            tg: null,
+            tT: 0,
+            bdps: 0,
+            dotAcc: 0,
+            shootCd: 3,
+            lastHit: null,
+            hp: bd[2],
+            maxHp: bd[2],
           };
           drawMonster(c, mo);
           c.restore();
