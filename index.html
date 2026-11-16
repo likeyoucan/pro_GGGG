@@ -775,6 +775,14 @@
       <div class="bar"><div id="loadBar"></div></div>
       <div id="loadTxt" style="font-weight: 700; color: #ffd23a">...</div>
       <div style="opacity: 0.5; font-size: 12px" id="studioTxt"></div>
+      <button
+        class="btn primary"
+        id="loadingPlayBtn"
+        style="display: none; margin-top: 18px"
+        data-act="loadingPlay"
+      >
+        <span data-i18n="play"></span>
+      </button>
     </div>
 
     <div id="topbar" style="display: none">
@@ -1167,6 +1175,9 @@
         <button class="btn primary" data-act="resume">
           <span data-i18n="resume"></span>
         </button>
+        <button class="btn" data-act="quickRestart">
+          <span data-i18n="quickRestart">🔄 ЗАНОВО</span>
+        </button>
         <button class="btn" data-act="pauseSettings">
           <span data-i18n="settings"></span>
         </button>
@@ -1175,6 +1186,9 @@
         </button>
         <button class="btn" data-act="quit">
           <span data-i18n="toMenu"></span>
+        </button>
+        <button class="btn" data-act="share">
+          <span data-i18n="share">📤 ПОДЕЛИТЬСЯ</span>
         </button>
       </div>
     </div>
@@ -1524,6 +1538,8 @@
           toMenu: "В МЕНЮ",
           rematch: "ЕЩЁ РАЗ",
           returnToRoom: "В КОМНАТУ",
+          share: "ПОДЕЛИТЬСЯ",
+          quickRestart: "ЗАНОВО",
           victory: "ПОБЕДА!",
           defeat: "ПОРАЖЕНИЕ",
           createRoom: "СОЗДАТЬ КОМНАТУ",
@@ -1624,6 +1640,8 @@
         en: {
           play: "PLAY",
           survival: "SURVIVAL",
+          share: "SHARE",
+          quickRestart: "RESTART",
           online: "ONLINE PVP",
           shop: "SHOP",
           codex: "CODEX",
@@ -1650,6 +1668,7 @@
           quality: "Quality",
           fullscreen: "Fullscreen",
           resume: "RESUME",
+          quickRestart: "RESTART",
           toMenu: "MENU",
           rematch: "AGAIN",
           returnToRoom: "BACK TO ROOM",
@@ -1763,7 +1782,14 @@
       function applyLang() {
         document.documentElement.lang = lang;
         document.querySelectorAll("[data-i18n]").forEach((el) => {
-          el.textContent = t(el.dataset.i18n);
+          const key = el.dataset.i18n;
+          let prefix = "";
+          // сохраняем эмодзи, если он был в исходном тексте
+          const m = (el.textContent || "").match(
+            /^(\p{Emoji_Presentation}\s*)/u,
+          );
+          if (m) prefix = m[1];
+          el.textContent = prefix + t(key);
         });
         $("langSelect").value = lang;
         $("qLang").value = lang;
@@ -1826,6 +1852,12 @@
         botDifficulty: "normal",
         shakePower: 100,
         flashPower: 100,
+        noAds: false,
+        firstLogin: false,
+        lastRun: null,
+        pendingRune: false,
+        replay: [],
+        ysStats: null,
       });
       let SAVE = DEF_SAVE(),
         _saveTimer = 0;
@@ -1914,6 +1946,19 @@
             window.ysdk = await YaGames.init();
             try {
               window.player = await ysdk.getPlayer();
+              // 🆕 Статистика игрока для сегментации
+              try {
+                if (window.player && window.player.getStats) {
+                  const ys = await window.player.getStats();
+                  SAVE.ysStats = {
+                    playTime: ys.playTime || 0,
+                    ads: ys.shownAdvertisements || 0,
+                    purchases: ys.purchases || 0,
+                    ts: Date.now(),
+                  };
+                  persist();
+                }
+              } catch (e) {}
             } catch (e) {}
             try {
               const l =
@@ -1940,6 +1985,8 @@
         if (Aud.ctx && Aud.ctx.state === "suspended") Aud.ctx.resume();
       }
       function showInterstitial() {
+        // 🆕 Пропуск, если реклама куплена
+        if (SAVE.noAds) return;
         let closed = false;
         const safeResume = () => {
           if (closed) return;
@@ -2031,6 +2078,7 @@
       // 🆕 Безопасный показ/скрытие баннера
       let _bannerShown = false;
       function showBannerSafe() {
+        if (SAVE.noAds) return;
         if (_bannerShown) return;
         try {
           if (window.ysdk && ysdk.adv && ysdk.adv.showBannerAdv) {
@@ -2169,6 +2217,7 @@
         gems_100: { type: "gems", amount: 100 },
         gems_500: { type: "gems", amount: 500 },
         gems_1500: { type: "gems", amount: 1500 },
+        no_ads: { type: "noAds", amount: 1 },
       };
       let _payments = null;
       async function getPayments() {
@@ -2184,11 +2233,36 @@
           return;
         }
         if (SAVE.devMode) {
-          SAVE[pr.type] += pr.amount;
+          if (pid === "no_ads") SAVE.noAds = true;
+          else SAVE[pr.type] += pr.amount;
           persist();
           sfx("purchase");
           toast("+" + pr.amount);
           buildShop();
+          return;
+        }
+        // 🆕 Обработка noAds
+        if (pid === "no_ads") {
+          try {
+            const pay = await getPayments();
+            await pay.purchase({ id: pid });
+            try {
+              await pay.consumePurchase(pid);
+            } catch (e) {}
+            SAVE.noAds = true;
+            persist();
+            sfx("purchase");
+            toast(lang === "ru" ? "🚫 Реклама отключена" : "🚫 Ads removed");
+            buildShop();
+          } catch (e) {
+            if (
+              e &&
+              (e.code === "PURCHASE_CANCELED" || e.message === "canceled")
+            )
+              return;
+            toast(t("connErr"));
+            sfx("error");
+          }
           return;
         }
         try {
@@ -2408,9 +2482,30 @@
         shoot(e) {
           elemSig(e, 0, false);
         },
-        impact() {
-          noise(0.12, 0.16, 900, "lowpass");
-          tone(160, 0.12, "sine", 0.14, 0.5);
+        impact(e) {
+          switch (e) {
+            case 0: // fire — хлопок
+              noise(0.12, 0.16, 800, "lowpass");
+              tone(160, 0.12, "sine", 0.14, 0.5);
+              break;
+            case 1: // ice — звон
+              tone(1200, 0.09, "sine", 0.09, 0.6);
+              tone(1800, 0.07, "triangle", 0.06, 0.7, 0.02);
+              noise(0.06, 0.08, 4000, "highpass");
+              break;
+            case 2: // lightning — треск
+              tone(rnd(400, 800), 0.05, "square", 0.09, 0.4);
+              noise(0.05, 0.08, 3000, "highpass");
+              break;
+            case 3: // air — шорох
+              noise(0.15, 0.1, 1500, "bandpass");
+              tone(500, 0.08, "sine", 0.04, 1.5);
+              break;
+            default: // void — низкий гул
+              tone(80, 0.2, "sine", 0.15, 0.4);
+              noise(0.15, 0.1, 300);
+              break;
+          }
         },
         kill() {
           tone(220, 0.4, "sawtooth", 0.12, 0.3);
@@ -2586,11 +2681,14 @@
         const bar = Math.floor(s / 16) % 4,
           root = ROOTS[bar],
           st = s % 16,
-          L = Aud.lay;
+          L = Aud.lay,
+          lvl = MUS.cur; // 🆕 0..1+ — уровень напряжённости
+        // Базовый слой (ambient)
         if (st === 0) {
           tone(root * 2, 2.6, "triangle", 0.1, 1, dl, L.amb, true);
           tone(root * 3, 2.6, "sine", 0.07, 1, dl, L.amb, true);
         }
+        // Combat
         if (st % 2 === 0)
           tone(root, 0.22, "triangle", 0.16, 0.9, dl, L.combat, true);
         if (st % 4 === 0) tone(120, 0.12, "sine", 0.3, 0.3, dl, L.combat, true);
@@ -2606,6 +2704,24 @@
             L.combat,
             true,
           );
+        }
+        // 🆕 Хор (epic-слой) при lvl > 0.7
+        if (lvl > 0.7 && st === 0) {
+          tone(root * 2, 3.5, "sine", 0.08 * lvl, 1, dl, L.epic, true);
+          tone(root * 3, 3.0, "triangle", 0.05 * lvl, 1, dl, L.epic, true);
+        }
+        // 🆕 Хай-хэт при lvl > 0.4
+        if (lvl > 0.4 && st % 4 === 2) {
+          noise(0.06, 0.1 * lvl, 2200, "highpass", dl, L.combat);
+        }
+        // 🆕 Бас-бочка при lvl > 0.6
+        if (lvl > 0.6 && st % 8 === 0) {
+          noise(0.15, 0.18 * lvl, 300, "lowpass", dl, L.combat);
+          tone(60, 0.15, "sine", 0.35 * lvl, 0.5, dl, L.combat, true);
+        }
+        // 🆕 Тарелка на границе такта при lvl > 0.8
+        if (lvl > 0.8 && st === 0 && bar === 0) {
+          noise(0.6, 0.08, 6000, "highpass", dl, L.epic);
         }
       }
       document.addEventListener("pointerdown", initAudio, { once: true });
@@ -5229,7 +5345,7 @@
               const a = rnd(0, TAU);
               const r = 35 + rnd(0, 20);
               const worldX = m.x + f * 22 + Math.cos(a) * r;
-              const worldY = m.y - 54 - m.lev + Math.sin(a) * r * 0.55;
+              const worldY = m.y - 54 - (m.lev || 0) + Math.sin(a) * r * 0.55;
               pt(
                 worldX,
                 worldY,
@@ -6965,6 +7081,7 @@
         chroma: 0,
         zoom: 0,
         hs: 0,
+        localHs: 0,
         slow: { t: 0, s: 1 },
         vig: 0,
         flashC: "#fff",
@@ -7220,6 +7337,41 @@
             );
             shake(8);
             FX.flash = 0.8;
+            // 🆕 Гарантированная награда: 1 руна + 2 рандомных пикапа
+            const bx = t.x,
+              by = t.y;
+            spawnPickup("r4", bx - 50, by);
+            spawnPickup("mult", bx + 50, by);
+            spawnPickup(randomPickupType(), bx, by + 50);
+            G.rings.push({
+              x: bx,
+              y: by,
+              r0: 10,
+              r1: 200,
+              l: 0.8,
+              m: 0.8,
+              c: "#FF00FF",
+              w: 6,
+            });
+            burst(
+              bx,
+              by,
+              ["#FF00FF", "#FFD84A", "#FFFFFF"],
+              80,
+              380,
+              5,
+              1.0,
+              true,
+            );
+            if (owner === G.player || !G.player) {
+              SAVE.gold += 50;
+              persist();
+              toast(
+                lang === "ru"
+                  ? "💰 +50 золота за босса"
+                  : "💰 +50 gold for boss",
+              );
+            }
           }
           hitstop(30);
           return;
@@ -7227,6 +7379,9 @@
         t.deathT = 0;
         t.mana = 0;
         sfx("death");
+        try {
+          REPLAY.rec("kill", { id: t.id, by: src ? src.id : 0 });
+        } catch (e) {}
         burst(t.x, t.y - 22, "#FFFFFF", 30, 260, 3, 0.5, true);
         hitstop(120);
         G.events.push({ k: "kill", id: t.id });
@@ -7362,7 +7517,7 @@
           emote(m, "lowmana", 0.3);
           return false;
         }
-        m.mana -= manaCost;
+        m.mana = Math.max(0, m.mana - manaCost);
         if (m.mana < 1) emote(m, "lowmana", 0.3);
         m.atkCd = 0.35 * (m.atkCdMul || 1);
         if (m.fx.blind > 0) ang += rnd(-0.5, 0.5);
@@ -7611,7 +7766,7 @@
           c: "#FFFFFF",
           w: 2,
         });
-        sfx("impact");
+        sfx("impact", e);
         p.on = false;
       }
 
@@ -7939,6 +8094,9 @@
           y: ay,
           mega: !!u.mega,
         });
+        try {
+          REPLAY.rec("ult", { id: m.id, key: u.key, x: ax, y: ay });
+        } catch (e) {}
         later(u.mega ? 0.6 : 0.35, () => {
           if (!G || !m || m.dead) return;
           runUlt(m, u, ax, ay);
@@ -8002,6 +8160,10 @@
           FX.flash = 1;
           FX.flashC = elemColor(u.a);
           announce("MEGA ULT!", elemColor(u.a));
+        } else {
+          // 🆕 Лёгкая вспышка для обычной/комбо ульты
+          FX.flash = Math.max(FX.flash, 0.18);
+          FX.flashC = elemColor(u.a);
         }
         const uMega = u.mega,
           elems = [u.a, u.b];
@@ -8357,6 +8519,24 @@
         if (u.mega) return 3;
         if (u.key.includes("-")) return 2;
         return 1;
+      }
+
+      // 🆕 Общая визуалка ультов: splash + gfx-оверлей.
+      // Используется и хостом (runUlt), и клиентом (clientEvent).
+      function applyUltVisuals(key, x, y, e, mega) {
+        let splashR = 200;
+        if (key === "3-3-3") splashR = 260;
+        if (key === "4-4-4") splashR = 220;
+        splash(x, y, splashR, elemColor(e), mega ? 1.4 : 1.2);
+        const gm = {
+          "0-0-0": ["lava", 10],
+          "1-1-1": ["ice", 5],
+          "2-2-2": ["wrath", 8],
+          "4-4-4": ["oblivion", 6],
+          "1-1": ["ice", 3],
+          "1-3": ["blizzard", 6],
+        }[key];
+        if (gm) G.gfx.push({ k: gm[0], t: gm[1], m: gm[1] });
       }
 
       function runUlt(m, u, ax, ay) {
@@ -9985,75 +10165,55 @@
         if (mo.boss && mo.tg) {
           const hpFrac = mo.hp / mo.maxHp;
           const phase = hpFrac > 0.6 ? 1 : hpFrac > 0.3 ? 2 : 3;
-          if (mo.bossPhase !== phase) {
+          // 🆕 Телеграф фазы: 0.8с предупреждение перед сменой
+          if (mo.bossPhase !== phase && mo._teleUntil === undefined) {
             if (mo.bossPhase !== undefined) {
-              announce((lang === "ru" ? "ФАЗА " : "PHASE ") + phase, "#ff3030");
-              FX.flash = 0.6;
-              FX.flashC = mo.col;
-              shake(8);
-              burst(mo.x, mo.y - mo.r, mo.col, 60, 400, 5, 0.9, true);
+              G.tele.push({
+                x: mo.x,
+                y: mo.y,
+                r: mo.r * 3,
+                t: 0.8,
+                m: 0.8,
+                c: mo.col,
+              });
               G.rings.push({
                 x: mo.x,
                 y: mo.y,
-                r0: 20,
-                r1: 350,
-                l: 0.7,
-                m: 0.7,
+                r0: mo.r,
+                r1: mo.r * 3,
+                l: 0.8,
+                m: 0.8,
                 c: mo.col,
-                w: 8,
+                w: 4,
               });
+              mo._teleUntil = G.time + 0.8;
+              announce(
+                lang === "ru" ? "⚠ ФАЗА МЕНЯЕТСЯ" : "⚠ PHASE SHIFT",
+                mo.col,
+              );
+              sfx("error");
+            } else {
+              mo.bossPhase = phase;
             }
-            mo.bossPhase = phase;
           }
-          mo.shootCd -= dt;
-          if (mo.shootCd <= 0) {
-            const r = Math.random();
-            mo.shootCd = phase === 3 ? 1.6 : phase === 2 ? 2.2 : 3;
-            if (r < 0.45) {
-              const n = phase === 3 ? 20 : 14,
-                off = rnd(0, TAU);
-              const spd = 260 + phase * 50;
-              for (let i = 0; i < n; i++)
-                spawnProj(
-                  mo,
-                  mo.x,
-                  mo.y - mo.r,
-                  off + (i / n) * TAU,
-                  mo.bossElem,
-                  10 + G.wave * 0.3,
-                  { speed: spd, life: 2.2, r: 10 },
-                );
-              sfx("shoot", mo.bossElem);
-            } else if (r < 0.72 && phase >= 2) {
-              const ang = Math.atan2(mo.tg.y - mo.y, mo.tg.x - mo.x);
-              for (let i = -2; i <= 2; i++)
-                spawnProj(
-                  mo,
-                  mo.x,
-                  mo.y - mo.r,
-                  ang + i * 0.12,
-                  mo.bossElem,
-                  15 + G.wave * 0.4,
-                  { speed: 340, life: 1.8, r: 12 },
-                );
-              sfx("shoot", mo.bossElem);
-            } else if (r < 0.88 && phase >= 2) {
-              const ang = Math.atan2(mo.tg.y - mo.y, mo.tg.x - mo.x);
-              mo.kvx += Math.cos(ang) * 22;
-              mo.kvy += Math.sin(ang) * 22;
-              burst(mo.x, mo.y - mo.r * 0.5, mo.col, 30, 300, 4, 0.5, true);
-              shake(4);
-            } else if (phase >= 3) {
-              for (let i = 0; i < 3; i++) {
-                const a = rnd(0, TAU),
-                  rr = 100 + rnd(0, 80);
-                const x = mo.x + Math.cos(a) * rr;
-                const y = mo.y + Math.sin(a) * rr;
-                G.spawnFx.push({ x, y, t: 0.6, m: 0.6, c: mo.col, w: 30 });
-                G.monsters.push(makeMonster(0, x, y, G.wave, "red"));
-              }
-              announce(lang === "ru" ? "ПРИЗЫВ!" : "SUMMON!", mo.col);
-            }
+          if (mo._teleUntil !== undefined && G.time >= mo._teleUntil) {
+            announce((lang === "ru" ? "ФАЗА " : "PHASE ") + phase, "#ff3030");
+            FX.flash = 0.6;
+            FX.flashC = mo.col;
+            shake(8);
+            burst(mo.x, mo.y - mo.r, mo.col, 60, 400, 5, 0.9, true);
+            G.rings.push({
+              x: mo.x,
+              y: mo.y,
+              r0: 20,
+              r1: 350,
+              l: 0.7,
+              m: 0.7,
+              c: mo.col,
+              w: 8,
+            });
+            mo.bossPhase = phase;
+            mo._teleUntil = undefined;
           }
         }
       }
@@ -10137,33 +10297,30 @@
             g.waveLeft = 6 + Math.round(g.wave * 3.5);
             g.spawnT = 1.2;
             announce((lang === "ru" ? "ВОЛНА " : "WAVE ") + g.wave, "#ffd23a");
-            if (BOSSES[g.wave]) {
-              const a = rnd(0, TAU),
-                bx = CX + Math.cos(a) * 700,
-                by = CY + Math.sin(a) * 700;
-              g.monsters.push(makeBoss(g.wave, bx, by));
-              g.spawnFx.push({
-                x: bx,
-                y: by,
-                t: 1.5,
-                m: 1.5,
-                c: "#FF3030",
-                w: 40,
-              });
-              g.waveLeft += 6;
-              announce("BOSS!", "#ff3030");
-              shake(8);
+            // 🆕 Предупреждение за 2 волны до босса
+            const _bossWaves = [10, 20, 30, 40, 50];
+            const _nextBoss = _bossWaves.find((w) => w > g.wave);
+            if (_nextBoss && g.wave === _nextBoss - 2) {
+              setTimeout(() => {
+                if (G && G.mode === "survival") {
+                  announce(
+                    lang === "ru" ? "⚠ БОСС ПРИБЛИЖАЕТСЯ" : "⚠ BOSS INCOMING",
+                    "#ff3030",
+                  );
+                  shake(3);
+                  sfx("error");
+                }
+              }, 1500);
             }
-            if (g.wave > SAVE.stats.bestWave) SAVE.stats.bestWave = g.wave;
           }
+          g.pkT -= dt;
+          // Spawn more frequently and allow more buffs on the map (up from 9 to 15)
+          if (g.pkT <= 0 && g.pickups.length < 15) {
+            g.pkT = rnd(4, 8);
+            spawnRandomPickup();
+          } else if (g.pkT <= 0) g.pkT = 3;
+          if (g.epicT > 0) g.epicT -= dt;
         }
-        g.pkT -= dt;
-        // Spawn more frequently and allow more buffs on the map (up from 9 to 15)
-        if (g.pkT <= 0 && g.pickups.length < 15) {
-          g.pkT = rnd(4, 8);
-          spawnRandomPickup();
-        } else if (g.pkT <= 0) g.pkT = 3;
-        if (g.epicT > 0) g.epicT -= dt;
       }
 
       function updateTimersAndFx(dt) {
@@ -10618,7 +10775,7 @@
           attack: { x: W - 120 * u, y: H - 110 * u, r: 45 * u },
           ult: { x: W - 62 * u, y: H - 218 * u, r: 42 * u },
           // 🆕 Сдвинута влево-вверх, чтобы не пересекаться с attack/dash/ult/cancel
-          atkSwitch: { x: W - 250 * u, y: H - 190 * u, r: 30 * u },
+          atkSwitch: { x: W - 250 * u, y: H - 190 * u, r: 34 * u },
           dash: { x: W - 222 * u, y: H - 62 * u, r: 33 * u },
           pause: { x: W - 30 * u, y: 30 * u, r: 22 * u },
           cancel: { x: W - 160 * u, y: cancelY, r: low ? 24 * u : 28 * u },
@@ -12106,7 +12263,10 @@
             return false;
           }
         }
-        o.seed = o.seed || (Math.random() * 1e9) | 0;
+        o.seed =
+          o.seed !== undefined && o.seed !== null
+            ? o.seed
+            : (Math.random() * 1e9) | 0;
         ensureArena(o.theme);
         newGame(o);
         FX.hs = 0;
@@ -12257,11 +12417,43 @@
         state = "PLAYING";
         showScreen(null);
         resetAllInputs();
+        // 🆕 Начать запись replay
+        try {
+          REPLAY.begin();
+        } catch (e) {}
         MUS.tgt = 0.5;
         try {
           gameplayStart();
         } catch (e) {}
         canvas.focus();
+        // 🆕 Сохраняем opts для «Продолжить»
+        if (!o.online) {
+          try {
+            SAVE.lastRun = {
+              t: Date.now(),
+              opts: {
+                mode: o.mode,
+                count: o.count,
+                theme: o.theme,
+                color: o.color,
+                skin: o.skin,
+                seed: o.seed,
+              },
+            };
+            persist();
+          } catch (e) {}
+        }
+        // 🆕 Выдать гарантированную руну
+        if (SAVE.pendingRune && G.player) {
+          SAVE.pendingRune = false;
+          persist();
+          setTimeout(() => {
+            if (G && G.player && !G.player.dead) {
+              addRune(G.player, rndi(0, 3));
+              toast(lang === "ru" ? "🎲 Бонус: +1 руна" : "🎲 Bonus: +1 rune");
+            }
+          }, 1500);
+        }
         announce(
           o.mode === "survival"
             ? lang === "ru"
@@ -12331,6 +12523,13 @@
         $("sc-confirm").classList.remove("show");
         if (G) G.pendingQuit = false;
         netCleanup();
+        // 🆕 Если вышли из результата — сбрасываем «Продолжить»
+        if (fromResult) {
+          SAVE.lastRun = null;
+          try {
+            persist();
+          } catch (e) {}
+        }
         try {
           gameplayStop();
         } catch (e) {}
@@ -12599,6 +12798,10 @@
         if (!G || G.resultShown) return;
         G.resultShown = true;
         state = "RESULT";
+        // 🆕 Остановить запись replay
+        try {
+          REPLAY.stop();
+        } catch (e) {}
         try {
           gameplayStop();
         } catch (e) {}
@@ -13074,6 +13277,36 @@
           c.beginPath();
           c.arc(t.x, t.y, t.r * (1 - k), 0, TAU);
           c.stroke();
+        }
+
+        // 🆕 Падающие метеоры
+        for (const f of G.fall) {
+          const k = 1 - clamp(f.t / f.m, 0, 1); // 0 → 1
+          const startY = f.y - 900;
+          const yy = lerp(startY, f.y, ease(k));
+          const r = 18 + 10 * Math.sin(TM * 20);
+          // хвост
+          c.globalCompositeOperation = "lighter";
+          const tg = c.createLinearGradient(f.x, yy - 80, f.x, yy);
+          tg.addColorStop(0, "rgba(255,80,0,0)");
+          tg.addColorStop(1, "rgba(255,180,60,.9)");
+          c.fillStyle = tg;
+          c.beginPath();
+          c.moveTo(f.x - r * 0.6, yy);
+          c.lineTo(f.x, yy - 80);
+          c.lineTo(f.x + r * 0.6, yy);
+          c.closePath();
+          c.fill();
+          // ядро
+          const cg = c.createRadialGradient(f.x, yy, 2, f.x, yy, r);
+          cg.addColorStop(0, "#FFFFFF");
+          cg.addColorStop(0.4, "#FFEE00");
+          cg.addColorStop(1, "rgba(255,69,0,0)");
+          c.fillStyle = cg;
+          c.beginPath();
+          c.arc(f.x, yy, r, 0, TAU);
+          c.fill();
+          c.globalCompositeOperation = "source-over";
         }
 
         if (G.pillar) {
@@ -14018,6 +14251,17 @@
         c.beginPath();
         c.arc(mx, my, G.safeR * ms, 0, TAU);
         c.stroke();
+        // 🆕 Зоны ульт на миникарте
+        for (const z of G.zones) {
+          if (z.r > 5000) continue;
+          c.globalAlpha = 0.6;
+          c.strokeStyle = elemColor(z.elem);
+          c.lineWidth = 1.5;
+          c.beginPath();
+          c.arc(mx + (z.x - CX) * ms, my + (z.y - CY) * ms, z.r * ms, 0, TAU);
+          c.stroke();
+          c.globalAlpha = 1;
+        }
         for (const pk of G.pickups) {
           c.fillStyle = PK[pk.type].col;
           c.fillRect(
@@ -14027,17 +14271,23 @@
             2,
           );
         }
-        // 🆕 Ограничиваем 40 ближайшими монстрами
-        const _pView = G.player || { x: CX, y: CY };
-        const _mons = G.monsters
-          .filter((mo) => !mo.dead)
-          .sort(
-            (a, b) =>
-              (a.x - _pView.x) ** 2 +
-              (a.y - _pView.y) ** 2 -
-              ((b.x - _pView.x) ** 2 + (b.y - _pView.y) ** 2),
-          )
-          .slice(0, 40);
+
+        if (!G._miniCache || TM - G._miniCache.t > 0.2) {
+          const _pView = G.player || { x: CX, y: CY };
+          G._miniCache = {
+            t: TM,
+            list: G.monsters
+              .filter((mo) => !mo.dead)
+              .sort(
+                (a, b) =>
+                  (a.x - _pView.x) ** 2 +
+                  (a.y - _pView.y) ** 2 -
+                  ((b.x - _pView.x) ** 2 + (b.y - _pView.y) ** 2),
+              )
+              .slice(0, 40),
+          };
+        }
+        const _mons = G._miniCache.list;
         for (const mo of _mons) {
           c.fillStyle = mo.boss ? "#ff00ff" : "#ff4040";
           const sz = mo.boss ? 4 : 2;
@@ -14773,6 +15023,37 @@
             showDaily();
           }
         }, 300);
+        // 🆕 Сегментация по статистике Яндекса
+        try {
+          const ys = SAVE.ysStats;
+          if (ys && !ys._suggested) {
+            if (ys.playTime > 1800 && !SAVE.vip && SAVE.gold >= 800) {
+              ys._suggested = true;
+              setTimeout(() => {
+                if (state === "MENU")
+                  toast(
+                    lang === "ru"
+                      ? "💎 У вас достаточно золота для VIP-пропуска!"
+                      : "💎 You have enough gold for VIP!",
+                    3500,
+                  );
+              }, 2000);
+            }
+            if (ys.ads > 5 && !SAVE.noAds) {
+              ys._suggested = true;
+              setTimeout(() => {
+                if (state === "MENU")
+                  toast(
+                    lang === "ru"
+                      ? "🚫 Убери рекламу — всего 99₽"
+                      : "🚫 Remove ads — only $1.99",
+                    3500,
+                  );
+              }, 3500);
+            }
+            persist();
+          }
+        } catch (e) {}
       }
       function openSetup(mode) {
         setup.mode = mode;
@@ -15375,6 +15656,24 @@
                 }),
             },
             {
+              n: "🎲",
+              icon: "ad",
+              sub: lang === "ru" ? "+1 руна в забеге" : "+1 rune next run",
+              btn: "ad",
+              price: 0,
+              f: () =>
+                showRewarded(() => {
+                  SAVE.pendingRune = true;
+                  persist();
+                  toast(
+                    lang === "ru"
+                      ? "🎲 +1 руна в забеге"
+                      : "🎲 +1 rune next run",
+                  );
+                  buildShop();
+                }),
+            },
+            {
               n: "VIP",
               icon: "vip",
               sub: t("vipDesc"),
@@ -15390,6 +15689,17 @@
                 sfx("purchase");
                 persist();
                 buildShop();
+              },
+            },
+            {
+              n: "🚫",
+              icon: "coin",
+              sub: lang === "ru" ? "Убрать рекламу" : "Remove ads",
+              btn: SAVE.noAds ? "check" : "КУПИТЬ",
+              price: 0,
+              f: () => {
+                if (SAVE.noAds) return;
+                buyProduct("no_ads");
               },
             },
             {
@@ -15447,11 +15757,11 @@
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML = `
-                                                                     <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
-                                                                       <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
-                                                                     </div>
-                                                                     <div style="opacity:.8;font-size:13px">${it.sub}</div>
-                                                                   `;
+                                                                                 <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
+                                                                                   <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
+                                                                                 </div>
+                                                                                 <div style="opacity:.8;font-size:13px">${it.sub}</div>
+                                                                               `;
             const b = document.createElement("button");
             b.className = "btn small shop-btn";
             b.style.display = "flex";
@@ -16405,6 +16715,44 @@
           case "giveUp":
             endMatch(false);
             break;
+          case "loadingPlay":
+            $("sc-loading").style.display = "none";
+            $("sc-loading").classList.remove("show");
+            state = "MENU";
+            showScreen("sc-menu");
+            initMenuMages();
+            break;
+          case "quickRestart":
+            if (G && !G.online && G.opts) {
+              const opts = G.opts;
+              quitToMenu(false);
+              startMatch(Object.assign({}, opts, { seed: 0 }));
+            } else {
+              toast(lang === "ru" ? "Недоступно в онлайне" : "Not in online");
+            }
+            break;
+          case "share": {
+            const score = G && G.player ? G.kills || 0 : 0;
+            const waves = G ? Math.max(0, (G.wave || 1) - 1) : 0;
+            const text =
+              lang === "ru"
+                ? `Я сыграл в ARCANE ARENA! ${waves} волн, ${score} убийств. Сможешь больше?`
+                : `I played ARCANE ARENA! ${waves} waves, ${score} kills. Can you beat me?`;
+            const url = "https://yandex.ru/games/app/arcane-arena";
+            if (navigator.share) {
+              navigator
+                .share({ title: "ARCANE ARENA", text, url })
+                .catch(() => {});
+            } else if (navigator.clipboard) {
+              navigator.clipboard
+                .writeText(text + " " + url)
+                .then(() => toast(t("copied")))
+                .catch(() => toast(url));
+            } else {
+              toast(url);
+            }
+            break;
+          }
         }
       }
       document.addEventListener("click", (e) => {
@@ -17276,6 +17624,8 @@
                 shake(clamp(1 + ev.a / 25, 1, 6));
                 vib(30);
                 sfx("hurt");
+                // 🆕 Локальный микро-хитстоп (не влияет на сервер)
+                FX.localHs = Math.max(FX.localHs || 0, ev.a >= 40 ? 50 : 25);
               }
             }
             break;
@@ -17359,19 +17709,7 @@
                 });
               }
               later(_u.mega ? 0.6 : 0.35, () => {
-                let splashR = 200;
-                if (ev.key === "3-3-3") splashR = 260;
-                if (ev.key === "4-4-4") splashR = 220;
-                splash(ev.x, ev.y, splashR, elemColor(_u.e), 1.2);
-                const gm = {
-                  "0-0-0": ["lava", 10],
-                  "1-1-1": ["ice", 5],
-                  "2-2-2": ["wrath", 8],
-                  "4-4-4": ["oblivion", 6],
-                  "1-1": ["ice", 3],
-                  "1-3": ["blizzard", 6],
-                }[ev.key];
-                if (gm) G.gfx.push({ k: gm[0], t: gm[1], m: gm[1] });
+                applyUltVisuals(ev.key, ev.x, ev.y, _u.e, _u.mega);
               });
             }
             break;
@@ -17577,7 +17915,20 @@
           if (NET.lastRecv && now - NET.lastRecv > 12000 && !G.resultShown) {
             toast(t("hostLeft"));
             NET.lastRecv = 0;
-            quitToMenu();
+            if (G && !G.resultShown) {
+              G.resultShown = true;
+              $("resTitle").textContent = t("defeat");
+              $("resBody").innerHTML =
+                '<div style="color:#ff6060">' +
+                (lang === "ru" ? "Соединение потеряно" : "Connection lost") +
+                "</div>";
+              $("rematchBtn").style.display = "none";
+              $("backToRoomBtn").style.display = "none";
+              state = "RESULT";
+              showScreen("sc-result");
+            } else {
+              quitToMenu();
+            }
           }
         }
       }
@@ -17626,6 +17977,13 @@
       function frame(rd) {
         readInput();
         adaptQuality(rd);
+        // 🆕 Локальный хитстоп клиента (только визуал)
+        if (FX.localHs > 0) {
+          FX.localHs -= rd * 1000;
+          if (G) netTick(rd);
+          render(rd);
+          return;
+        }
         if (state === "PLAYING" && G) {
           let sc = 1;
           if (!G.online) {
@@ -17718,6 +18076,7 @@
 
           const wrapper = document.createElement("div");
           wrapper.className = "custom-select";
+          wrapper._select = select; // 🆕 прямая ссылка
           if (select.style.width) wrapper.style.width = select.style.width;
           if (select.id === "serverSelect") wrapper.style.width = "100%";
 
@@ -17797,7 +18156,14 @@
       // 🆕 Обновление языка в кастомных селектах
       function updateCustomSelectsLanguage() {
         document.querySelectorAll(".custom-select").forEach((wrapper) => {
-          const select = wrapper.previousElementSibling;
+          let select = wrapper._select;
+          if (!select) {
+            // fallback для старых версий DOM
+            select = wrapper.previousElementSibling;
+            if (select && select.tagName === "SELECT") {
+              wrapper._select = select;
+            }
+          }
           if (select && select.tagName === "SELECT") {
             // Обновляем текст в опциях
             const optionDivs = wrapper.querySelectorAll(
@@ -17863,8 +18229,24 @@
             if (!Array.isArray(SAVE.staffs) || !SAVE.staffs.length)
               SAVE.staffs = ["wood"];
             if (!Array.isArray(SAVE.fx)) SAVE.fx = [];
-            if (!Array.isArray(SAVE.arenas) || !SAVE.arenas.length)
-              SAVE.arenas = ["lava"];
+            if (!Array.isArray(SAVE.arenas)) SAVE.arenas = ["lava"];
+            SAVE.arenas = SAVE.arenas.filter((id) => THEMES[id]);
+            if (!SAVE.arenas.length) SAVE.arenas = ["lava"];
+
+            if (!Array.isArray(SAVE.skins)) SAVE.skins = ["base"];
+            SAVE.skins = SAVE.skins.filter(
+              (id) => SKIN_BY_ID[id] || id === "base",
+            );
+            if (!SAVE.skins.length) SAVE.skins = ["base"];
+
+            if (!Array.isArray(SAVE.staffs)) SAVE.staffs = ["wood"];
+            SAVE.staffs = SAVE.staffs.filter(
+              (id) => STAFF_BY_ID[id] || id === "wood",
+            );
+            if (!SAVE.staffs.length) SAVE.staffs = ["wood"];
+
+            if (!Array.isArray(SAVE.fx)) SAVE.fx = [];
+            SAVE.fx = SAVE.fx.filter((id) => EFFECTS.some((e) => e.id === id));
             if (!Array.isArray(SAVE.colors) || !SAVE.colors.length)
               SAVE.colors = ["purple"];
             if (!Array.isArray(SAVE.lb)) SAVE.lb = [];
@@ -17901,6 +18283,22 @@
           }
         } catch (e) {
           console.error("[SAVE]", e);
+        }
+        // 🆕 Стартовый набор новичкам
+        if (!SAVE.firstLogin) {
+          SAVE.firstLogin = true;
+          if (SAVE.skins.indexOf("royal") < 0) SAVE.skins.push("royal");
+          SAVE.gold += 100;
+          SAVE.energy = Math.min(5, SAVE.energy + 1);
+          persist();
+          setTimeout(() => {
+            toast(
+              lang === "ru"
+                ? "🎁 Стартовый набор: скин Royal + 100 золота + 1⚡"
+                : "🎁 Starter pack: Royal skin + 100 gold + 1⚡",
+              4500,
+            );
+          }, 1200);
         }
         if (SAVE.dailyDay === undefined) SAVE.dailyDay = 0;
         if (SAVE.dailyLast === undefined) SAVE.dailyLast = 0;
@@ -17970,6 +18368,11 @@
           if (window.ysdk && ysdk.features && ysdk.features.LoadingAPI)
             ysdk.features.LoadingAPI.ready();
         } catch (e) {}
+        // 🆕 Показать кнопку "Играть" через 800 мс после готовности
+        setTimeout(() => {
+          const lb = $("loadingPlayBtn");
+          if (lb) lb.style.display = "flex";
+        }, 800);
         await delay(120);
         $("sc-loading").classList.remove("show");
         $("sc-loading").style.display = "none";
@@ -17983,12 +18386,48 @@
             showDaily();
           }
         }, 600);
+        // 🆕 Предложить «Продолжить», если был незавершённый забег
+        try {
+          const lr = SAVE.lastRun;
+          if (lr && lr.opts && Date.now() - lr.t < 60 * 60 * 1000) {
+            setTimeout(() => {
+              if (state === "MENU") {
+                const yes = confirm(
+                  lang === "ru"
+                    ? "Продолжить последний забег?"
+                    : "Continue last run?",
+                );
+                if (
+                  yes &&
+                  startMatch(Object.assign({}, lr.opts, { seed: 0 }))
+                ) {
+                  SAVE.lastRun = null;
+                  persist();
+                } else {
+                  SAVE.lastRun = null;
+                  persist();
+                }
+              }
+            }, 1400);
+          }
+        } catch (e) {}
       }
       // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
       window.addEventListener("beforeunload", () => {
+        // 🆕 Принудительно синхронизируем поля ввода с SAVE
+        try {
+          const nickEl = $("nickIn");
+          if (nickEl && nickEl.value.trim() !== "")
+            SAVE.nick = nickEl.value.trim();
+        } catch (e) {}
         try {
           localStorage.setItem("arcane_save", JSON.stringify(SAVE));
           localStorage.setItem("arcane_save_backup", JSON.stringify(SAVE));
+        } catch (e) {}
+        // 🆕 Синхронный player.setData (best-effort)
+        try {
+          if (window.player && window.player.setData)
+            window.player.setData(SAVE);
         } catch (e) {}
       });
       // 🆕 При уходе на другую вкладку (мобилки) — тоже сохраняем
@@ -18005,6 +18444,113 @@
           }
         }
       });
+      // 🆕 DEV-хоткеи (активны только при SAVE.devMode)
+      window.addEventListener("keydown", (e) => {
+        if (!SAVE.devMode || state !== "PLAYING" || !G) return;
+        if (!e.shiftKey) return;
+        switch (e.code) {
+          case "KeyG":
+            SAVE.gold += 10000;
+            SAVE.gems += 1000;
+            persist();
+            toast("DEV: +10000🪙 +1000💎");
+            break;
+          case "KeyH":
+            if (G.player) {
+              G.player.hp = G.player.maxHp;
+              G.player.ultCharge = 100;
+              G.player.mana = 100;
+            }
+            toast("DEV: heal+ult+mana");
+            break;
+          case "KeyK":
+            for (const mo of G.monsters) if (!mo.dead) killEntity(mo, G.player);
+            toast("DEV: kill all");
+            break;
+          case "KeyW":
+            G.waveLeft = 0;
+            for (const mo of G.monsters) if (!mo.dead) killEntity(mo, G.player);
+            toast("DEV: next wave");
+            break;
+          case "KeyN":
+            if (G.player) {
+              G.player.ultSlots = [G.player.elem, 0, 1, 2];
+              G.player.ultActive = 1;
+            }
+            toast("DEV: ult slots filled");
+            break;
+          case "KeyM":
+            if (G.player) {
+              G.player.multiStacks = 15;
+              G.player.hp = G.player.maxHp * 100;
+              G.player.maxHp = G.player.maxHp * 100;
+            }
+            toast("DEV: multi=15, hp×100");
+            break;
+        }
+      });
+      // 🆕 Дамп состояния для отладки
+      window._dump = () => {
+        if (!G) {
+          console.log("No game active");
+          return;
+        }
+        const p = G.player;
+        console.table({
+          mode: G.mode,
+          wave: G.wave,
+          kills: G.kills,
+          time: G.time.toFixed(1),
+          playerHP: p ? `${Math.round(p.hp)}/${p.maxHp}` : "-",
+          playerMana: p ? Math.round(p.mana) : "-",
+          playerLevel: p ? p.level : "-",
+          ultCharge: p ? Math.round(p.ultCharge) : "-",
+          ultSlots: p ? JSON.stringify(p.ultSlots) : "-",
+          multiStacks: p ? p.multiStacks : "-",
+          mages: G.mages.length,
+          aliveMages: G.mages.filter((m) => !m.dead).length,
+          monsters: G.monsters.filter((m) => !m.dead).length,
+          pickups: G.pickups.length,
+          zones: G.zones.length,
+          particles: PP.active.length,
+          projectiles: PR.active.length,
+          rocks: G.rocks.length,
+          boss: G.boss ? G.boss.name : "-",
+          online: G.online,
+          role: G.role,
+        });
+        console.log("G:", G);
+        console.log("SAVE:", SAVE);
+      };
+      // 🆕 Минимальный replay-логгер для отладки
+      const REPLAY = {
+        events: [],
+        start: 0,
+        recording: false,
+        begin() {
+          this.events = [];
+          this.start = performance.now();
+          this.recording = true;
+        },
+        rec(type, data) {
+          if (!this.recording) return;
+          if (this.events.length > 5000) this.events.shift();
+          this.events.push({
+            t: Math.round((performance.now() - this.start) / 100) / 10,
+            type,
+            data,
+          });
+        },
+        stop() {
+          this.recording = false;
+          try {
+            SAVE.replay = this.events.slice(-2000);
+            persist();
+            console.log("[REPLAY] saved", SAVE.replay.length, "events");
+          } catch (e) {}
+        },
+      };
+      window._replay = REPLAY;
       requestAnimationFrame(gameLoop);
       boot().catch((e) => {
         try {
