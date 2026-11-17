@@ -1524,6 +1524,21 @@
       }
       const TAU = Math.PI * 2,
         $ = (id) => document.getElementById(id);
+      // 🆕 Константы баланса — меняйте здесь, не ищите по коду
+      const TUNING = {
+        MAGE_SPEED: 220,
+        MAX_HP: 100,
+        MAX_MANA: 100,
+        MANA_REGEN: 10,
+        ATK_CD: 0.35,
+        ATK_MANA_COST: 15,
+        ATK_MANA_COST_BOT: 10,
+        DASH_CD: 2,
+        DASH_DUR: 0.18,
+        ULT_CHARGE_RATE: 100 / 12,
+        GLOBAL_ZONE_R: 1e5,
+        BOSS_HP_MULT: 0.75,
+      };
       const clamp = (v, a, b) => (v < a ? a : v > b ? b : v),
         lerp = (a, b, t) => a + (b - a) * t,
         rnd = (a, b) => a + Math.random() * (b - a),
@@ -7306,7 +7321,7 @@
           isCrit = true;
           o.crit = true;
         }
-        if (t.boss) amt *= 0.75;
+        if (t.boss) amt *= TUNING.BOSS_HP_MULT;
         amt = Math.max(1, Math.round(amt));
         t.hp -= amt;
         if (src) t.lastHit = src;
@@ -7581,16 +7596,34 @@
       }
       function nearestFoe(o, x, y, maxd, ex) {
         let best = null,
-          bd = maxd || 1e9;
-        for (let i = 0; i < G.all.length; i++) {
-          const t = G.all[i];
-          if (!isFoe(o, t) || (ex && ex.indexOf(t) >= 0)) continue;
+          bd = maxd || 1e9,
+          bestScore = -1e9;
+        const scanR = Math.min(maxd || 1200, 1200);
+        GRID.query(x, y, scanR, (t) => {
+          if (!isFoe(o, t) || (ex && ex.indexOf(t) >= 0)) return;
           const d = Math.hypot(t.x - x, t.y - y);
-          if (d < bd) {
-            bd = d;
-            best = t;
+          if (d > scanR) return;
+          let score = -d;
+          // 🆕 боты в survival приоритизируют боссов
+          if (G && G.mode === "survival" && o.isBot && t.isMonster && t.boss)
+            score += 800;
+          // 🆕 боты в survival приоритизируют врагов рядом с игроком
+          if (
+            G &&
+            G.mode === "survival" &&
+            o.isBot &&
+            t.isMonster &&
+            G.player
+          ) {
+            const dToPlayer = dist(t.x, t.y, G.player.x, G.player.y);
+            if (dToPlayer < 200) score += 300;
           }
-        }
+          if (score > bestScore) {
+            bestScore = score;
+            best = t;
+            bd = d;
+          }
+        });
         return best;
       }
       function randFoe(o) {
@@ -7753,8 +7786,8 @@
             w = alignF * alignF;
           const ex = lerp(bodyX, staffX, w),
             ey = lerp(bodyY, staffY, w);
-          const coreCol = ELEMS[m.baseElem || m.elem].core,
-            elCol = elemColor(m.baseElem || m.elem);
+          const coreCol = ELEMS[m.elem].core,
+            elCol = elemColor(m.elem);
           burst(ex, ey, [elCol, coreCol, "#fff"], 16, 260, 3.5, 0.3, true);
           G.rings.push({
             x: ex,
@@ -7781,10 +7814,6 @@
               0.92,
             );
           }
-          const stStyle = m.staff ? m.staff.atkStyle : "orb",
-            stCol = m.staff && m.staff.color ? m.staff.color : null;
-          // 🆕 Фиксированный широкий разброс, чтобы пули именно "расстраивались"
-          const spreadRad = 0.16;
           const stStyle = m.staff ? m.staff.atkStyle : "orb",
             stCol = null; // 🆕 цвет всегда по стихии
           const isBigStaff = ["meow", "abyss", "rainbow", "alpha"].includes(
@@ -9583,7 +9612,7 @@
           a.strafeT = rnd(1.8, 3.5);
           a.strafe = -a.strafe;
         }
-        if (!a.tg || a.tg.dead) a.tg = nearestFoe(m, m.x, m.y, 1e9);
+        if (!a.tg || a.tg.dead) a.tg = nearestFoe(m, m.x, m.y, 1200);
         const td = a.tg ? dist(m.x, m.y, a.tg.x, a.tg.y) : 999;
         a.td = td;
         if (a.t <= 0) {
@@ -9763,603 +9792,661 @@
               mageDash(m, Math.atan2(-dy, -dx));
           }
         }
+      }
 
-        function damageRock(rk, dmg, src) {
-          if (!rk || rk.hp <= 0) return;
-          rk.hp -= dmg;
-          rk.shakeT = 0.15;
+      function damageRock(rk, dmg, src) {
+        if (!rk || rk.hp <= 0) return;
+        rk.hp -= dmg;
+        rk.shakeT = 0.15;
 
-          // Мелкие искры при каждом попадании (не только при разрушении)
-          burst(
-            rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
-            rk.y + rnd(-rk.r * 0.3, rk.r * 0.3),
-            pick([rk.crystalCol || "#999", "#666", "#888"]),
-            4,
-            120,
-            2.5,
-            0.4,
-            false,
-          );
+        // Мелкие искры при каждом попадании (не только при разрушении)
+        burst(
+          rk.x + rnd(-rk.r * 0.5, rk.r * 0.5),
+          rk.y + rnd(-rk.r * 0.3, rk.r * 0.3),
+          pick([rk.crystalCol || "#999", "#666", "#888"]),
+          4,
+          120,
+          2.5,
+          0.4,
+          false,
+        );
 
-          if (rk.hp <= 0) {
-            const idx = G.rocks.indexOf(rk);
-            if (idx >= 0) G.rocks.splice(idx, 1);
+        if (rk.hp <= 0) {
+          const idx = G.rocks.indexOf(rk);
+          if (idx >= 0) G.rocks.splice(idx, 1);
 
-            shake(5);
-            FX.flash = 0.3;
-            FX.flashC = rk.crystalCol || "#FFAA00";
+          shake(5);
+          FX.flash = 0.3;
+          FX.flashC = rk.crystalCol || "#FFAA00";
+          G.rings.push({
+            x: rk.x,
+            y: rk.y,
+            r0: 10,
+            r1: 90,
+            l: 0.4,
+            m: 0.4,
+            c: "#FFF",
+            w: 4,
+          });
+          if (rk.crystal) spawnPickup(randomPickupType(), rk.x, rk.y);
+
+          // 🆕 Вспышка осколков (короткая, яркая) — искры ПЕРЕД разлётом камней
+          for (let i = 0; i < 6; i++) {
+            pt(
+              rk.x + rnd(-rk.r, rk.r),
+              rk.y - rnd(0, rk.h),
+              rnd(-80, 80),
+              rnd(-120, -40),
+              rnd(0.2, 0.4),
+              rnd(2, 4),
+              pick([rk.crystalCol || "#AAA", "#FFF", "#888"]),
+              200,
+              true,
+              0.9,
+            );
+          }
+
+          // 🆕 Эффектный разлёт осколков
+          const _th = THEMES[G.theme] || THEMES.lava;
+          // Угол от центра камня к точке удара (если известен), иначе случайный
+          const baseAng =
+            src && src.x !== undefined
+              ? Math.atan2(rk.y - (src.y || rk.y), rk.x - (src.x || rk.x))
+              : rnd(0, TAU);
+
+          for (let i = 0; i < 15; i++) {
+            const isCrystalPiece = rk.crystalCol && Math.random() < 0.3;
+            // Разлёт веером в стороны + вверх
+            const spread = rnd(-1.4, 1.4);
+            const ang = baseAng + spread;
+            const horizSpeed = rnd(120, 320);
+            const vertSpeed = rnd(100, 260);
+
+            G.debris.push({
+              x: rk.x + rnd(-rk.r * 0.3, rk.r * 0.3),
+              y: rk.y - rnd(0, rk.h * 0.6),
+              // 🆕 Скорость: в стороны от камня + вверх
+              vx: Math.cos(ang) * horizSpeed,
+              vy: -vertSpeed,
+              // 🆕 Гравитация и вращение
+              g: rnd(400, 650),
+              ang: rnd(0, TAU),
+              w: rnd(-15, 15), // быстрее крутятся
+              f: 1,
+              floor: rk.y + rnd(-4, 6), // разная высота «пола»
+              t: 0,
+              clat: false,
+              isRockDebris: true,
+              col: isCrystalPiece
+                ? rk.crystalCol
+                : shade(_th.rock, rnd(-0.25, 0.15)),
+              _sz: rnd(4, 10),
+            });
+          }
+
+          if (rk.crystal && src) {
+            const col = rk.crystalCol;
             G.rings.push({
               x: rk.x,
               y: rk.y,
-              r0: 10,
-              r1: 90,
-              l: 0.4,
-              m: 0.4,
-              c: "#FFF",
-              w: 4,
+              r0: 5,
+              r1: 120,
+              l: 0.55,
+              m: 0.55,
+              c: col,
+              w: 6,
             });
-            if (rk.crystal) spawnPickup(randomPickupType(), rk.x, rk.y);
-
-            // 🆕 Вспышка осколков (короткая, яркая) — искры ПЕРЕД разлётом камней
-            for (let i = 0; i < 6; i++) {
-              pt(
-                rk.x + rnd(-rk.r, rk.r),
-                rk.y - rnd(0, rk.h),
-                rnd(-80, 80),
-                rnd(-120, -40),
-                rnd(0.2, 0.4),
-                rnd(2, 4),
-                pick([rk.crystalCol || "#AAA", "#FFF", "#888"]),
-                200,
-                true,
-                0.9,
-              );
+            burst(rk.x, rk.y, [col, "#fff"], 40, 380, 4, 0.7, true);
+            const opt = { kb: 12 };
+            if (col === "#00DDFF") {
+              opt.freeze = 0.8;
+              opt.slow = [2, 0.6];
             }
+            if (col === "#FF00FF") opt.burn = [2, 4];
+            aoe(src, rk.x, rk.y, 130, 35, opt);
+            shake(4);
+          }
+          sfx("impact");
+        }
+      }
 
-            // 🆕 Эффектный разлёт осколков
-            const _th = THEMES[G.theme] || THEMES.lava;
-            // Угол от центра камня к точке удара (если известен), иначе случайный
-            const baseAng =
-              src && src.x !== undefined
-                ? Math.atan2(rk.y - (src.y || rk.y), rk.x - (src.x || rk.x))
-                : rnd(0, TAU);
-
-            for (let i = 0; i < 15; i++) {
-              const isCrystalPiece = rk.crystalCol && Math.random() < 0.3;
-              // Разлёт веером в стороны + вверх
-              const spread = rnd(-1.4, 1.4);
-              const ang = baseAng + spread;
-              const horizSpeed = rnd(120, 320);
-              const vertSpeed = rnd(100, 260);
-
-              G.debris.push({
-                x: rk.x + rnd(-rk.r * 0.3, rk.r * 0.3),
-                y: rk.y - rnd(0, rk.h * 0.6),
-                // 🆕 Скорость: в стороны от камня + вверх
-                vx: Math.cos(ang) * horizSpeed,
-                vy: -vertSpeed,
-                // 🆕 Гравитация и вращение
-                g: rnd(400, 650),
-                ang: rnd(0, TAU),
-                w: rnd(-15, 15), // быстрее крутятся
-                f: 1,
-                floor: rk.y + rnd(-4, 6), // разная высота «пола»
-                t: 0,
-                clat: false,
-                isRockDebris: true,
-                col: isCrystalPiece
-                  ? rk.crystalCol
-                  : shade(_th.rock, rnd(-0.25, 0.15)),
-                _sz: rnd(4, 10),
-              });
+      function collideWorld(e) {
+        for (const rk of G.rocks) {
+          const dx = e.x - rk.x,
+            dy = e.y - rk.y,
+            md = rk.r + e.r * 0.8,
+            d2 = dx * dx + dy * dy;
+          if (d2 < md * md) {
+            // 🆕 убрали d2 > 0.0001
+            if (d2 < 0.0001) {
+              // Точно в центре — выталкиваем в сторону +X
+              e.x = rk.x + md;
+              e.y = rk.y;
+            } else {
+              const d = Math.sqrt(d2);
+              e.x = rk.x + (dx / d) * md;
+              e.y = rk.y + (dy / d) * md;
             }
-
-            if (rk.crystal && src) {
-              const col = rk.crystalCol;
-              G.rings.push({
-                x: rk.x,
-                y: rk.y,
-                r0: 5,
-                r1: 120,
-                l: 0.55,
-                m: 0.55,
-                c: col,
-                w: 6,
-              });
-              burst(rk.x, rk.y, [col, "#fff"], 40, 380, 4, 0.7, true);
-              const opt = { kb: 12 };
-              if (col === "#00DDFF") {
-                opt.freeze = 0.8;
-                opt.slow = [2, 0.6];
-              }
-              if (col === "#FF00FF") opt.burn = [2, 4];
-              aoe(src, rk.x, rk.y, 130, 35, opt);
-              shake(4);
-            }
-            sfx("impact");
           }
         }
-
-        function collideWorld(e) {
-          for (const rk of G.rocks) {
-            const dx = e.x - rk.x,
-              dy = e.y - rk.y,
-              md = rk.r + e.r * 0.8,
-              d2 = dx * dx + dy * dy;
-            if (d2 < md * md) {
-              // 🆕 убрали d2 > 0.0001
-              if (d2 < 0.0001) {
-                // Точно в центре — выталкиваем в сторону +X
-                e.x = rk.x + md;
-                e.y = rk.y;
-              } else {
-                const d = Math.sqrt(d2);
-                e.x = rk.x + (dx / d) * md;
-                e.y = rk.y + (dy / d) * md;
-              }
-            }
-          }
-          const dx = e.x - CX,
-            dy = e.y - CY,
-            d = Math.hypot(dx, dy),
-            lim = R_ARENA - e.r - 22;
-          if (d > lim) {
-            e.x = CX + (dx / d) * lim;
-            e.y = CY + (dy / d) * lim;
-          }
+        const dx = e.x - CX,
+          dy = e.y - CY,
+          d = Math.hypot(dx, dy),
+          lim = R_ARENA - e.r - 22;
+        if (d > lim) {
+          e.x = CX + (dx / d) * lim;
+          e.y = CY + (dy / d) * lim;
         }
+      }
 
-        function updateVisual(m, dt) {
-          const shx = clamp(m.x - m.px, -40, 40),
-            shy = clamp(m.y - m.py, -40, 40);
-          m.px = m.x;
-          m.py = m.y;
-          const bx = -m.facing;
-          m.cape.step(bx * 5, -17, shx, shy, TM, bx * 0.16, 0.3, 0.1);
-          m.hemL.step(-6.5, -15, shx, shy, TM, 0, 0.3, 0.05);
-          m.hemR.step(6.5, -15, shx, shy, TM, 0, 0.3, 0.05);
-          if (m.tail)
-            m.tail.step(-8, -6, shx * 0.8, shy * 0.8, TM, -0.1, 0.15, 0.2);
-          m.walkT += Math.hypot(m.vx, m.vy) * dt * 0.05;
-          m.scale = 1;
-          const tl = m.victory ? 20 : m.aura > 0 ? 5 : 0;
-          m.lev += (tl - m.lev) * 0.1;
-          if (
-            Q.pmul >= 0.6 &&
-            !m.dead &&
-            !_previewMode &&
-            Math.random() < 0.25
-          ) {
-            const au = m.skin.aura,
-              x = m.x + rnd(-10, 10),
-              y = m.y - rnd(8, 36);
-            if (au === "smoke")
-              pt(
-                x,
-                y,
-                rnd(-6, 6),
-                -rnd(10, 25),
-                1,
-                rnd(3, 6),
-                "rgba(60,40,80,.5)",
-                0,
-                false,
-                0.98,
-              );
-            else if (au === "sparkle")
-              pt(
-                x,
-                y,
-                0,
-                -rnd(5, 15),
-                0.7,
-                2,
-                pick(["#FFE060", "#80F0FF"]),
-                0,
-                true,
-              );
-            else if (au === "flame") elemFx(x, y + 10, 0, 1, 40);
-            else if (au === "snow")
-              pt(x, y - 10, rnd(-8, 8), rnd(15, 30), 1, 2, "#E8FAFF", 0, true);
-            else if (au === "void")
-              pt(
-                x,
-                y,
-                rnd(-8, 8),
-                -rnd(20, 45),
-                1.3,
-                rnd(2, 5),
-                pick(["#2a0040", "#6a00a0", "#FF00FF"]),
-                0,
-                Math.random() < 0.3,
-                0.98,
-              );
+      function updateVisual(m, dt) {
+        const shx = clamp(m.x - m.px, -40, 40),
+          shy = clamp(m.y - m.py, -40, 40);
+        m.px = m.x;
+        m.py = m.y;
+        const bx = -m.facing;
+        m.cape.step(bx * 5, -17, shx, shy, TM, bx * 0.16, 0.3, 0.1);
+        m.hemL.step(-6.5, -15, shx, shy, TM, 0, 0.3, 0.05);
+        m.hemR.step(6.5, -15, shx, shy, TM, 0, 0.3, 0.05);
+        if (m.tail)
+          m.tail.step(-8, -6, shx * 0.8, shy * 0.8, TM, -0.1, 0.15, 0.2);
+        m.walkT += Math.hypot(m.vx, m.vy) * dt * 0.05;
+        m.scale = 1;
+        const tl = m.victory ? 20 : m.aura > 0 ? 5 : 0;
+        m.lev += (tl - m.lev) * 0.1;
+        if (Q.pmul >= 0.6 && !m.dead && !_previewMode && Math.random() < 0.25) {
+          const au = m.skin.aura,
+            x = m.x + rnd(-10, 10),
+            y = m.y - rnd(8, 36);
+          if (au === "smoke")
+            pt(
+              x,
+              y,
+              rnd(-6, 6),
+              -rnd(10, 25),
+              1,
+              rnd(3, 6),
+              "rgba(60,40,80,.5)",
+              0,
+              false,
+              0.98,
+            );
+          else if (au === "sparkle")
+            pt(
+              x,
+              y,
+              0,
+              -rnd(5, 15),
+              0.7,
+              2,
+              pick(["#FFE060", "#80F0FF"]),
+              0,
+              true,
+            );
+          else if (au === "flame") elemFx(x, y + 10, 0, 1, 40);
+          else if (au === "snow")
+            pt(x, y - 10, rnd(-8, 8), rnd(15, 30), 1, 2, "#E8FAFF", 0, true);
+          else if (au === "void")
+            pt(
+              x,
+              y,
+              rnd(-8, 8),
+              -rnd(20, 45),
+              1.3,
+              rnd(2, 5),
+              pick(["#2a0040", "#6a00a0", "#FF00FF"]),
+              0,
+              Math.random() < 0.3,
+              0.98,
+            );
 
-            const isMe = G && m === G.player;
+          const isMe = G && m === G.player;
 
-            // Default speed trail (always active for the player)
-            if (isMe && Math.hypot(m.vx, m.vy) > 40 && Math.random() < 0.5) {
-              pt(
-                m.x,
-                m.y - 10,
-                rnd(-15, 15),
-                rnd(-15, 15),
-                0.3,
-                rnd(2, 4),
-                elemColor(m.elem),
-                0,
-                true,
-              );
-            }
+          // Default speed trail (always active for the player)
+          if (isMe && Math.hypot(m.vx, m.vy) > 40 && Math.random() < 0.5) {
+            pt(
+              m.x,
+              m.y - 10,
+              rnd(-15, 15),
+              rnd(-15, 15),
+              0.3,
+              rnd(2, 4),
+              elemColor(m.elem),
+              0,
+              true,
+            );
+          }
 
-            // 🆕 Ауры
-            if (isMe && SAVE.fxAura === "aura_souls")
-              pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#B040FF", 0, true); // Фиолетовый цвет пустоты
-            else if (isMe && SAVE.fxAura === "aura_crystals")
+          // 🆕 Ауры
+          if (isMe && SAVE.fxAura === "aura_souls")
+            pt(x, y, rnd(-8, 8), -rnd(15, 35), 1.1, 3, "#B040FF", 0, true); // Фиолетовый цвет пустоты
+          else if (isMe && SAVE.fxAura === "aura_crystals")
+            pt(
+              x,
+              y,
+              rnd(-10, 10),
+              rnd(-20, 20),
+              1.2,
+              4,
+              "#00DDFF",
+              0,
+              true,
+              0.95,
+              true,
+            );
+          // Квадратики (кристаллы)
+          else if (isMe && SAVE.fxAura === "aura_petals")
+            pt(
+              x,
+              y - 10,
+              rnd(-15, 15),
+              rnd(10, 25),
+              1.3,
+              2.5,
+              "#FF9AC8",
+              0,
+              false,
+            );
+
+          // 🆕 Следы
+          if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
+            const tx = m.x + rnd(-6, 6),
+              ty = m.y - rnd(5, 30);
+            if (SAVE.fxTrail === "trail_rainbow")
               pt(
-                x,
-                y,
+                tx,
+                ty,
                 rnd(-10, 10),
-                rnd(-20, 20),
-                1.2,
+                rnd(-10, 10),
+                0.7,
                 4,
-                "#00DDFF",
+                "hsl(" + (((TM * 300) % 360) | 0) + ",100%,60%)",
+                0,
+                true,
+                0.94,
+              );
+            else if (SAVE.fxTrail === "trail_ember")
+              pt(
+                tx,
+                ty,
+                rnd(-10, 10),
+                rnd(-15, 10),
+                0.6,
+                3.5,
+                pick(["#FF8030", "#FF4500"]),
                 0,
                 true,
                 0.95,
-                true,
               );
-            // Квадратики (кристаллы)
-            else if (isMe && SAVE.fxAura === "aura_petals")
+            else if (SAVE.fxTrail === "trail_star")
               pt(
-                x,
-                y - 10,
-                rnd(-15, 15),
-                rnd(10, 25),
-                1.3,
-                2.5,
-                "#FF9AC8",
+                tx,
+                ty,
+                rnd(-10, 10),
+                rnd(-15, 10),
+                0.7,
+                3,
+                "#FFE060",
                 0,
-                false,
+                true,
+                0.94,
               );
-
-            // 🆕 Следы
-            if (isMe && SAVE.fxTrail && Math.hypot(m.vx, m.vy) > 30) {
-              const tx = m.x + rnd(-6, 6),
-                ty = m.y - rnd(5, 30);
-              if (SAVE.fxTrail === "trail_rainbow")
+            else if (SAVE.fxTrail === "trail_void")
+              pt(
+                tx,
+                ty,
+                rnd(-10, 10),
+                rnd(-15, 10),
+                0.8,
+                4,
+                pick(["#B040FF", "#6A0DAD", "#E0A0FF"]),
+                0,
+                true,
+                0.94,
+              );
+            else if (SAVE.fxTrail === "trail_fire")
+              pt(
+                tx,
+                ty,
+                rnd(-15, 15),
+                rnd(-20, 10),
+                0.8,
+                4,
+                pick(["#FF4500", "#FF8C00", "#FFEE00"]),
+                -50,
+                true,
+                0.95,
+              );
+            else if (SAVE.fxTrail === "trail_lightning")
+              pt(
+                tx,
+                ty,
+                rnd(-15, 15),
+                rnd(-15, 15),
+                0.5,
+                3,
+                pick(["#FFEE00", "#FFFFFF", "#00DDFF"]),
+                0,
+                true,
+                0.9,
+                true, // Квадратики для молний
+              );
+            else if (SAVE.fxTrail === "trail_hearts") {
+              if (Math.random() < 0.6)
                 pt(
                   tx,
                   ty,
-                  rnd(-10, 10),
-                  rnd(-10, 10),
-                  0.7,
-                  4,
-                  "hsl(" + (((TM * 300) % 360) | 0) + ",100%,60%)",
-                  0,
-                  true,
-                  0.94,
-                );
-              else if (SAVE.fxTrail === "trail_ember")
-                pt(
-                  tx,
-                  ty,
-                  rnd(-10, 10),
-                  rnd(-15, 10),
-                  0.6,
-                  3.5,
-                  pick(["#FF8030", "#FF4500"]),
-                  0,
-                  true,
-                  0.95,
-                );
-              else if (SAVE.fxTrail === "trail_star")
-                pt(
-                  tx,
-                  ty,
-                  rnd(-10, 10),
-                  rnd(-15, 10),
-                  0.7,
-                  3,
-                  "#FFE060",
-                  0,
-                  true,
-                  0.94,
-                );
-              else if (SAVE.fxTrail === "trail_void")
-                pt(
-                  tx,
-                  ty,
-                  rnd(-10, 10),
-                  rnd(-15, 10),
-                  0.8,
-                  4,
-                  pick(["#B040FF", "#6A0DAD", "#E0A0FF"]),
-                  0,
-                  true,
-                  0.94,
-                );
-              else if (SAVE.fxTrail === "trail_fire")
-                pt(
-                  tx,
-                  ty,
-                  rnd(-15, 15),
-                  rnd(-20, 10),
-                  0.8,
-                  4,
-                  pick(["#FF4500", "#FF8C00", "#FFEE00"]),
-                  -50,
-                  true,
-                  0.95,
-                );
-              else if (SAVE.fxTrail === "trail_lightning")
-                pt(
-                  tx,
-                  ty,
-                  rnd(-15, 15),
-                  rnd(-15, 15),
-                  0.5,
-                  3,
-                  pick(["#FFEE00", "#FFFFFF", "#00DDFF"]),
-                  0,
-                  true,
+                  rnd(-8, 8),
+                  rnd(-12, 5),
                   0.9,
-                  true, // Квадратики для молний
+                  3.5,
+                  pick(["#FF69B4", "#FFB6D9"]),
+                  0,
+                  true,
+                  0.94,
+                  false,
+                  1, // 🆕 Передаем 1 в конце, чтобы отрисовалось сердечко
                 );
-              else if (SAVE.fxTrail === "trail_hearts") {
-                if (Math.random() < 0.6)
-                  pt(
-                    tx,
-                    ty,
-                    rnd(-8, 8),
-                    rnd(-12, 5),
-                    0.9,
-                    3.5,
-                    pick(["#FF69B4", "#FFB6D9"]),
-                    0,
-                    true,
-                    0.94,
-                    false,
-                    1, // 🆕 Передаем 1 в конце, чтобы отрисовалось сердечко
-                  );
-              }
             }
           }
         }
+      }
 
-        function updateMage(m, dt) {
-          if (m.dead) {
-            m.deathT += dt;
-            if (m.deathT < 1.2 && Math.random() < 0.5)
-              pt(
-                m.x + rnd(-8, 8),
-                m.y - 20,
-                rnd(-10, 10),
-                -rnd(30, 70),
-                1.2,
+      function updateMage(m, dt) {
+        if (m.dead) {
+          m.deathT += dt;
+          if (m.deathT < 1.2 && Math.random() < 0.5)
+            pt(
+              m.x + rnd(-8, 8),
+              m.y - 20,
+              rnd(-10, 10),
+              -rnd(30, 70),
+              1.2,
+              3,
+              "#CFEFFF",
+              0,
+              true,
+            );
+          if (m.deathT > 1.2) {
+            m.alpha = Math.max(0, 1 - (m.deathT - 1.2) / 1.2);
+            if (m.alpha > 0 && Math.random() < 0.8)
+              burst(
+                m.x + rnd(-10, 10),
+                m.y - rnd(0, 30),
+                m.mantle,
+                1,
+                60,
                 3,
-                "#CFEFFF",
-                0,
-                true,
+                0.8,
               );
-            if (m.deathT > 1.2) {
-              m.alpha = Math.max(0, 1 - (m.deathT - 1.2) / 1.2);
-              if (m.alpha > 0 && Math.random() < 0.8)
-                burst(
-                  m.x + rnd(-10, 10),
-                  m.y - rnd(0, 30),
-                  m.mantle,
-                  1,
-                  60,
-                  3,
-                  0.8,
-                );
-            }
-            updateVisual(m, dt);
-            updateEyes(m, dt);
-            return;
-          }
-          m.atkCd -= dt;
-          m.dashCd -= dt;
-          m.castLock -= dt;
-          m.inv -= dt;
-          m.swing = Math.max(0, m.swing - dt * 5);
-          m.staffAnim = Math.max(0, m.staffAnim - dt * 6); // 🆕 Быстрое возвращение посоха
-          m.streakT -= dt;
-          if (m.streakT <= 0) m.streak = 0;
-          updateStatus(m, dt);
-          if (m.dead) return;
-          m.mana = Math.min(100, m.mana + 10 * m.up.mregen * dt);
-          if (m.synergies) {
-            if (m.synergies.includes("fortress")) {
-              m.fx.shieldCd = (m.fx.shieldCd || 0) - dt;
-              if (m.fx.shieldCd <= 0 && m.fx.shield <= 0) {
-                m.fx.shield = 15;
-                m.fx.shieldCd = 20;
-                sfx("shield");
-              }
-            }
-            if (m.synergies.includes("wellspring") && m.mana >= 99.5) {
-              m.ultCharge = Math.min(100, m.ultCharge + 8 * dt);
-            }
-          }
-
-          // Ульта заряжается быстрее (было 20, стало 12)
-          m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult);
-
-          if (m.aura > 0) m.aura -= dt;
-          if (m.auraElem === 2 && m.arcs.length > 0) m.arcT -= dt;
-          if (G.role !== "client") {
-            if (m.remote) {
-              const n = m.netIn;
-              // 🆕 Если данные не приходили > 500мс, останавливаем мага
-              if (n && performance.now() - (m.netLastIn || 0) < 500) {
-                m.mx = n.mx;
-                m.my = n.my;
-              } else {
-                m.mx = 0;
-                m.my = 0;
-              }
-            } else if (m.isBot) aiUpdate(m, dt);
-            else if (m === G.player) {
-              m.mx = inp.mx;
-              m.my = inp.my;
-            }
-          }
-          let sp = 220 * m.up.spd;
-          if (m.fx.haste > 0) sp *= 1.3;
-          if (m.aura > 0) sp *= 1.2;
-          if (m.elem === 2) sp *= 1.1;
-          if (m.fx.slow > 0) sp *= m.fx.slowF;
-          if (m.fx.tslow > 0) sp *= 0.5;
-          if (m.castLock > 0) sp *= 0.25;
-          if (m.fx.freeze > 0 || m.fx.stun > 0) sp = 0;
-          let dx = m.mx,
-            dy = m.my;
-          const ml = Math.hypot(dx, dy);
-          if (ml > 1) {
-            dx /= ml;
-            dy /= ml;
-          }
-          if (m.dashT > 0) {
-            m.dashT -= dt;
-            m.vx = m.dashX * 1000;
-            m.vy = m.dashY * 1000;
-            if (Math.random() < 0.8) {
-              const dashCol = m.skin.accent || m.mantle;
-              pt(
-                m.x,
-                m.y - 14,
-                rnd(-20, 20),
-                rnd(-20, 20),
-                0.4,
-                rnd(3, 6),
-                Math.random() < 0.4 ? "#FFFFFF" : dashCol,
-                0,
-                true,
-              );
-            }
-          } else {
-            const k = 1 - Math.exp(-dt * 14);
-            m.vx += (dx * sp - m.vx) * k;
-            m.vy += (dy * sp - m.vy) * k;
-            if (m.fx.freeze > 0 || m.fx.stun > 0) {
-              m.vx = 0;
-              m.vy = 0;
-            }
-          }
-          m.x += m.vx * dt + m.kvx;
-          m.y += m.vy * dt + m.kvy;
-          m.kvx *= 0.88;
-          m.kvy *= 0.88;
-          if (Math.abs(m.mx) > 0.2 && m.dashT <= 0 && m.atkCd < 0.2)
-            m.facing = m.mx > 0 ? 1 : -1;
-          collideWorld(m);
-          if (G.mode !== "survival" && dist(m.x, m.y, CX, CY) > G.safeR) {
-            m.zoneT = (m.zoneT || 0) + dt;
-            if (m.zoneT >= 0.5) {
-              m.zoneT = 0;
-              m.lastHit = null;
-              dealDamage(null, m, 3 + G.phase * 2.5, {
-                type: "dot",
-                col: "#FF6030",
-              });
-            }
-          }
-          if (m.hp < m.maxHp * 0.25 && m === G.player) {
-            m.lowHpBeat -= dt;
-            if (m.lowHpBeat <= 0) {
-              m.lowHpBeat = m.hp < m.maxHp * 0.15 ? 0.7 : 1.1;
-              sfx("heartbeat");
-            }
           }
           updateVisual(m, dt);
           updateEyes(m, dt);
+          return;
+        }
+        m.atkCd -= dt;
+        m.dashCd -= dt;
+        m.castLock -= dt;
+        m.inv -= dt;
+        m.swing = Math.max(0, m.swing - dt * 5);
+        m.staffAnim = Math.max(0, m.staffAnim - dt * 6); // 🆕 Быстрое возвращение посоха
+        m.streakT -= dt;
+        if (m.streakT <= 0) m.streak = 0;
+        updateStatus(m, dt);
+        if (m.dead) return;
+        m.mana = Math.min(
+          TUNING.MAX_MANA,
+          m.mana + TUNING.MANA_REGEN * m.up.mregen * dt,
+        );
+        if (m.synergies) {
+          if (m.synergies.includes("fortress")) {
+            m.fx.shieldCd = (m.fx.shieldCd || 0) - dt;
+            if (m.fx.shieldCd <= 0 && m.fx.shield <= 0) {
+              m.fx.shield = 15;
+              m.fx.shieldCd = 20;
+              sfx("shield");
+            }
+          }
+          if (m.synergies.includes("wellspring") && m.mana >= 99.5) {
+            m.ultCharge = Math.min(100, m.ultCharge + 8 * dt);
+          }
         }
 
-        function updateMonster(mo, dt) {
-          mo.atkCd -= dt;
-          updateStatus(mo, dt);
-          if (mo.dead) return;
-          mo.tT -= dt;
-          if (mo.tT <= 0 || !mo.tg || mo.tg.dead) {
-            mo.tT = 0.35;
-            mo.tg = nearestFoe(mo, mo.x, mo.y, 1e9);
-          }
-          const accel = 1 + 0.05 * Math.floor(G.time / 30);
-          let sp = mo.speed * accel;
-          if (mo.fx.slow > 0) sp *= mo.fx.slowF;
-          if (mo.fx.tslow > 0) sp *= 0.5;
-          if (mo.fx.freeze > 0 || mo.fx.stun > 0) sp = 0;
-          let dx = 0,
-            dy = 0;
-          if (mo.tg) {
-            const ax = mo.tg.x - mo.x,
-              ay = mo.tg.y - mo.y,
-              d = Math.hypot(ax, ay) || 1;
-            dx = ax / d;
-            dy = ay / d;
-            if (mo.boss && d < 220) {
-              dx *= 0.1;
-              dy *= 0.1;
-            }
-          }
+        // Ульта заряжается быстрее (было 20, стало 12)
+        m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult);
 
-          // 🆕 ОБХОД ПРЕПЯТСТВИЙ (Камни)
-          let pushX = 0,
-            pushY = 0;
-          for (const rk of G.rocks) {
-            const rx = mo.x - rk.x,
-              ry = mo.y - rk.y;
-            const rDist = Math.hypot(rx, ry) || 1;
-            const safeDist = mo.r + rk.r + 30; // Дистанция, на которой начинаем объезжать
-            if (rDist < safeDist) {
-              const force = (safeDist - rDist) / safeDist;
-              // Отталкиваемся от камня
-              pushX += (rx / rDist) * force * 2.5;
-              pushY += (ry / rDist) * force * 2.5;
-              // Добавляем тангенциальную (боковую) силу, чтобы скользить вдоль камня
-              pushX += (-ry / rDist) * force * 2.0;
-              pushY += (rx / rDist) * force * 2.0;
+        if (m.aura > 0) m.aura -= dt;
+        if (m.auraElem === 2 && m.arcs.length > 0) m.arcT -= dt;
+        if (G.role !== "client") {
+          if (m.remote) {
+            const n = m.netIn;
+            // 🆕 Если данные не приходили > 500мс, останавливаем мага
+            if (n && performance.now() - (m.netLastIn || 0) < 500) {
+              m.mx = n.mx;
+              m.my = n.my;
+            } else {
+              m.mx = 0;
+              m.my = 0;
             }
+          } else if (m.isBot) aiUpdate(m, dt);
+          else if (m === G.player) {
+            m.mx = inp.mx;
+            m.my = inp.my;
           }
-          dx += pushX;
-          dy += pushY;
+        }
+        let sp = 220 * m.up.spd;
+        if (m.fx.haste > 0) sp *= 1.3;
+        if (m.aura > 0) sp *= 1.2;
+        if (m.elem === 2) sp *= 1.1;
+        if (m.fx.slow > 0) sp *= m.fx.slowF;
+        if (m.fx.tslow > 0) sp *= 0.5;
+        if (m.castLock > 0) sp *= 0.25;
+        if (m.fx.freeze > 0 || m.fx.stun > 0) sp = 0;
+        let dx = m.mx,
+          dy = m.my;
+        const ml = Math.hypot(dx, dy);
+        if (ml > 1) {
+          dx /= ml;
+          dy /= ml;
+        }
+        if (m.dashT > 0) {
+          m.dashT -= dt;
+          m.vx = m.dashX * 1000;
+          m.vy = m.dashY * 1000;
+          if (Math.random() < 0.8) {
+            const dashCol = m.skin.accent || m.mantle;
+            pt(
+              m.x,
+              m.y - 14,
+              rnd(-20, 20),
+              rnd(-20, 20),
+              0.4,
+              rnd(3, 6),
+              Math.random() < 0.4 ? "#FFFFFF" : dashCol,
+              0,
+              true,
+            );
+          }
+        } else {
+          const k = 1 - Math.exp(-dt * 14);
+          m.vx += (dx * sp - m.vx) * k;
+          m.vy += (dy * sp - m.vy) * k;
+          if (m.fx.freeze > 0 || m.fx.stun > 0) {
+            m.vx = 0;
+            m.vy = 0;
+          }
+        }
+        m.x += m.vx * dt + m.kvx;
+        m.y += m.vy * dt + m.kvy;
+        m.kvx *= 0.88;
+        m.kvy *= 0.88;
+        if (Math.abs(m.mx) > 0.2 && m.dashT <= 0 && m.atkCd < 0.2)
+          m.facing = m.mx > 0 ? 1 : -1;
+        collideWorld(m);
+        if (G.mode !== "survival" && dist(m.x, m.y, CX, CY) > G.safeR) {
+          m.zoneT = (m.zoneT || 0) + dt;
+          if (m.zoneT >= 0.5) {
+            m.zoneT = 0;
+            m.lastHit = null;
+            dealDamage(null, m, 3 + G.phase * 2.5, {
+              type: "dot",
+              col: "#FF6030",
+            });
+          }
+        }
+        if (m.hp < m.maxHp * 0.25 && m === G.player) {
+          m.lowHpBeat -= dt;
+          if (m.lowHpBeat <= 0) {
+            m.lowHpBeat = m.hp < m.maxHp * 0.15 ? 0.7 : 1.1;
+            sfx("heartbeat");
+          }
+        }
+        updateVisual(m, dt);
+        updateEyes(m, dt);
+      }
 
-          GRID.query(mo.x, mo.y, mo.r * 2.2, (o) => {
-            if (o === mo || !o.isMonster || o.dead) return;
-            const sx = mo.x - o.x,
-              sy = mo.y - o.y,
-              d = Math.hypot(sx, sy) || 1,
-              md = mo.r + o.r;
-            if (d < md) {
-              dx += (sx / d) * 0.8;
-              dy += (sy / d) * 0.8;
+      function updateMonster(mo, dt) {
+        mo.atkCd -= dt;
+        updateStatus(mo, dt);
+        if (mo.dead) return;
+        mo.tT -= dt;
+        if (mo.tT <= 0 || !mo.tg || mo.tg.dead) {
+          mo.tT = 0.35;
+          mo.tg = nearestFoe(mo, mo.x, mo.y, 1e9);
+        }
+        const accel = 1 + 0.05 * Math.floor(G.time / 30);
+        let sp = mo.speed * accel;
+        if (mo.fx.slow > 0) sp *= mo.fx.slowF;
+        if (mo.fx.tslow > 0) sp *= 0.5;
+        if (mo.fx.freeze > 0 || mo.fx.stun > 0) sp = 0;
+        let dx = 0,
+          dy = 0;
+        if (mo.tg) {
+          const ax = mo.tg.x - mo.x,
+            ay = mo.tg.y - mo.y,
+            d = Math.hypot(ax, ay) || 1;
+          dx = ax / d;
+          dy = ay / d;
+          if (mo.boss && d < 220) {
+            dx *= 0.1;
+            dy *= 0.1;
+          }
+        }
+
+        // 🆕 ОБХОД ПРЕПЯТСТВИЙ (Камни)
+        let pushX = 0,
+          pushY = 0;
+        for (const rk of G.rocks) {
+          const rx = mo.x - rk.x,
+            ry = mo.y - rk.y;
+          const rDist = Math.hypot(rx, ry) || 1;
+          const safeDist = mo.r + rk.r + 30; // Дистанция, на которой начинаем объезжать
+          if (rDist < safeDist) {
+            const force = (safeDist - rDist) / safeDist;
+            // Отталкиваемся от камня
+            pushX += (rx / rDist) * force * 2.5;
+            pushY += (ry / rDist) * force * 2.5;
+            // Добавляем тангенциальную (боковую) силу, чтобы скользить вдоль камня
+            pushX += (-ry / rDist) * force * 2.0;
+            pushY += (rx / rDist) * force * 2.0;
+          }
+        }
+        dx += pushX;
+        dy += pushY;
+
+        GRID.query(mo.x, mo.y, mo.r * 2.2, (o) => {
+          if (o === mo || !o.isMonster || o.dead) return;
+          const sx = mo.x - o.x,
+            sy = mo.y - o.y,
+            d = Math.hypot(sx, sy) || 1,
+            md = mo.r + o.r;
+          if (d < md) {
+            dx += (sx / d) * 0.8;
+            dy += (sy / d) * 0.8;
+          }
+        });
+        const l = Math.hypot(dx, dy) || 1;
+        mo.vx = (dx / l) * sp;
+        mo.vy = (dy / l) * sp;
+        mo.x += mo.vx * dt + mo.kvx;
+        mo.y += mo.vy * dt + mo.kvy;
+        mo.kvx *= 0.88;
+        mo.kvy *= 0.88;
+        collideWorld(mo);
+        if (
+          mo.tg &&
+          !mo.tg.dead &&
+          mo.atkCd <= 0 &&
+          dist(mo.x, mo.y, mo.tg.x, mo.tg.y) < mo.r + 16
+        ) {
+          mo.atkCd = 0.8;
+          const t = mo.tg;
+          dealDamage(mo, t, mo.dmg, { type: "contact" });
+          if (!t.dead) {
+            const a = Math.atan2(t.y - mo.y, t.x - mo.x);
+            t.kvx += Math.cos(a) * 8;
+            t.kvy += Math.sin(a) * 8;
+          }
+        }
+        // 🆕 Уникальные атаки боссов по стихии
+        if (mo.boss && mo.tg && !mo._teleUntil) {
+          mo.bossAtkCd = (mo.bossAtkCd || 3) - dt;
+          if (mo.bossAtkCd <= 0) {
+            const bcd =
+              mo.bossElem === 0
+                ? 3
+                : mo.bossElem === 1
+                  ? 5
+                  : mo.bossElem === 4
+                    ? 4
+                    : 3.5;
+            mo.bossAtkCd = bcd;
+            const bx = mo.x,
+              by = mo.y;
+            // Огонь: AOE-волна
+            if (mo.bossElem === 0) {
+              G.tele.push({ x: bx, y: by, r: 200, t: 1, m: 1, c: "#FF4500" });
+              later(1, () => {
+                aoe(mo, bx, by, 200, 40, { burn: [2, 5] });
+                splash(bx, by, 200, "#FF6A20", 1.2);
+                shake(5);
+              });
             }
-          });
-          const l = Math.hypot(dx, dy) || 1;
-          mo.vx = (dx / l) * sp;
-          mo.vy = (dy / l) * sp;
-          mo.x += mo.vx * dt + mo.kvx;
-          mo.y += mo.vy * dt + mo.kvy;
-          mo.kvx *= 0.88;
-          mo.kvy *= 0.88;
-          collideWorld(mo);
-          if (
-            mo.tg &&
-            !mo.tg.dead &&
-            mo.atkCd <= 0 &&
-            dist(mo.x, mo.y, mo.tg.x, mo.tg.y) < mo.r + 16
-          ) {
-            mo.atkCd = 0.8;
-            const t = mo.tg;
-            dealDamage(mo, t, mo.dmg, { type: "contact" });
-            if (!t.dead) {
-              const a = Math.atan2(t.y - mo.y, t.x - mo.x);
-              t.kvx += Math.cos(a) * 8;
-              t.kvy += Math.sin(a) * 8;
+            // Лёд: заморозка
+            else if (mo.bossElem === 1) {
+              aoe(mo, bx, by, 400, 15, { freeze: 0.5, slow: [2, 0.4] });
+              splash(bx, by, 400, "#B0F0FF", 1);
+              shake(3);
+            }
+            // Пустота: притяжение
+            else if (mo.bossElem === 4) {
+              G.zones.push({
+                x: bx,
+                y: by,
+                r: 350,
+                life: 1.5,
+                max: 1.5,
+                pull: 400,
+                elem: 4,
+                style: "hole",
+                own: mo,
+                tick: 0,
+                id: G.zid++,
+                dps: 0,
+              });
+              splash(bx, by, 200, "#B040FF", 0.8);
+            }
+            // Молния: цепь
+            else if (mo.bossElem === 2) {
+              chainBolt(mo, bx, by, 5, 25, 300, "#FFEE00");
+              splash(bx, by, 150, "#FFEE00", 1);
+              shake(4);
             }
           }
+        }
+        if (mo.boss && mo.tg) {
+          const hpFrac = mo.hp / mo.maxHp;
+          const phase = hpFrac > 0.6 ? 1 : hpFrac > 0.3 ? 2 : 3;
           if (mo.boss && mo.tg) {
             const hpFrac = mo.hp / mo.maxHp;
             const phase = hpFrac > 0.6 ? 1 : hpFrac > 0.3 ? 2 : 3;
@@ -10463,7 +10550,7 @@
             let aliveMonsters = 0;
             for (let i = 0; i < g.monsters.length; i++)
               if (!g.monsters[i].dead) aliveMonsters++;
-            const batchSize = Math.min(3, 1 + Math.floor(g.wave / 8)),
+            const batchSize = Math.min(5, 2 + Math.floor(g.wave / 4)),
               MAX_ALIVE = 100;
             if (g.waveLeft > 0 && g.spawnT <= 0 && aliveMonsters < MAX_ALIVE) {
               for (
@@ -10492,7 +10579,7 @@
             if ((g.waveLeft <= 0 && aliveMonsters <= 2) || g.waveT > 90) {
               g.wave++;
               g.waveT = 0;
-              g.waveLeft = 6 + Math.round(g.wave * 3.5);
+              g.waveLeft = 4 + Math.round(g.wave * 3.5);
               g.spawnT = 1.2;
               announce(
                 (lang === "ru" ? "ВОЛНА " : "WAVE ") + g.wave,
@@ -12431,7 +12518,7 @@
           if (!hex) return rndi(0, 3);
           const h = hex.toLowerCase().replace("#", "");
           // 🆕 Фиолетовый #4A2A8B: с void-доступом → void, без — стабильно fire
-          if (h.includes("4a2a8b")) return allowVoid ? 4 : 1;
+          if (h.includes("4a2a8b")) return allowVoid ? 4 : rndi(0, 3);
           // 🆕 void-цвета: только с доступом, иначе — ice
           if (
             h.includes("1a1a2e") ||
@@ -12841,7 +12928,7 @@
           showScreen("sc-menu");
           initMenuMages();
           updateQuestsBadge();
-          if (fromResult && ++SAVE.ads % 2 === 0) showInterstitial();
+          if (fromResult && ++SAVE.ads % 3 === 0) showInterstitial();
           persist();
         }
         function rematch() {
@@ -12960,8 +13047,15 @@
                 : totalStacks < 10
                   ? ["common", "rare", "epic"]
                   : ["common", "rare", "epic", "legendary"];
+          // 🆕 уменьшаем вес апгрейдов, которые уже взяты 2+ раз
           const regular = shuffle(
-            UPGRADES.filter((u) => allowedRar.includes(u.rar || "common")),
+            UPGRADES.filter((u) => allowedRar.includes(u.rar || "common"))
+              .map((u) => {
+                const stacks = taken[u.id] || 0;
+                const weight = Math.max(0.3, 1 - stacks * 0.2);
+                return Math.random() < weight ? u : null;
+              })
+              .filter(Boolean),
           );
           const choices = [];
           if (available.length) choices.push({ s: pick(available) });
@@ -14759,39 +14853,43 @@
           c.fillText("ATK", 0, asw.r + 10 * u);
           c.restore();
         }
-        const nm = t("ult") + ": " + ultName(_uk.key);
-        c.font = "800 " + 13 * u + 'px "Segoe UI",Arial';
-        if (_ui.img)
-          c.drawImage(_ui.img, rx, H - 28 * u - 10 * u, 20 * u, 20 * u);
-        txt(
-          c,
-          nm,
-          rx + 24 * u,
-          H - 28 * u,
-          13 * u,
-          p.ultCharge >= 100 ? "#FFD84A" : "#ccc",
-          "left",
-          3,
-        );
-        let bxx = rx;
-        for (const b of _buffs) {
-          const sz = 24 * u,
-            im = IC[b[0]];
-          c.fillStyle = "rgba(0,0,0,.55)";
-          c.beginPath();
-          c.arc(bxx + sz / 2, H - 100 * u, sz / 2 + 2, 0, TAU);
-          c.fill();
-          if (im) c.drawImage(im, bxx, H - 100 * u - sz / 2, sz, sz);
-          drawRing(
+        // 🆕 на узких экранах (мобилка) скрываем лишнее
+        const showExtraHUD = W > 500;
+        if (showExtraHUD) {
+          const nm = t("ult") + ": " + ultName(_uk.key);
+          c.font = "800 " + 13 * u + 'px "Segoe UI",Arial';
+          if (_ui.img)
+            c.drawImage(_ui.img, rx, H - 28 * u - 10 * u, 20 * u, 20 * u);
+          txt(
             c,
-            bxx + sz / 2,
-            H - 100 * u,
-            sz / 2 + 2,
-            b[1],
-            "#FFD84A",
-            2.5,
+            nm,
+            rx + 24 * u,
+            H - 28 * u,
+            13 * u,
+            p.ultCharge >= 100 ? "#FFD84A" : "#ccc",
+            "left",
+            3,
           );
-          bxx += sz + 8 * u;
+          let bxx = rx;
+          for (const b of _buffs) {
+            const sz = 24 * u,
+              im = IC[b[0]];
+            c.fillStyle = "rgba(0,0,0,.55)";
+            c.beginPath();
+            c.arc(bxx + sz / 2, H - 100 * u, sz / 2 + 2, 0, TAU);
+            c.fill();
+            if (im) c.drawImage(im, bxx, H - 100 * u - sz / 2, sz, sz);
+            drawRing(
+              c,
+              bxx + sz / 2,
+              H - 100 * u,
+              sz / 2 + 2,
+              b[1],
+              "#FFD84A",
+              2.5,
+            );
+            bxx += sz + 8 * u;
+          }
         }
         drawActionBtn(c, "dash", p, L);
         drawActionBtn(c, "attack", p, L);
@@ -17259,9 +17357,39 @@
         const themeTxt = THEMES[o.theme]
           ? THEMES[o.theme][lang]
           : o.theme || "";
-        $("continueDesc").innerHTML =
+        // 🆕 превью мага с выбранным скином
+        const box = $("continueDesc");
+        box.innerHTML = "";
+        box.style.display = "flex";
+        box.style.flexDirection = "column";
+        box.style.alignItems = "center";
+        box.style.gap = "10px";
+        const cv = document.createElement("canvas");
+        cv.width = 96;
+        cv.height = 96;
+        cv.style.cssText =
+          "width:72px;height:72px;border-radius:50%;background:rgba(0,0,0,.3)";
+        const cc = cv.getContext("2d");
+        const mm = new Mage({
+          mantle: o.color || "#4A2A8B",
+          skin: o.skin || "base",
+          staff: o.staff || "wood",
+        });
+        mm.x = 0;
+        mm.y = 0;
+        mm.facing = 1;
+        mm.resetVerlet();
+        cc.save();
+        cc.translate(48, 82);
+        cc.scale(1.6, 1.6);
+        drawMage(cc, mm, { noShadow: true });
+        cc.restore();
+        box.appendChild(cv);
+        const txt = document.createElement("div");
+        txt.innerHTML =
           `<b>${modeTxt}</b> · ${themeTxt}<br>` +
           `${o.count} ${lang === "ru" ? "магов" : "mages"}`;
+        box.appendChild(txt);
         state = "CONTINUE";
         showScreen("sc-continue");
         return true;
@@ -17333,6 +17461,7 @@
         port: CONFIG.PEERJS_PORT,
         path: CONFIG.PEERJS_PATH,
         secure: CONFIG.PEERJS_SECURE,
+        debug: 1,
         config: {
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
@@ -17809,6 +17938,7 @@
         }
       }
       function netSendAct(a) {
+        if (!NET.hostConn || !NET.hostConn.open) return;
         NET.pend.push(a);
         clientSendInput();
       }
@@ -18880,11 +19010,12 @@
           if (window.ysdk && ysdk.features && ysdk.features.LoadingAPI)
             ysdk.features.LoadingAPI.ready();
         } catch (e) {}
-        // 🆕 Показать кнопку "Играть" через 800 мс после готовности
         setTimeout(() => {
-          const lb = $("loadingPlayBtn");
-          if (lb) lb.style.display = "flex";
-        }, 800);
+          if (state === "LOADING" || state === "BOOT") {
+            const lb = $("loadingPlayBtn");
+            if (lb) lb.style.display = "flex";
+          }
+        }, 3000);
         await delay(120);
         $("sc-loading").classList.remove("show");
         $("sc-loading").style.display = "none";
@@ -18986,7 +19117,13 @@
         }
       });
       // 🆕 Дамп состояния для отладки
+      const _isDevEnv =
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1" ||
+        location.search.includes("dev=1") ||
+        SAVE.devMode;
       window._dump = () => {
+        if (!_isDevEnv) return; // 🆕
         if (!G) {
           console.log("No game active");
           return;
