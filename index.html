@@ -18855,7 +18855,7 @@
           if (l) lang = l;
         } catch (e) {}
         setProg(15, "boot2");
-        await Promise.race([initYandexSDK(), delay(4500)]);
+        await Promise.race([initYandexSDK(), delay(1500)]);
         // 🆕 Если локально язык не сохранён — берём из Яндекса
         try {
           if (
@@ -19206,64 +19206,9 @@
           initMenuMages();
           state = "MENU";
           showScreen("sc-menu");
-        }  } catch (er) {
-    console.error("[BOOT CATCH FAIL]", er);
-    // Пробуем показать меню даже без магов — вдруг initMenuMages упал
-    try {
-      $("sc-loading").style.display = "none";
-      state = "MENU";
-      showScreen("sc-menu");
-    } catch (er2) {
-      console.error("[BOOT RECOVERY FAIL]", er2);
-    }
-  }
+        } catch (er) {}
       });
-      /* === DIAGNOSTIC PATCH === */
-(function () {
-  function showFatal(msg) {
-    var d = document.getElementById("_fatal");
-    if (!d) {
-      d = document.createElement("div");
-      d.id = "_fatal";
-      d.style.cssText =
-        "position:fixed;top:0;left:0;right:0;bottom:0;" +
-        "background:rgba(0,0,0,.94);color:#ff5050;" +
-        "font:13px/1.4 monospace;padding:16px;" +
-        "z-index:999999;overflow:auto;white-space:pre-wrap;" +
-        "-webkit-user-select:text;user-select:text;";
-      document.body.appendChild(d);
-    }
-    d.textContent += msg + "\n\n";
-  }
-  window.addEventListener("error", function (e) {
-    showFatal(
-      "ERROR: " + e.message +
-      "\n  at " + e.filename + ":" + e.lineno + ":" + e.colno +
-      "\n" + ((e.error && e.error.stack) || "")
-    );
-  });
-  window.addEventListener("unhandledrejection", function (e) {
-    showFatal("PROMISE REJECT: " + ((e.reason && e.reason.stack) || e.reason));
-  });
-  setTimeout(function () {
-    try {
-      var menu = document.getElementById("sc-menu");
-      var loading = document.getElementById("sc-loading");
-      if (menu && !menu.classList.contains("show")) {
-        if (loading) loading.style.display = "none";
-        menu.classList.add("show");
-        showFatal(
-          "⚠ Меню не показалось за 5 секунд — показал принудительно.\n" +
-          "Скорее всего boot() упал до showScreen('sc-menu').\n" +
-          "Смотрите сообщения ERROR выше."
-        );
-      }
-    } catch (er) {
-      showFatal("TIMEOUT ERR: " + er.message);
-    }
-  }, 5000);
-})();
-/* === /DIAGNOSTIC PATCH === */
+
     </script>
   </body>
 </html>
