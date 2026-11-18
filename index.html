@@ -19206,7 +19206,17 @@
           initMenuMages();
           state = "MENU";
           showScreen("sc-menu");
-        } catch (er) {}
+        }  } catch (er) {
+    console.error("[BOOT CATCH FAIL]", er);
+    // Пробуем показать меню даже без магов — вдруг initMenuMages упал
+    try {
+      $("sc-loading").style.display = "none";
+      state = "MENU";
+      showScreen("sc-menu");
+    } catch (er2) {
+      console.error("[BOOT RECOVERY FAIL]", er2);
+    }
+  }
       });
       /* === DIAGNOSTIC PATCH === */
 (function () {
