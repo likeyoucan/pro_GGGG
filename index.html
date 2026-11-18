@@ -2900,9 +2900,7 @@
             clearTimeout(bgTimer);
             bgTimer = null;
           }
-          try {
-            resetAllInputs();
-          } catch (er) {}
+          if (typeof resetAllInputs === "function") resetAllInputs();
           stopKeepAlive();
           resumeAudio();
           lastTime = performance.now();
@@ -19197,18 +19195,25 @@
       window._replay = REPLAY;
       requestAnimationFrame(gameLoop);
       boot().catch((e) => {
+        // 1. Создаем красный блок с ошибкой
+        let errDiv = document.createElement("div");
+        errDiv.style.cssText =
+          "position:fixed;top:0;left:0;right:0;background:rgba(200,0,0,0.9);color:white;padding:15px;z-index:999999;font-family:monospace;font-size:14px;white-space:pre-wrap;max-height:50vh;overflow:auto;";
+        errDiv.textContent =
+          "ОШИБКА ЗАГРУЗКИ: " + (e.message || e) + "\n" + (e.stack || "");
+        document.body.appendChild(errDiv);
+
+        // 2. Пробуем включить меню
         try {
-          console.error("[BOOT FAIL]", e);
-          // 🆕 Даже при ошибке — сообщаем Яндексу, что игра готова
-          try {
-            if (window.ysdk && ysdk.features && ysdk.features.LoadingAPI)
-              ysdk.features.LoadingAPI.ready();
-          } catch (er) {}
           $("sc-loading").style.display = "none";
           initMenuMages();
-          state = "MENU";
-          showScreen("sc-menu");
-        } catch (er) {}
+        } catch (err) {
+          errDiv.textContent += "\n\nОШИБКА МЕНЮ: " + (err.message || err);
+        }
+
+        // 3. В ЛЮБОМ СЛУЧАЕ принудительно показываем меню
+        state = "MENU";
+        showScreen("sc-menu");
       });
     </script>
   </body>
