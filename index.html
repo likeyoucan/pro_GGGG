@@ -1510,6 +1510,39 @@
 
       // 2. Настройки экрана и канваса (оригинальные)
       const canvas = $("gameCanvas");
+            // Функция перемешивания массива
+      function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      // Настройка качества графики
+      function applyQuality() {
+        let q;
+        if (SAVE.quality === "auto") {
+          const cores = navigator.hardwareConcurrency || 4;
+          const mem = navigator.deviceMemory || 4;
+          const isLowEnd = cores <= 4 || mem <= 2;
+          if (IS_TV) q = "mid";
+          else if (IS_MOBILE && isLowEnd) q = "low";
+          else if (IS_MOBILE) q = "mid";
+          else q = "high";
+        } else q = SAVE.quality;
+        
+        if (q === "high") {
+          Q.pmul = 1; Q.arenaScale = 0.8; Q.glow = true; Q.dprCap = 2;
+        } else if (q === "mid") {
+          Q.pmul = 0.8; Q.arenaScale = 0.6; Q.glow = true; Q.dprCap = 1.5;
+        } else {
+          Q.pmul = 0.55; Q.arenaScale = 0.5; Q.glow = false; Q.dprCap = 1.25;
+        }
+        Q.lvl = 0;
+        // Временно убираем вызов resize(), чтобы не было ошибки, если он тоже потерялся
+        if (typeof resize === "function") resize(); 
+      }
       const ctx = canvas.getContext("2d", { alpha: false });
       let W = 0, H = 0, DPR = 1, UIS = 1;
       
