@@ -983,6 +983,15 @@
           id="skinGrid"
           style="padding-bottom: 8px; flex-wrap: wrap; max-width: 96vw"
         ></div>
+        <div
+  style="font-weight: 800; font-size: 16px"
+  data-i18n="colorChoice"
+></div>
+<div
+  class="row"
+  id="colorGrid"
+  style="padding-bottom: 8px; flex-wrap: wrap; max-width: 96vw"
+></div>
         <div style="font-weight: 800; font-size: 16px" id="staffLbl"></div>
         <div
           class="row"
@@ -2891,7 +2900,7 @@
             clearTimeout(bgTimer);
             bgTimer = null;
           }
-          resetAllInputs();
+          try { resetAllInputs(); } catch (er) {}
           stopKeepAlive();
           resumeAudio();
           lastTime = performance.now();
