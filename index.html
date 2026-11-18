@@ -1494,6 +1494,42 @@
         }
         return a;
       };
+            // Настройки экрана и канваса
+      const canvas = $("gameCanvas");
+      const ctx = canvas.getContext("2d", { alpha: false });
+      let W = 0, H = 0, DPR = 1, UIS = 1;
+      
+      const UA = navigator.userAgent || "";
+      const IS_TV = /SMART-TV|SmartTV|Tizen|WebOS|Android TV|AppleTV|GoogleTV|HbbTV|BRAVIA/i.test(UA);
+      const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(UA) || (window.matchMedia && matchMedia("(pointer:coarse)").matches);
+      const IS_TABLET = /iPad|Tablet/i.test(UA) || (IS_MOBILE && Math.min(window.innerWidth, window.innerHeight) > 700);
+      let touchMode = IS_MOBILE;
+
+      function resize() {
+        DPR = Math.min(window.devicePixelRatio || 1, (typeof Q !== 'undefined' && Q.dprCap) ? Q.dprCap : 2);
+        W = window.innerWidth;
+        H = window.innerHeight;
+        const isPhone = IS_MOBILE && Math.min(W, H) < 700;
+        if (typeof Q !== 'undefined') Q.mobMul = isPhone ? 0.82 : IS_TV ? 1.1 : 1;
+        canvas.width = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+        UIS = isPhone ? clamp(Math.min(W, H) / 850, 0.55, 0.85) : clamp(Math.min(W, H) / 700, 0.75, 1.25);
+        
+        if (typeof Q !== 'undefined') {
+            if (Q.lvl >= 2 || (navigator.deviceMemory && navigator.deviceMemory <= 2)) {
+              Q.arenaScale = Math.min(Q.arenaScale, 0.4);
+            }
+            if (typeof ARENA !== 'undefined' && ARENA.ok && Math.abs(ARENA.S - Q.arenaScale) > 0.1) {
+              const th = (typeof G !== 'undefined' && G && G.theme) || "lava";
+              ARENA.ok = false;
+              try {
+                buildArena(th);
+              } catch (e) {
+                ARENA.ok = false;
+              }
+            }
+        }
+      }
       const CONFIG = {
         STUDIO_NAME: "ARCANE STUDIO",
         GAME_TITLE: "ARCANE ARENA",
