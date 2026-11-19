@@ -1407,7 +1407,8 @@
         },
       };
       function applyServerFromSelect() {
-        const id = $("serverSelect").value || "0.peerjs.com";
+        const sel = $("serverSelect");
+        const id = (sel && sel.value) || "0.peerjs.com";
         const cfg = SERVERS[id] || SERVERS["0.peerjs.com"];
         CONFIG.PEERJS_HOST = cfg.host;
         CONFIG.PEERJS_PORT = cfg.port;
@@ -2204,12 +2205,12 @@
             }
             persist();
           } catch (e) {}
-        const _purchase = await pay.purchase({ id: pid });
-if (_purchase && _purchase.purchaseToken) {
-  try {
-    await pay.consumePurchase(_purchase.purchaseToken);
-  } catch (e) {}
-}
+          const _purchase = await pay.purchase({ id: pid });
+          if (_purchase && _purchase.purchaseToken) {
+            try {
+              await pay.consumePurchase(_purchase.purchaseToken);
+            } catch (e) {}
+          }
           SAVE[pr.type] += pr.amount;
           persist();
           sfx("purchase");
@@ -2513,7 +2514,6 @@ if (_purchase && _purchase.purchaseToken) {
         const p = G.player;
         const d = dist(worldX, worldY, p.x, p.y);
         if (d > 1000) return;
-        const vol = clamp(1 - (d - 400) / 600, 0.05, 1);
         const f = frameNo;
         if (f !== _sfxFrame) {
           _sfxFrame = f;
@@ -2521,19 +2521,7 @@ if (_purchase && _purchase.purchaseToken) {
         }
         if (++_sfxCnt > 10) return;
         try {
-          if (!SFX[n]) return;
-          const t = Aud.ctx.currentTime;
-          const g = Aud.sfxG.gain;
-          const prev = g.value;
-          // 🆕 Плавное снижение, без «щелчка»
-          g.cancelScheduledValues(t);
-          g.setValueAtTime(prev, t);
-          g.linearRampToValueAtTime(prev * vol, t + 0.01);
-          SFX[n](a, b);
-          // 🆕 Возврат через 150 мс — успевает захватить хвост коротких звуков,
-          // но не портит длинные
-          g.setValueAtTime(prev * vol, t + 0.15);
-          g.linearRampToValueAtTime(prev, t + 0.25);
+          if (SFX[n]) SFX[n](a, b);
         } catch (e) {}
       }
       function startHum() {
@@ -2643,31 +2631,9 @@ if (_purchase && _purchase.purchaseToken) {
       }
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
-          // 🆕 Яндекс мог сам скрыть баннер — сбрасываем флаг
-          _bannerShown = false;
-          if (G && G.online && G.role === "host" && state === "PLAYING") {
-            startKeepAlive();
-            if (!bgTimer) {
-              lastTime = performance.now();
-              acc = 0;
-              bgTimer = setTimeout(bgLoop, 50);
-            }
-          } else {
-            pauseAudio();
-            if (typeof autoPause === "function") autoPause();
-          }
-        } else {
-          if (bgTimer) {
-            clearTimeout(bgTimer);
-            bgTimer = null;
-          }
-          resetAllInputs();
-          stopKeepAlive();
-          resumeAudio();
-          lastTime = performance.now();
-          acc = 0;
-          if (G && G.online && G.role === "client")
-            NET.lastRecv = performance.now();
+          try {
+            localStorage.setItem("arcane_save", JSON.stringify(SAVE));
+          } catch (e) {}
         }
       });
 
@@ -6408,9 +6374,7 @@ if (_purchase && _purchase.purchaseToken) {
           }
         }
       }
-      function drawAmbient(c) {
-        const th = THEMES[G.theme] || THEMES.lava;
-        for (const p of AMB.a) {
+      function drawAmbient(c) {        for (const p of AMB.a) {
           if (!p.on) continue;
           const k = p.m > 0 ? p.l / p.m : 0;
           if (p.k === "smoke") {
@@ -6422,6 +6386,34 @@ if (_purchase && _purchase.purchaseToken) {
           } else if (p.k === "drop") {
             c.fillStyle = "rgba(" + th.glow + "," + k + ")";
             c.fillRect(p.x - 1.2, p.y, 2.4, 5);
+          } else if (p.k === "cloud") {
+            const a = 0.12 * Math.min(1, k * 2, (1 - k) * 3);
+            c.fillStyle = "rgba(235,245,255," + a + ")";
+            c.beginPath();
+            c.ellipse(p.x, p.y, p.s, p.s * 0.55, 0, 0, TAU);
+            c.fill();
+            c.beginPath();
+            c.ellipse(
+              p.x + p.s * 0.45,
+              p.y - p.s * 0.15,
+              p.s * 0.7,
+              p.s * 0.4,
+              0,
+              0,
+              TAU,
+            );
+            c.fill();
+            c.beginPath();
+            c.ellipse(
+              p.x - p.s * 0.4,
+              p.y + p.s * 0.05,
+              p.s * 0.55,
+              p.s * 0.35,
+              0,
+              0,
+              TAU,
+            );
+            c.fill();
           } else {
             const col =
               p.k === "ember"
@@ -6435,22 +6427,6 @@ if (_purchase && _purchase.purchaseToken) {
             c.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
           }
         }
-        if (AMB.arc) {
-          c.lineJoin = "round";
-          for (const w of [
-            [5, "rgba(255,230,0,.5)"],
-            [1.8, "#fff"],
-          ]) {
-            c.lineWidth = w[0];
-            c.strokeStyle = w[1];
-            c.beginPath();
-            AMB.arc.pts.forEach((v, i) =>
-              i ? c.lineTo(v[0], v[1]) : c.moveTo(v[0], v[1]),
-            );
-            c.stroke();
-          }
-        }
-      }
       function bolt(x1, y1, x2, y2, segs, jag) {
         const pts = [[x1, y1]],
           dx = x2 - x1,
@@ -7405,7 +7381,7 @@ if (_purchase && _purchase.purchaseToken) {
             }
           }
         }
-                const col = elemColor(m.elem);
+        const col = elemColor(m.elem);
         if (melee) {
           m.swing = 1;
           sfx("swing");
@@ -7466,7 +7442,7 @@ if (_purchase && _purchase.purchaseToken) {
             w = alignF * alignF;
           const ex = lerp(bodyX, staffX, w),
             ey = lerp(bodyY, staffY, w);
-        const coreCol = ELEMS[m.elem].core,
+          const coreCol = ELEMS[m.elem].core,
             elCol = elemColor(m.elem);
           burst(ex, ey, [elCol, coreCol, "#fff"], 16, 260, 3.5, 0.3, true);
           G.rings.push({
@@ -7504,7 +7480,7 @@ if (_purchase && _purchase.purchaseToken) {
               ex,
               ey,
               ang + (i - (n - 1) / 2) * spreadRad,
-                         m.elem,
+              m.elem,
               base,
               {
                 life,
@@ -7514,7 +7490,7 @@ if (_purchase && _purchase.purchaseToken) {
                 r: 12,
               },
             );
-                    elemFx(ex, ey, m.elem, 8, 140);
+          elemFx(ex, ey, m.elem, 8, 140);
         }
         G.events.push({ k: "atk", id: m.id, a: ang, e: m.elem });
         return true;
@@ -9082,7 +9058,7 @@ if (_purchase && _purchase.purchaseToken) {
       function addRune(m, e) {
         if (!m.ultSlots) m.ultSlots = [m.elem, null, null, null];
 
-            const _commit = (slot) => {
+        const _commit = (slot) => {
           m.ultSlots[slot] = e;
           m.runes.push(e);
           if (m.runes.length > 3) m.runes.shift();
@@ -17185,14 +17161,19 @@ if (_purchase && _purchase.purchaseToken) {
         for (const p of PR.active) {
           if (p.on && !_seen.has(p.id)) p.on = false;
         }
-        G.pickups = s.pickups.map((p) => ({
-          id: p.id,
-          x: p.x,
-          y: p.y,
-          type: p.type,
-          t: p.id,
-          life: 20,
-        }));
+        const _oldPk = new Map();
+        for (const p of G.pickups) _oldPk.set(p.id, p);
+        G.pickups = s.pickups.map((p) => {
+          const old = _oldPk.get(p.id);
+          return {
+            id: p.id,
+            x: p.x,
+            y: p.y,
+            type: p.type,
+            t: old ? old.t : p.id,
+            life: old ? old.life : 20,
+          };
+        });
         if (Array.isArray(s.zones)) {
           G.zones = s.zones.map((z) => ({
             x: z.x,
@@ -17381,18 +17362,17 @@ if (_purchase && _purchase.purchaseToken) {
       function clientSelf(m, dt) {
         m.mx = inp.mx;
         m.my = inp.my;
-        let sp = 220;
+        let sp = 220 * (m.up && m.up.spd ? m.up.spd : 1);
         if (m.fx.haste > 0) sp *= 1.3;
         if (m.aura > 0) sp *= 1.2;
         if (m.elem === 2) sp *= 1.1;
         if (m.fx.slow > 0) sp *= m.fx.slowF;
         if (m.fx.tslow > 0) sp *= 0.5;
-        if (m.castLock > 0) sp *= 0.25; // 🆕 как на сервере
+        if (m.castLock > 0) sp *= 0.25;
         if (m.fx.freeze > 0 || m.fx.stun > 0) sp = 0;
         if (m.dashT > 0) {
           m.dashT -= dt;
           if (m.dashT < 0) m.dashT = 0;
-          // 🆕 Если вектор рывка нулевой — не «морозим» позицию
           const dl = Math.hypot(m.dashX, m.dashY);
           if (dl > 0.001) {
             m.vx = m.dashX * 1000;
@@ -17405,11 +17385,13 @@ if (_purchase && _purchase.purchaseToken) {
           m.vx += (m.mx * sp - m.vx) * k;
           m.vy += (m.my * sp - m.vy) * k;
         }
-        m.x += m.vx * dt;
-        m.y += m.vy * dt;
+        m.x += m.vx * dt + (m.kvx || 0);
+        m.y += m.vy * dt + (m.kvy || 0);
+        m.kvx = (m.kvx || 0) * 0.88;
+        m.kvy = (m.kvy || 0) * 0.88;
         collideWorld(m);
         if (Math.abs(m.mx) > 0.2 && m.dashT <= 0) m.facing = m.mx > 0 ? 1 : -1;
-        const s = m.snap && m.snap.length ? m.snap[m.snap.length - 1] : null; // 🆕
+        const s = m.snap && m.snap.length ? m.snap[m.snap.length - 1] : null;
         if (s) {
           const dx = s.x - m.x,
             dy = s.y - m.y,
