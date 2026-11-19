@@ -7405,7 +7405,7 @@ if (_purchase && _purchase.purchaseToken) {
             }
           }
         }
-        const col = elemColor(m.baseElem || m.elem);
+                const col = elemColor(m.elem);
         if (melee) {
           m.swing = 1;
           sfx("swing");
@@ -7466,8 +7466,8 @@ if (_purchase && _purchase.purchaseToken) {
             w = alignF * alignF;
           const ex = lerp(bodyX, staffX, w),
             ey = lerp(bodyY, staffY, w);
-          const coreCol = ELEMS[m.baseElem || m.elem].core,
-            elCol = elemColor(m.baseElem || m.elem);
+        const coreCol = ELEMS[m.elem].core,
+            elCol = elemColor(m.elem);
           burst(ex, ey, [elCol, coreCol, "#fff"], 16, 260, 3.5, 0.3, true);
           G.rings.push({
             x: ex,
@@ -7504,7 +7504,7 @@ if (_purchase && _purchase.purchaseToken) {
               ex,
               ey,
               ang + (i - (n - 1) / 2) * spreadRad,
-              m.baseElem || m.elem,
+                         m.elem,
               base,
               {
                 life,
@@ -7514,7 +7514,7 @@ if (_purchase && _purchase.purchaseToken) {
                 r: 12,
               },
             );
-          elemFx(ex, ey, m.baseElem || m.elem, 8, 140);
+                    elemFx(ex, ey, m.elem, 8, 140);
         }
         G.events.push({ k: "atk", id: m.id, a: ang, e: m.elem });
         return true;
@@ -9082,11 +9082,12 @@ if (_purchase && _purchase.purchaseToken) {
       function addRune(m, e) {
         if (!m.ultSlots) m.ultSlots = [m.elem, null, null, null];
 
-        const _commit = (slot) => {
+            const _commit = (slot) => {
           m.ultSlots[slot] = e;
           m.runes.push(e);
           if (m.runes.length > 3) m.runes.shift();
           m.elem = e;
+          m.baseElem = e;
           if (m === G.player) SAVE.stats.runesCollected++;
         };
 
@@ -12233,15 +12234,13 @@ if (_purchase && _purchase.purchaseToken) {
           });
         }
         cam.z = 1;
-        if (G.player) {
-          cam.x = G.player.x;
-          cam.y = G.player.y;
-          G.player.hp = G.player.maxHp;
-        } else {
+        if (!G.player) {
           console.error("[startMatch] G.player === null (myId не совпал)");
           toast(t("connErr"));
+          const _wasOnline = G.online;
           netCleanup();
-          if (G.online) {
+          G = null;
+          if (_wasOnline) {
             state = "ONLINE";
             showScreen("sc-online");
           } else {
