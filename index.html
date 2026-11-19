@@ -756,6 +756,27 @@
         box-shadow: 0 8px 20px rgba(218, 165, 32, 0.25);
         border-color: rgba(218, 165, 32, 0.8);
       }
+            /* 🆕 Анимация появления карточек апгрейда */
+      @keyframes upgIn {
+        from {
+          opacity: 0;
+          transform: perspective(600px) rotateY(75deg) scale(0.7);
+        }
+        to {
+          opacity: 1;
+          transform: perspective(600px) rotateY(0) scale(1);
+        }
+      }
+      #upgRow > .card {
+        opacity: 0;
+        animation: upgIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        transform-origin: center;
+      }
+      #upgRow > .card:nth-child(1) { animation-delay: 0.06s; }
+      #upgRow > .card:nth-child(2) { animation-delay: 0.14s; }
+      #upgRow > .card:nth-child(3) { animation-delay: 0.22s; }
+      #upgRow { pointer-events: none; }
+      #upgRow.ready { pointer-events: auto; }
     </style>
   </head>
   <body>
@@ -6341,7 +6362,7 @@
                 p.vx = rnd(-60, 60);
                 p.vy = rnd(-60, 60);
               } else if (th.amb === "cloud") {
-                p.s = rnd(30, 60);
+                 p.s = rnd(50, 90);
                 p.vx = rnd(-30, -10);
                 p.vy = rnd(-3, 3);
               }
@@ -10023,13 +10044,17 @@
               burst(mo.x, mo.y - mo.r * 0.5, mo.col, 30, 300, 4, 0.5, true);
               shake(4);
             } else if (phase >= 3) {
+              const avail = MONSTERS.map((m, i) => i).filter(
+                (i) => MONSTERS[i][2] <= G.wave,
+              );
               for (let i = 0; i < 3; i++) {
                 const a = rnd(0, TAU),
                   rr = 100 + rnd(0, 80);
                 const x = mo.x + Math.cos(a) * rr;
                 const y = mo.y + Math.sin(a) * rr;
                 G.spawnFx.push({ x, y, t: 0.6, m: 0.6, c: mo.col, w: 30 });
-                G.monsters.push(makeMonster(0, x, y, G.wave, "red"));
+                const ti = avail.length ? pick(avail) : 0;
+                G.monsters.push(makeMonster(ti, x, y, G.wave, "red"));
               }
               announce(lang === "ru" ? "ПРИЗЫВ!" : "SUMMON!", mo.col);
             }
@@ -12418,6 +12443,7 @@
         resetAllInputs();
         const row = $("upgRow");
         row.innerHTML = "";
+        row.classList.remove("ready");
 
         // 1) Синергии, доступные игроку
         const taken = G.player.upgradesTaken || {};
@@ -12569,6 +12595,7 @@
           }
           row.appendChild(d);
         }
+        setTimeout(() => row.classList.add("ready"), 500);
         showScreen("sc-levelup");
       }
 
