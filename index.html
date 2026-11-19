@@ -6362,7 +6362,7 @@
                 p.vx = rnd(-60, 60);
                 p.vy = rnd(-60, 60);
               } else if (th.amb === "cloud") {
-                 p.s = rnd(50, 90);
+                p.s = rnd(50, 90);
                 p.vx = rnd(-30, -10);
                 p.vy = rnd(-3, 3);
               }
@@ -6395,7 +6395,9 @@
           }
         }
       }
-      function drawAmbient(c) {        for (const p of AMB.a) {
+      function drawAmbient(c) {
+        const th = THEMES[G.theme] || THEMES.lava;
+        for (const p of AMB.a) {
           if (!p.on) continue;
           const k = p.m > 0 ? p.l / p.m : 0;
           if (p.k === "smoke") {
@@ -6448,6 +6450,22 @@
             c.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
           }
         }
+        if (AMB.arc) {
+          c.lineJoin = "round";
+          for (const w of [
+            [5, "rgba(255,230,0,.5)"],
+            [1.8, "#fff"],
+          ]) {
+            c.lineWidth = w[0];
+            c.strokeStyle = w[1];
+            c.beginPath();
+            AMB.arc.pts.forEach((v, i) =>
+              i ? c.lineTo(v[0], v[1]) : c.moveTo(v[0], v[1]),
+            );
+            c.stroke();
+          }
+        }
+      }
       function bolt(x1, y1, x2, y2, segs, jag) {
         const pts = [[x1, y1]],
           dx = x2 - x1,
@@ -12441,7 +12459,7 @@
         G.pendingLevel--;
         state = "LEVELUP";
         resetAllInputs();
-        const row = $("upgRow");
+          const row = $("upgRow");
         row.innerHTML = "";
         row.classList.remove("ready");
 
