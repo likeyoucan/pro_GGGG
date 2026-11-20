@@ -2424,19 +2424,31 @@
       function submitScore(s) {
         try {
           if (!window.ysdk) return;
-          const lb =
-            ysdk.leaderboards ||
-            (ysdk.getLeaderboards ? ysdk.getLeaderboards() : null);
-          if (!lb) return;
 
-          const submit = (instance) => {
-            instance.setLeaderboardScore("arcane", s).catch((err) => {
-              console.warn("[LB] setLeaderboardScore failed:", err);
-            });
+          const doSubmit = (lbInstance) => {
+            if (!lbInstance) return;
+            if (typeof lbInstance.setLeaderboardScore === "function") {
+              lbInstance.setLeaderboardScore("arcane", s).catch(() => {});
+            } else if (typeof lbInstance.setScore === "function") {
+              lbInstance.setScore("arcane", s).catch(() => {});
+            } else {
+              console.warn("[LB] No valid scoring method found on instance");
+            }
           };
 
-          if (lb.then) lb.then(submit).catch(() => {});
-          else submit(lb);
+          // В новых SDK ysdk.leaderboards может быть готовым объектом
+          if (
+            ysdk.leaderboards &&
+            (typeof ysdk.leaderboards.setLeaderboardScore === "function" ||
+              typeof ysdk.leaderboards.setScore === "function")
+          ) {
+            doSubmit(ysdk.leaderboards);
+          } else if (ysdk.getLeaderboards) {
+            ysdk
+              .getLeaderboards()
+              .then(doSubmit)
+              .catch(() => {});
+          }
         } catch (e) {
           console.warn("[LB] not available", e);
         }
@@ -6737,38 +6749,32 @@
             c.fillStyle = "rgba(" + th.glow + "," + k + ")";
             c.fillRect(p.x - 1.2, p.y, 2.4, 5);
           } else if (p.k === "cloud") {
-            const a = 0.35 * Math.min(1, k * 2, (1 - k) * 3);
-            // тень-подложка для контраста на светлом фоне
-            c.fillStyle = "rgba(180,200,230," + a * 0.6 + ")";
+            // 🆕 Более плотные и объёмные облака
+            const a = 0.55 * Math.min(1, k * 2, (1 - k) * 3);
+
+            // Функция для рисования мягкого "пуфа"
+            const drawPuff = (ox, oy, r) => {
+              const g = c.createRadialGradient(ox, oy, r * 0.1, ox, oy, r);
+              g.addColorStop(0, `rgba(255, 255, 255, ${a})`);
+              g.addColorStop(0.6, `rgba(235, 245, 255, ${a * 0.8})`);
+              g.addColorStop(1, `rgba(180, 200, 240, 0)`);
+              c.fillStyle = g;
+              c.beginPath();
+              c.arc(ox, oy, r, 0, TAU);
+              c.fill();
+            };
+
+            // 1. Голубоватая тень, чтобы выделялось на белом полу
+            c.fillStyle = `rgba(140, 170, 210, ${a * 0.45})`;
             c.beginPath();
-            c.ellipse(p.x + 2, p.y + 4, p.s * 1.05, p.s * 0.62, 0, 0, TAU);
+            c.ellipse(p.x + 4, p.y + 8, p.s * 1.1, p.s * 0.6, 0, 0, TAU);
             c.fill();
-            c.fillStyle = "rgba(255,255,255," + a + ")";
-            c.beginPath();
-            c.ellipse(p.x, p.y, p.s, p.s * 0.55, 0, 0, TAU);
-            c.fill();
-            c.beginPath();
-            c.ellipse(
-              p.x + p.s * 0.45,
-              p.y - p.s * 0.15,
-              p.s * 0.7,
-              p.s * 0.4,
-              0,
-              0,
-              TAU,
-            );
-            c.fill();
-            c.beginPath();
-            c.ellipse(
-              p.x - p.s * 0.4,
-              p.y + p.s * 0.05,
-              p.s * 0.55,
-              p.s * 0.35,
-              0,
-              0,
-              TAU,
-            );
-            c.fill();
+
+            // 2. Объёмные белые клубы (рисуем поверх тени)
+            drawPuff(p.x, p.y, p.s * 0.8);
+            drawPuff(p.x + p.s * 0.55, p.y - p.s * 0.2, p.s * 0.6);
+            drawPuff(p.x - p.s * 0.5, p.y + p.s * 0.1, p.s * 0.5);
+            drawPuff(p.x + p.s * 0.2, p.y + p.s * 0.2, p.s * 0.45);
           } else {
             const col =
               p.k === "ember"
@@ -13463,6 +13469,8 @@
           c.strokeStyle = elCol;
           c.stroke();
         }
+        // 🆕 Страховка: принудительно возвращаем обычный режим наложения
+        c.globalCompositeOperation = "source-over";
       }
 
       function drawProjectiles(c) {
@@ -13496,6 +13504,8 @@
           }
           drawProjShape(c, p, col);
         }
+        // 🆕 Страховка: принудительно возвращаем обычный режим наложения
+        c.globalCompositeOperation = "source-over";
       }
 
       function drawEffects(c) {
@@ -16337,11 +16347,18 @@
 
         // 🆕 Yandex-лидерборд
         try {
-          const _lb = window.ysdk
-            ? ysdk.leaderboards ||
-              (ysdk.getLeaderboards ? await ysdk.getLeaderboards() : null)
-            : null;
-          if (_lb && window.player) {
+          let _lb = null;
+          if (window.ysdk && window.player) {
+            if (
+              ysdk.leaderboards &&
+              typeof ysdk.leaderboards.getLeaderboardEntries === "function"
+            ) {
+              _lb = ysdk.leaderboards;
+            } else if (ysdk.getLeaderboards) {
+              _lb = await ysdk.getLeaderboards();
+            }
+          }
+          if (_lb && typeof _lb.getLeaderboardEntries === "function") {
             const entries = await _lb.getLeaderboardEntries("arcane", {
               quantityTop: 10,
               includeUser: true,
