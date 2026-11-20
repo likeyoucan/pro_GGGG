@@ -797,9 +797,8 @@
       class="screen show"
       id="sc-loading"
       style="
-        background: radial-gradient(ellipse at center, #2a0a2e 0%, #000 75%);
-        z-index: 30;
-        pointer-events: auto;
+        background: radial-gradient(ellipse at center, #1a0a2a 0%, #000 75%);
+        z-index: 28;
       "
     >
       <h1 class="title">ARCANE ARENA</h1>
@@ -1213,6 +1212,27 @@
       </div>
     </div>
 
+    <div
+      class="screen show"
+      id="sc-loading-match"
+      style="
+        background: radial-gradient(ellipse at center, #1a0a2a 0%, #000 75%);
+        z-index: 28;
+        pointer-events: auto;
+        display: none;
+      "
+    >
+      <h2 class="h2" data-i18n="loadingMatch">Загрузка боя...</h2>
+      <div class="bar" style="width: min(320px, 80vw)">
+        <div id="matchLoadBar"></div>
+      </div>
+      <div
+        id="matchLoadTxt"
+        style="font-weight: 700; color: #ffd23a; font-size: 14px"
+      >
+        ...
+      </div>
+    </div>
     <div class="screen" id="sc-levelup" style="background: rgba(0, 0, 0, 0.6)">
       <h2 class="h2" data-i18n="levelUpTitle">НОВЫЙ УРОВЕНЬ</h2>
       <div class="row" id="upgRow"></div>
@@ -1911,6 +1931,10 @@
           aura: "АУРА",
           default: "БАЗОВЫЙ",
           resetSettings: "Сбросить настройки",
+          loadingMatch: "Загрузка боя...",
+          loadingArena: "Построение арены...",
+          loadingAssets: "Подготовка ресурсов...",
+          loadingReady: "Готово!",
         },
         en: {
           play: "PLAY",
@@ -2041,6 +2065,10 @@
           aura: "AURA",
           default: "DEFAULT",
           resetSettings: "Reset settings",
+          loadingMatch: "Loading match...",
+          loadingArena: "Building arena...",
+          loadingAssets: "Preparing assets...",
+          loadingReady: "Ready!",
         },
       };
       let lang = CONFIG.DEFAULT_LANGUAGE;
@@ -2462,9 +2490,23 @@
 
       function showScreen(id) {
         document.querySelectorAll(".screen").forEach((s) => {
-          if (s.id !== "sc-noenergy" && s.id !== "sc-confirm")
+          if (
+            s.id !== "sc-noenergy" &&
+            s.id !== "sc-confirm" &&
+            s.id !== "sc-loading-match"
+          )
             s.classList.remove("show");
         });
+        // 🆕 скрываем экран загрузки при переходе на любой не-игровой экран
+        if (
+          id &&
+          id !== "sc-loading-match" &&
+          id !== "sc-noenergy" &&
+          id !== "sc-confirm"
+        ) {
+          const _lm = $("sc-loading-match");
+          if (_lm) _lm.classList.remove("show");
+        }
         if (id) $(id).classList.add("show");
 
         // 🆕 автоматический GameplayAPI для Яндекса
@@ -12663,6 +12705,8 @@
         _spawnLastWave = 0;
         applyQuality(); // Восстанавливает Q.glow и Q.pmul согласно настройкам
         ARENA.ok = false; // Заставляем арену перестроиться под нужный масштаб
+
+        // Проверка энергии — синхронно, до показа загрузки
         if (!o.online) {
           energyTick();
           if (SAVE.energy < 1) {
@@ -12672,181 +12716,237 @@
           }
         }
         o.seed = o.seed || (Math.random() * 1e9) | 0;
-        ensureArena(o.theme);
-        newGame(o);
-        FX.hs = 0;
-        FX.shake = 0;
-        FX.shakeBiasX = 0;
-        FX.shakeBiasY = 0;
-        FX.flash = 0;
-        FX.vig = 0;
-        const startAng = rnd(0, TAU);
-        if (o.mode === "online") {
-          const n = o.players.length;
-          o.players.forEach((p, i) => {
-            const m = new Mage({
-              id: p.id,
-              name: p.nick,
-              mantle: p.color,
-              skin: p.skin,
-              staff: p.staff || "wood",
-            });
-            // 🆕 проверяем скин/посох на доступ к void
-            const pSkin = SKIN_BY_ID[p.skin] || SKINS[0];
-            const pStaff = STAFF_BY_ID[p.staff || "wood"] || STAFFS[0];
-            const canVoid =
-              !!(pSkin && pSkin.voidElem) || !!(pStaff && pStaff.voidElem);
-            m.elem = elemFromColor(p.color, canVoid);
-            m.auraElem = m.elem;
-            m.baseElem = m.elem;
-            m.ultSlots = [m.elem, null, null, null];
-            m.ultActive = 0;
-            m.isPlayer = p.id === o.myId;
-            m.remote = o.role === "host" && p.id !== o.myId;
-            m.snap = [];
-            m.x = CX + Math.cos(startAng + (i / n) * TAU) * 600;
-            m.y = CY + Math.sin(startAng + (i / n) * TAU) * 600;
-            m.facing = m.x < CX ? 1 : -1;
-            m.resetVerlet();
-            G.mages.push(m);
-            if (m.isPlayer) G.player = m;
-          });
-        } else {
-          const pcol = o.color || colorHex(SAVE.color);
-          const others = shuffle(
-            MAGE_COLORS.map((c) => c.hex).filter((h) => h !== pcol),
-          );
-          const names = shuffle(BOT_NAMES.slice());
-          const skinId = o.skin || SAVE.skin;
-          const skinDef = SKIN_BY_ID[skinId] || SKINS[0];
-          const useColor = skinDef.special ? skinDef.mantle || pcol : pcol;
-          const pm = new Mage({
-            name: SAVE.nick || "Mage",
-            mantle: useColor,
-            skin: skinId,
-            staff: o.staff || SAVE.staff,
-            isPlayer: true,
-          });
-          const staffDef = STAFF_BY_ID[o.staff || SAVE.staff] || STAFFS[0];
-          const hasVoidAccess =
-            !!(skinDef && skinDef.voidElem) ||
-            !!(staffDef && staffDef.voidElem);
 
-          // 🆕 определяем стихию один раз
-          let chosenElem;
-          if (skinId === "shark" || skinId === "cat") chosenElem = 1;
-          else if (skinId === "archmage") chosenElem = 2;
-          else if (skinId === "arcanvoid") chosenElem = 4;
-          else if (skinId === "infernal") chosenElem = 0;
-          else if (skinId === "celestial") chosenElem = 3;
-          else chosenElem = elemFromColor(pcol, hasVoidAccess);
+        // 🆕 ЭКРАН ЗАГРУЗКИ БОЯ
+        const _ml = $("sc-loading-match");
+        const _mlBar = $("matchLoadBar");
+        const _mlTxt = $("matchLoadTxt");
+        const _showLoading = (prog, key) => {
+          if (!_ml) return;
+          _ml.classList.add("show");
+          if (_mlBar) _mlBar.style.width = prog + "%";
+          if (_mlTxt && key) _mlTxt.textContent = t(key);
+        };
+        const _hideLoading = () => {
+          if (!_ml) return;
+          if (_mlBar) _mlBar.style.width = "100%";
+          if (_mlTxt) _mlTxt.textContent = t("loadingReady");
+          // даём браузеру отрисовать 2–3 кадра игры под загрузкой
+          setTimeout(() => _ml.classList.remove("show"), 200);
+        };
+        _showLoading(5, "loadingMatch");
 
-          if (staffDef && staffDef.voidElem && !skinDef.voidElem) {
-            chosenElem = 4;
-          }
-          pm.elem = chosenElem;
+        // 🆕 Тяжёлая работа — асинхронно, чтобы браузер показал экран загрузки
+        setTimeout(() => {
+          try {
+            // 1. Арена
+            ensureArena(o.theme);
+            _showLoading(35, "loadingArena");
 
-          pm.baseElem = pm.elem;
-          pm.auraElem = pm.elem;
-          pm.ultSlots = [pm.elem, null, null, null]; // 🆕
-          pm.ultActive = 0;
-          G.player = pm;
-          G.mages.push(pm);
-          const diff = DIFF[SAVE.botDifficulty] || DIFF.normal;
-          for (let i = 1; i < o.count; i++) {
-            const b = new Mage({
-              name: names[i % names.length],
-              mantle: others[i % others.length],
-              isBot: true,
-            });
-            b.elem = elemFromColor(others[i % others.length]);
-            b.baseElem = b.elem;
-            b.auraElem = b.elem;
-            b.ultSlots = [b.elem, null, null, null]; // 🆕
-            b.ultActive = 0;
-            if (o.mode === "survival") {
-              b.ai.skill = 1.1;
-              b.up.mregen = 2.0;
-            } else {
-              b.ai.skill = diff.skill;
-              b.ai.aimErr = diff.aimErr;
-              b.ai.fireDelayMul = diff.fireDelayMul;
-              b.ai.aggression = diff.aggression;
-              b.ai.ultChance = diff.ultChance;
-              b.ai.retreatHp = diff.retreatHp;
-              b.ai.dodgeChance = diff.dodgeChance;
-              b.up.mregen = diff.manaRegen;
-              b.maxHp = Math.round(b.maxHp * diff.hpMul);
-              b.hp = b.maxHp;
-              b.up.dmg = diff.dmgMul;
+            // 2. Игровые объекты
+            newGame(o);
+            _showLoading(55, "loadingAssets");
+
+            // 3. Пре-прогрев кэша камней (без стопора на 1-м кадре)
+            const _preTh = THEMES[G.theme] || THEMES.lava;
+            for (let i = 0; i < G.rocks.length; i++) {
+              _getRockCache(G.rocks[i], _preTh);
             }
-            G.mages.push(b);
-          }
-          const n = G.mages.length;
-          G.mages.forEach((m, i) => {
-            if (o.mode === "survival") {
-              m.x = CX + (i ? Math.cos(i * 2.1) * 70 : 0);
-              m.y = CY + (i ? Math.sin(i * 2.1) * 70 : 0);
+            _showLoading(75, "loadingAssets");
+
+            // 4. Сброс FX
+            FX.hs = 0;
+            FX.shake = 0;
+            FX.shakeBiasX = 0;
+            FX.shakeBiasY = 0;
+            FX.flash = 0;
+            FX.vig = 0;
+            const startAng = rnd(0, TAU);
+
+            // 5. Создание магов
+            if (o.mode === "online") {
+              const n = o.players.length;
+              o.players.forEach((p, i) => {
+                const m = new Mage({
+                  id: p.id,
+                  name: p.nick,
+                  mantle: p.color,
+                  skin: p.skin,
+                  staff: p.staff || "wood",
+                });
+                const pSkin = SKIN_BY_ID[p.skin] || SKINS[0];
+                const pStaff = STAFF_BY_ID[p.staff || "wood"] || STAFFS[0];
+                const canVoid =
+                  !!(pSkin && pSkin.voidElem) || !!(pStaff && pStaff.voidElem);
+                m.elem = elemFromColor(p.color, canVoid);
+                m.auraElem = m.elem;
+                m.baseElem = m.elem;
+                m.ultSlots = [m.elem, null, null, null];
+                m.ultActive = 0;
+                m.isPlayer = p.id === o.myId;
+                m.remote = o.role === "host" && p.id !== o.myId;
+                m.snap = [];
+                m.x = CX + Math.cos(startAng + (i / n) * TAU) * 600;
+                m.y = CY + Math.sin(startAng + (i / n) * TAU) * 600;
+                m.facing = m.x < CX ? 1 : -1;
+                m.resetVerlet();
+                G.mages.push(m);
+                if (m.isPlayer) G.player = m;
+              });
             } else {
-              m.x = CX + Math.cos(startAng + (i / n) * TAU) * 620;
-              m.y = CY + Math.sin(startAng + (i / n) * TAU) * 620;
+              const pcol = o.color || colorHex(SAVE.color);
+              const others = shuffle(
+                MAGE_COLORS.map((c) => c.hex).filter((h) => h !== pcol),
+              );
+              const names = shuffle(BOT_NAMES.slice());
+              const skinId = o.skin || SAVE.skin;
+              const skinDef = SKIN_BY_ID[skinId] || SKINS[0];
+              const useColor = skinDef.special ? skinDef.mantle || pcol : pcol;
+              const pm = new Mage({
+                name: SAVE.nick || "Mage",
+                mantle: useColor,
+                skin: skinId,
+                staff: o.staff || SAVE.staff,
+                isPlayer: true,
+              });
+              const staffDef = STAFF_BY_ID[o.staff || SAVE.staff] || STAFFS[0];
+              const hasVoidAccess =
+                !!(skinDef && skinDef.voidElem) ||
+                !!(staffDef && staffDef.voidElem);
+
+              // 🆕 определяем стихию один раз
+              let chosenElem;
+              if (skinId === "shark" || skinId === "cat") chosenElem = 1;
+              else if (skinId === "archmage") chosenElem = 2;
+              else if (skinId === "arcanvoid") chosenElem = 4;
+              else if (skinId === "infernal") chosenElem = 0;
+              else if (skinId === "celestial") chosenElem = 3;
+              else chosenElem = elemFromColor(pcol, hasVoidAccess);
+
+              if (staffDef && staffDef.voidElem && !skinDef.voidElem) {
+                chosenElem = 4;
+              }
+              pm.elem = chosenElem;
+
+              pm.baseElem = pm.elem;
+              pm.auraElem = pm.elem;
+              pm.ultSlots = [pm.elem, null, null, null];
+              pm.ultActive = 0;
+              G.player = pm;
+              G.mages.push(pm);
+
+              const diff = DIFF[SAVE.botDifficulty] || DIFF.normal;
+              for (let i = 1; i < o.count; i++) {
+                const b = new Mage({
+                  name: names[i % names.length],
+                  mantle: others[i % others.length],
+                  isBot: true,
+                });
+                b.elem = elemFromColor(others[i % others.length]);
+                b.baseElem = b.elem;
+                b.auraElem = b.elem;
+                b.ultSlots = [b.elem, null, null, null];
+                b.ultActive = 0;
+                if (o.mode === "survival") {
+                  b.ai.skill = 1.1;
+                  b.up.mregen = 2.0;
+                } else {
+                  b.ai.skill = diff.skill;
+                  b.ai.aimErr = diff.aimErr;
+                  b.ai.fireDelayMul = diff.fireDelayMul;
+                  b.ai.aggression = diff.aggression;
+                  b.ai.ultChance = diff.ultChance;
+                  b.ai.retreatHp = diff.retreatHp;
+                  b.ai.dodgeChance = diff.dodgeChance;
+                  b.up.mregen = diff.manaRegen;
+                  b.maxHp = Math.round(b.maxHp * diff.hpMul);
+                  b.hp = b.maxHp;
+                  b.up.dmg = diff.dmgMul;
+                }
+                G.mages.push(b);
+              }
+              const n = G.mages.length;
+              G.mages.forEach((m, i) => {
+                if (o.mode === "survival") {
+                  m.x = CX + (i ? Math.cos(i * 2.1) * 70 : 0);
+                  m.y = CY + (i ? Math.sin(i * 2.1) * 70 : 0);
+                } else {
+                  m.x = CX + Math.cos(startAng + (i / n) * TAU) * 620;
+                  m.y = CY + Math.sin(startAng + (i / n) * TAU) * 620;
+                }
+                m.facing = m.x < CX ? 1 : -1;
+                m.resetVerlet();
+              });
             }
-            m.facing = m.x < CX ? 1 : -1;
-            m.resetVerlet();
-          });
-        }
-        cam.z = 1;
-        if (!G.player) {
-          console.error("[startMatch] G.player === null (myId не совпал)");
-          toast(t("connErr"));
-          const _wasOnline = G.online;
-          netCleanup();
-          G = null;
-          if (_wasOnline) {
-            state = "ONLINE";
-            showScreen("sc-online");
-          } else {
-            state = "MENU";
-            showScreen("sc-menu");
-            initMenuMages();
+            cam.z = 1;
+
+            // 6. Проверка, что игрок создан
+            if (!G.player) {
+              console.error("[startMatch] G.player === null (myId не совпал)");
+              toast(t("connErr"));
+              const _wasOnline = G.online;
+              netCleanup();
+              G = null;
+              if (_ml) _ml.classList.remove("show");
+              if (_wasOnline) {
+                state = "ONLINE";
+                showScreen("sc-online");
+              } else {
+                state = "MENU";
+                showScreen("sc-menu");
+                initMenuMages();
+              }
+              return;
+            }
+
+            // 7. Списываем энергию только после успешного создания матча
+            if (!o.online) {
+              SAVE.energy--;
+              persist();
+            }
+
+            // 8. Запуск игры
+            state = "PLAYING";
+            showScreen(null);
+            resetAllInputs();
+            MUS.tgt = 0.5;
+            try {
+              gameplayStart();
+            } catch (e) {}
+            canvas.focus();
+
+            // 🆕 запуск keep-alive аудио (фон будет управляться через visibilitychange)
+            startKeepAlive();
+            if (bgTimer) {
+              clearTimeout(bgTimer);
+              bgTimer = null;
+            }
+
+            announce(
+              o.mode === "survival"
+                ? lang === "ru"
+                  ? "ВЫЖИВАНИЕ!"
+                  : "SURVIVE!"
+                : lang === "ru"
+                  ? "В БОЙ!"
+                  : "FIGHT!",
+              "#ffd23a",
+            );
+            if (o.mode === "survival") {
+              G.waveT = 0;
+              G.waveLeft = 0;
+            }
+
+            // 9. Скрываем экран загрузки (с задержкой, чтобы первые кадры
+            //    игры отрисовались под ним)
+            _hideLoading();
+          } catch (e) {
+            console.error("[startMatch async]", e);
+            if (_ml) _ml.classList.remove("show");
+            toast(t("connErr"));
           }
-          return false;
-        }
-        // 🆕 Списываем энергию только после успешного создания матча
-        if (!o.online) {
-          SAVE.energy--;
-          persist();
-        }
-        state = "PLAYING";
-        showScreen(null);
-        resetAllInputs();
-        MUS.tgt = 0.5;
-        try {
-          gameplayStart();
-        } catch (e) {}
-        canvas.focus();
+        }, 30);
 
-        // 🆕 запуск фонового цикла хоста + keep-alive аудио
-        startKeepAlive();
-        if (bgTimer) {
-          clearTimeout(bgTimer);
-          bgTimer = null;
-        }
-
-        announce(
-          o.mode === "survival"
-            ? lang === "ru"
-              ? "ВЫЖИВАНИЕ!"
-              : "SURVIVE!"
-            : lang === "ru"
-              ? "В БОЙ!"
-              : "FIGHT!",
-          "#ffd23a",
-        );
-        if (o.mode === "survival") {
-          G.waveT = 0;
-          G.waveLeft = 0;
-        }
         return true;
       }
 
@@ -15319,7 +15419,8 @@
         c.clip();
         c.translate(W / 2, horizonY + (H - horizonY) * 0.55);
         const sc = Math.max(W / 1000, H / 650);
-        c.scale(sc, sc * 0.55);
+        // 🆕 было 0.55 — плиты арены выглядели слишком «сплющенными»
+        c.scale(sc, sc * 0.72);
         c.translate(-CX, -(CY + 250));
         if (!ARENA.ok || ARENA.theme !== "lava") {
           try {
@@ -15430,6 +15531,8 @@
       let _dailyShown = false;
 
       function goMenu() {
+        const _lm = $("sc-loading-match");
+        if (_lm) _lm.classList.remove("show");
         clearInterval(shopTimer);
         state = "MENU";
         showScreen("sc-menu");
@@ -17347,18 +17450,24 @@
             return;
           }
           // 🆕 reconnect: если ник совпадает с недавно отключённым — вернуть его id
-          const _reconnect = NET.players.find(p => p.nick === joinNick && p.disconnected);
+          const _reconnect = NET.players.find(
+            (p) => p.nick === joinNick && p.disconnected,
+          );
           if (_reconnect && G && G.online) {
             _reconnect.conn = conn;
             _reconnect.disconnected = false;
             conn.pid = _reconnect.id;
-            const m = G.mages.find(x => x.id === _reconnect.id);
+            const m = G.mages.find((x) => x.id === _reconnect.id);
             if (m) {
               m.remote = true;
               m.isBot = false;
               m.netIn = null;
             }
-            sendTo(conn, { type: "welcome", id: _reconnect.id, code: NET.code });
+            sendTo(conn, {
+              type: "welcome",
+              id: _reconnect.id,
+              code: NET.code,
+            });
             broadcastLobby();
             return;
           }
@@ -17444,10 +17553,15 @@
         p.conn = null;
         p._dropT = Date.now();
         setTimeout(() => {
-          const idx = NET.players.findIndex(x => x.id === p.id && x.disconnected);
+          const idx = NET.players.findIndex(
+            (x) => x.id === p.id && x.disconnected,
+          );
           if (idx >= 0) {
             NET.players.splice(idx, 1);
-            if (state === "LOBBY") { renderRoom(); broadcastLobby(); }
+            if (state === "LOBBY") {
+              renderRoom();
+              broadcastLobby();
+            }
           }
         }, 30000);
         if (G && G.online) {
@@ -18769,11 +18883,19 @@
         } catch (e) {}
 
         setProg(30, "boot3");
-        await buildIcons((p) => setProg(30 + p * 50));
-        setProg(82, "boot4");
-        await delay(30);
+        await buildIcons((p) => setProg(30 + p * 45)); // 30 → 75
+        setProg(78, "boot4");
+        await delay(50);
+
+        // 🆕 строим арену с показом прогресса
+        setProg(30, "boot3");
+        await buildIcons((p) => setProg(30 + p * 45)); // 30 → 75
+        setProg(78, "boot4");
+        await delay(60); // 🆕 пусть браузер отрисует 78%
         drawTopbarIconsOnce();
         ensureArena("lava");
+        setProg(88, "boot4");
+        await delay(40); // 🆕 пусть отрисует 88%
         initMenuMages();
         if (!isPeerJSAvailable()) {
           $("onlineBtn").classList.add("off");
@@ -18783,13 +18905,16 @@
             applyLang();
           }
         }
-        setProg(100, "boot5");
+        setProg(97, "boot5");
+        await delay(50);
 
         try {
           if (window.ysdk && ysdk.features && ysdk.features.LoadingAPI)
             ysdk.features.LoadingAPI.ready();
         } catch (e) {}
-        await delay(120);
+        // 🆕 дольше держим экран — браузер успевает «прожевать»
+        //     накопленный мусор после тяжёлых операций
+        await delay(200);
         $("sc-loading").classList.remove("show");
         $("sc-loading").style.display = "none";
         state = "MENU";
