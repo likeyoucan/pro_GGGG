@@ -2069,16 +2069,19 @@
         }
         const srvSel = $("serverSelect");
         if (srvSel) {
-          srvSel.options[0].textContent =
-            lang === "ru"
-              ? "Сервер: Default (PeerJS Cloud)"
-              : "Server: Default (PeerJS Cloud)";
-          srvSel.options[1].textContent =
-            lang === "ru" ? "Сервер: Yandex Cloud" : "Server: Yandex Cloud";
-          srvSel.options[2].textContent =
-            lang === "ru"
-              ? "Сервер: LikeYouCan (Cloudflare Workers)"
-              : "Server: LikeYouCan (Cloudflare Workers)";
+          if (srvSel.options[0])
+            srvSel.options[0].textContent =
+              lang === "ru"
+                ? "Сервер: Default (PeerJS Cloud)"
+                : "Server: Default (PeerJS Cloud)";
+          if (srvSel.options[1])
+            srvSel.options[1].textContent =
+              lang === "ru" ? "Сервер: Yandex Cloud" : "Server: Yandex Cloud";
+          if (srvSel.options[2])
+            srvSel.options[2].textContent =
+              lang === "ru"
+                ? "Сервер: LikeYouCan (Cloudflare Workers)"
+                : "Server: LikeYouCan (Cloudflare Workers)";
         }
         if (typeof updateCustomSelectsLanguage === "function")
           updateCustomSelectsLanguage();
@@ -4095,7 +4098,7 @@
         on: false,
         _inActive: false,
       }));
-      const PR = new Pool(200, () => ({
+      const PR = new Pool(300, () => ({
         x: 0,
         y: 0,
         vx: 0,
@@ -4475,6 +4478,7 @@
           this.remote = false;
           this.isMonster = false;
           this.netIn = null;
+          this.snap = []; // 🆕 всегда массив, даже в новых режимах
           this.ai = {
             t: 0,
             tg: null,
@@ -10794,6 +10798,12 @@
           G.pillar.t -= dt;
           if (G.pillar.t <= 0) G.pillar = null;
         }
+
+        // 13. Таймер тряски камней
+        for (let i = 0; i < G.rocks.length; i++) {
+          const rk = G.rocks[i];
+          if (rk.shakeT > 0) rk.shakeT -= dt;
+        }
       }
 
       function updateGame(dt) {
@@ -12736,6 +12746,18 @@
           gameplayStart();
         } catch (e) {}
         canvas.focus();
+
+        // 🆕 запуск фонового цикла хоста + keep-alive аудио
+        startKeepAlive();
+        if (bgTimer) {
+          clearTimeout(bgTimer);
+          bgTimer = null;
+        }
+        if (G.online && G.role === "host") {
+          lastTime = performance.now();
+          bgTimer = setTimeout(bgLoop, 50);
+        }
+
         announce(
           o.mode === "survival"
             ? lang === "ru"
@@ -12809,8 +12831,15 @@
           gameplayStop();
         } catch (e) {}
         hideBannerSafe(); // 🆕
-        G = null;
 
+        // 🆕 остановка фонового цикла и аудио keep-alive
+        if (bgTimer) {
+          clearTimeout(bgTimer);
+          bgTimer = null;
+        }
+        stopKeepAlive();
+
+        G = null;
         state = "MENU";
         resetAllInputs();
         stopHum();
@@ -12839,6 +12868,14 @@
           // 🆕
           sendTo(NET.hostConn, { type: "return_to_room" });
         }
+
+        // 🆕 остановка фонового цикла и аудио keep-alive
+        if (bgTimer) {
+          clearTimeout(bgTimer);
+          bgTimer = null;
+        }
+        stopKeepAlive();
+
         G = null;
         state = "LOBBY";
         stopHum();
@@ -13075,6 +13112,13 @@
         if (!G || G.resultShown) return;
         G.resultShown = true;
         state = "RESULT";
+
+        // 🆕 остановка фонового цикла хоста
+        if (bgTimer) {
+          clearTimeout(bgTimer);
+          bgTimer = null;
+        }
+
         try {
           gameplayStop();
         } catch (e) {}
@@ -16016,6 +16060,7 @@
           }
           setTimeout(() => {
             document.querySelectorAll(".ico-cv").forEach((el) => {
+              if (el.children.length > 0) return; // 🆕 защита от дублей
               const ico = el.dataset.ico;
               if (IC[ico]) {
                 const cv = document.createElement("canvas");
@@ -17885,7 +17930,7 @@
               const _u = {
                 a: parts[0],
                 b: parts[parts.length > 1 ? 1 : 0],
-                e: parts[parts.length - 1],
+                e: parts[0], // ✅ как у хоста в ultKey
                 mega: !!ev.mega,
                 key: ev.key,
               };
@@ -18060,6 +18105,7 @@
         for (let i = 0; i < pj.length; i++) {
           const p = pj[i];
           if (!p.on) continue;
+          p.age = (p.age || 0) + dt; // 🆕
           p.x += p.vx * dt;
           p.y += p.vy * dt;
           p.life -= dt; // 🆕
@@ -18073,20 +18119,23 @@
             p.on = false;
             continue;
           }
-          // 🆕 Столкновение с камнями
-          let hitRock = false;
-          for (const rk of G.rocks) {
-            const ddx = rk.x - p.x,
-              ddy = rk.y - p.y;
-            if (ddx * ddx + ddy * ddy < rk.r * rk.r) {
-              hitRock = true;
-              break;
+          // 🆕 Столкновение с камнями (только если снаряд уже чуть прожил,
+          // как у хоста — иначе снаряд, заспавнившийся в камне, мигает)
+          if (p.age > 0.02) {
+            let hitRock = false;
+            for (const rk of G.rocks) {
+              const ddx = rk.x - p.x,
+                ddy = rk.y - p.y;
+              if (ddx * ddx + ddy * ddy < rk.r * rk.r) {
+                hitRock = true;
+                break;
+              }
             }
-          }
-          if (hitRock) {
-            burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
-            p.on = false;
-            continue;
+            if (hitRock) {
+              burst(p.x, p.y, "#999", 6, 120, 2, 0.3);
+              p.on = false;
+              continue;
+            }
           }
           if (p.trailPts) {
             p.trailPts.push({ x: p.x, y: p.y });
@@ -18104,6 +18153,75 @@
             true,
             0.95,
           );
+
+          // 🆕 кастомные следы снарядов (как у хоста в updateProjs)
+          if (p.trail === "trail_rainbow") {
+            pt(
+              p.x + rnd(-4, 4),
+              p.y + rnd(-4, 4),
+              rnd(-30, 30),
+              rnd(-30, 30),
+              0.8,
+              5,
+              "hsl(" + (((TM * 300) % 360) | 0) + ",100%,60%)",
+              0,
+              true,
+              0.94,
+            );
+          } else if (p.trail === "trail_ember") {
+            pt(
+              p.x + rnd(-4, 4),
+              p.y + rnd(-4, 4),
+              rnd(-30, 30),
+              rnd(-30, 30) - 30,
+              0.7,
+              4.5,
+              pick(["#FF8030", "#FF4500", "#FFAA00"]),
+              0,
+              true,
+              0.96,
+            );
+          } else if (p.trail === "trail_star") {
+            pt(
+              p.x + rnd(-5, 5),
+              p.y + rnd(-5, 5),
+              rnd(-20, 20),
+              rnd(-20, 20),
+              0.7,
+              3.5,
+              "#FFE060",
+              0,
+              true,
+              0.94,
+            );
+          } else if (p.trail === "trail_void") {
+            pt(
+              p.x + rnd(-5, 5),
+              p.y + rnd(-5, 5),
+              rnd(-25, 25),
+              rnd(-25, 25),
+              0.9,
+              5,
+              pick(["#B040FF", "#6A0DAD", "#E0A0FF"]),
+              0,
+              true,
+              0.95,
+            );
+          } else if (p.trail === "trail_hearts") {
+            if (Math.random() < 0.5)
+              pt(
+                p.x + rnd(-6, 6),
+                p.y + rnd(-6, 6),
+                rnd(-15, 15),
+                rnd(-20, 0),
+                0.9,
+                4,
+                pick(["#FF69B4", "#FFB6D9", "#FFC0E0"]),
+                0,
+                true,
+                0.94,
+              );
+          }
         }
         // 🆕 Убираем мёртвые снаряды из active (иначе утечка памяти у клиента)
         PR.sweep();
@@ -18556,6 +18674,10 @@
       // 🆕 При уходе на другую вкладку (мобилки) — тоже сохраняем
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
+          // 🆕 Яндекс требует: звук должен затихать при потере фокуса
+          try {
+            pauseAudio();
+          } catch (e) {}
           try {
             localStorage.setItem("arcane_save", JSON.stringify(SAVE));
           } catch (e) {}
@@ -18565,6 +18687,11 @@
               window.player.setData(SAVE);
             } catch (e) {}
           }
+        } else {
+          // 🆕 при возврате — возобновляем звук
+          try {
+            resumeAudio();
+          } catch (e) {}
         }
       });
       requestAnimationFrame(gameLoop);
