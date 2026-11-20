@@ -2977,7 +2977,10 @@
 
       function bgLoop() {
         bgTimer = null;
+        // 🆕 работает только когда вкладка скрыта, иначе gameLoop сам справится
+        if (!document.hidden) return;
         if (!G || !G.online || G.role !== "host" || state !== "PLAYING") return;
+        inp.mx = 0; inp.my = 0; // 🆕 хост не «уезжает» в фоне
         frameNo++;
         const now = performance.now(),
           rd = Math.min((now - lastTime) / 1000, 3);
@@ -2992,8 +2995,9 @@
             simStep(FIXED_DT);
             acc -= FIXED_DT;
             steps++;
-            if (steps % 4 === 0 && hasC()) {
-              hostSendState();
+            if (steps % 4 === 0) {
+              if (hasC()) hostSendState();
+              else G.events.length = 0;
               NET.stT = 0;
             }
           }
@@ -3732,10 +3736,10 @@
           rar: "legendary",
           ru: "Двойная ульта",
           en: "Twin Ultimate",
-          d_ru: "+1 заряд ульты",
-          d_en: "+1 ult charge slot",
+          d_ru: "+40% скорость заряда ульты",
+          d_en: "+40% ult charge rate",
           ic: "🌟",
-          f: (m) => (m.ultCharges = (m.ultCharges || 1) + 1),
+          f: (m) => (m.ultChargeRate = (m.ultChargeRate || 1) * 1.4),
         },
         {
           id: "invuln",
@@ -10277,7 +10281,7 @@
         }
 
         // Ульта заряжается быстрее (было 20, стало 12)
-        m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult);
+        m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult * (m.ultChargeRate || 1));
 
         if (m.aura > 0) m.aura -= dt;
         if (m.auraElem === 2 && m.arcs.length > 0) m.arcT -= dt;
@@ -12752,10 +12756,6 @@
         if (bgTimer) {
           clearTimeout(bgTimer);
           bgTimer = null;
-        }
-        if (G.online && G.role === "host") {
-          lastTime = performance.now();
-          bgTimer = setTimeout(bgLoop, 50);
         }
 
         announce(
@@ -18665,19 +18665,23 @@
         }, 600);
       }
       // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
+            // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
       window.addEventListener("beforeunload", () => {
         try {
           localStorage.setItem("arcane_save", JSON.stringify(SAVE));
           localStorage.setItem("arcane_save_backup", JSON.stringify(SAVE));
         } catch (e) {}
       });
-      // 🆕 При уходе на другую вкладку (мобилки) — тоже сохраняем
+      // 🆕 При уходе на другую вкладку (мобилки) — сохраняем + пауза звука + фоновый цикл хоста
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           // 🆕 Яндекс требует: звук должен затихать при потере фокуса
-          try {
-            pauseAudio();
-          } catch (e) {}
+          try { pauseAudio(); } catch (e) {}
+          // 🆕 фоновый цикл хоста — чтобы матч не «замирал» при свёрнутой вкладке
+          if (G && G.online && G.role === "host" && state === "PLAYING") {
+            lastTime = performance.now();
+            if (!bgTimer) bgTimer = setTimeout(bgLoop, 50);
+          }
           try {
             localStorage.setItem("arcane_save", JSON.stringify(SAVE));
           } catch (e) {}
@@ -18689,9 +18693,10 @@
           }
         } else {
           // 🆕 при возврате — возобновляем звук
-          try {
-            resumeAudio();
-          } catch (e) {}
+          try { resumeAudio(); } catch (e) {}
+          // 🆕 останавливаем фоновый цикл, дальше работает gameLoop (rAF)
+          if (bgTimer) { clearTimeout(bgTimer); bgTimer = null; }
+          lastTime = performance.now();
         }
       });
       requestAnimationFrame(gameLoop);
