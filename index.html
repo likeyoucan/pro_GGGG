@@ -1397,6 +1397,81 @@
       </div>
     </div>
 
+    <div
+      id="devConsole"
+      style="
+        display: none;
+        position: fixed;
+        top: 8px;
+        right: 8px;
+        width: 340px;
+        max-height: 70vh;
+        background: rgba(0, 0, 0, 0.92);
+        border: 2px solid #0f0;
+        border-radius: 8px;
+        padding: 8px;
+        font-family: monospace;
+        font-size: 11px;
+        color: #0f0;
+        z-index: 99999;
+        overflow: hidden;
+        pointer-events: auto;
+        flex-direction: column;
+        gap: 6px;
+      "
+    >
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <b>DEV CONSOLE</b>
+        <div>
+          <button
+            id="devCopy"
+            style="
+              background: #0f0;
+              color: #000;
+              border: 0;
+              padding: 2px 8px;
+              cursor: pointer;
+              margin-right: 4px;
+              font-weight: 900;
+            "
+          >
+            COPY
+          </button>
+          <button
+            id="devClear"
+            style="
+              background: #f00;
+              color: #fff;
+              border: 0;
+              padding: 2px 8px;
+              cursor: pointer;
+              font-weight: 900;
+            "
+          >
+            CLEAR
+          </button>
+        </div>
+      </div>
+      <div id="devStats" style="white-space: pre; line-height: 1.4"></div>
+      <div
+        id="devLog"
+        style="
+          border-top: 1px solid #0f0;
+          padding-top: 4px;
+          overflow-y: auto;
+          max-height: 50vh;
+          white-space: pre-wrap;
+          word-break: break-word;
+        "
+      ></div>
+    </div>
+
     <script>
       "use strict";
       const CONFIG = {
@@ -1410,6 +1485,187 @@
         PEERJS_SECURE: true,
         YANDEX_SDK_URL: "https://yandex.ru/games/sdk/v2",
       };
+
+      // 🆕 DEV CONSOLE
+      const DevConsole = {
+        logs: [],
+        errors: [],
+        fps: [],
+        drops: [],
+        maxLogs: 300,
+        inited: false,
+        init() {
+          if (this.inited) return;
+          this.inited = true;
+          const el = $("devConsole");
+          if (el) el.style.display = "flex";
+          const origErr = console.error.bind(console);
+          const origWarn = console.warn.bind(console);
+          console.error = (...a) => {
+            this.log("ERROR", a.map((x) => this._str(x)).join(" "));
+            origErr(...a);
+          };
+          console.warn = (...a) => {
+            this.log("WARN", a.map((x) => this._str(x)).join(" "));
+            origWarn(...a);
+          };
+          window.addEventListener("error", (e) => {
+            this.log(
+              "EXC",
+              (e.message || "?") +
+                " @ " +
+                (e.filename || "?") +
+                ":" +
+                (e.lineno || 0),
+            );
+          });
+          window.addEventListener("unhandledrejection", (e) => {
+            const r = e.reason;
+            this.log("REJ", (r && (r.message || r.toString())) || String(r));
+          });
+          const copyBtn = $("devCopy");
+          if (copyBtn)
+            copyBtn.onclick = () => {
+              const txt = this.dump();
+              try {
+                navigator.clipboard.writeText(txt).then(
+                  () => toast("Copied to clipboard"),
+                  () => toast("Copy failed"),
+                );
+              } catch (e) {
+                toast("Copy failed");
+              }
+            };
+          const clrBtn = $("devClear");
+          if (clrBtn)
+            clrBtn.onclick = () => {
+              this.logs = [];
+              this.errors = [];
+              this.fps = [];
+              this.drops = [];
+              this.render();
+            };
+          setInterval(() => this.updateStats(), 400);
+        },
+        _str(x) {
+          if (x == null) return String(x);
+          if (typeof x === "string") return x;
+          if (x instanceof Error) return x.stack || x.message;
+          try {
+            return JSON.stringify(x);
+          } catch (e) {
+            return String(x);
+          }
+        },
+        log(type, msg) {
+          const t = new Date().toLocaleTimeString();
+          const rec = { t, type, msg };
+          this.logs.push(rec);
+          if (this.logs.length > this.maxLogs) this.logs.shift();
+          if (type === "ERROR" || type === "EXC" || type === "REJ") {
+            this.errors.push(rec);
+            if (this.errors.length > 100) this.errors.shift();
+          }
+          this.render();
+        },
+        esc(s) {
+          return String(s).replace(
+            /[&<>]/g,
+            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c],
+          );
+        },
+        render() {
+          const el = $("devLog");
+          if (!el) return;
+          el.innerHTML = this.logs
+            .slice(-40)
+            .map((l) => {
+              const col =
+                l.type === "ERROR" || l.type === "EXC" || l.type === "REJ"
+                  ? "#f44"
+                  : l.type === "WARN" || l.type === "DROP"
+                    ? "#ff0"
+                    : "#0f0";
+              return `<div style="color:${col}">[${l.t}] ${l.type}: ${this.esc(l.msg)}</div>`;
+            })
+            .join("");
+          el.scrollTop = el.scrollHeight;
+        },
+        updateStats() {
+          const el = $("devStats");
+          if (!el) return;
+          let fps = 0,
+            minFps = 0,
+            maxFps = 0;
+          if (this.fps.length) {
+            fps = Math.round(
+              this.fps.reduce((a, b) => a + b, 0) / this.fps.length,
+            );
+            minFps = Math.round(Math.min(...this.fps));
+            maxFps = Math.round(Math.max(...this.fps));
+          }
+          const st = typeof state !== "undefined" ? state : "?";
+          let obj = 0;
+          try {
+            if (typeof G !== "undefined" && G) {
+              obj =
+                G.mages.length +
+                G.monsters.length +
+                PR.active.filter((p) => p.on).length +
+                PP.active.filter((p) => p.on).length;
+            }
+          } catch (e) {}
+          el.innerHTML =
+            `FPS: <b>${fps}</b> (min ${minFps}, max ${maxFps})\n` +
+            `State: ${st}\n` +
+            `Objs: ${obj}\n` +
+            `Errors: <b style="color:${this.errors.length ? "#f44" : "#0f0"}">${this.errors.length}</b>\n` +
+            `Drops: ${this.drops.length}`;
+        },
+        trackFps(fps) {
+          this.fps.push(fps);
+          if (this.fps.length > 30) this.fps.shift();
+          if (fps < 30) {
+            const now = Date.now();
+            const last = this.drops[this.drops.length - 1];
+            if (!last || now - last.t > 1000) {
+              this.drops.push({ t: now, fps: Math.round(fps) });
+              if (this.drops.length > 50) this.drops.shift();
+              this.log("DROP", "FPS drop → " + Math.round(fps));
+            }
+          }
+        },
+        dump() {
+          const L = [];
+          L.push("=== ARCANE ARENA DEV CONSOLE DUMP ===");
+          L.push("Time: " + new Date().toISOString());
+          L.push("UA: " + navigator.userAgent);
+          L.push("State: " + (typeof state !== "undefined" ? state : "?"));
+          L.push(
+            "FPS samples (last " +
+              this.fps.length +
+              "): " +
+              this.fps.join(", "),
+          );
+          L.push("");
+          L.push("--- Errors (" + this.errors.length + ") ---");
+          for (const e of this.errors)
+            L.push("[" + e.t + "] " + e.type + ": " + e.msg);
+          L.push("");
+          L.push("--- Drops (" + this.drops.length + ") ---");
+          for (const d of this.drops) {
+            L.push(
+              "[" + new Date(d.t).toLocaleTimeString() + "] FPS: " + d.fps,
+            );
+          }
+          L.push("");
+          L.push("--- All logs (" + this.logs.length + ") ---");
+          for (const l of this.logs)
+            L.push("[" + l.t + "] " + l.type + ": " + l.msg);
+          return L.join("\n");
+        },
+      };
+
       // 🆕 Карта серверов для динамического переключения
       const SERVERS = {
         "0.peerjs.com": {
@@ -1813,9 +2069,7 @@
               ? "Сервер: Default (PeerJS Cloud)"
               : "Server: Default (PeerJS Cloud)";
           srvSel.options[1].textContent =
-            lang === "ru"
-              ? "Сервер: Yandex Cloud"
-              : "Server: Yandex Cloud";
+            lang === "ru" ? "Сервер: Yandex Cloud" : "Server: Yandex Cloud";
           srvSel.options[2].textContent =
             lang === "ru"
               ? "Сервер: LikeYouCan (Cloudflare Workers)"
@@ -2258,12 +2512,12 @@
             }
             persist();
           } catch (e) {}
-const _purchase = await pay.purchase({ id: pid });
-if (_purchase && _purchase.purchaseToken) {
-  try {
-    await pay.consumePurchase(_purchase.purchaseToken);
-  } catch (e) {}
-}
+          const _purchase = await pay.purchase({ id: pid });
+          if (_purchase && _purchase.purchaseToken) {
+            try {
+              await pay.consumePurchase(_purchase.purchaseToken);
+            } catch (e) {}
+          }
           SAVE[pr.type] += pr.amount;
           persist();
           sfx("purchase");
@@ -2382,7 +2636,7 @@ if (_purchase && _purchase.purchaseToken) {
               Math.max(20, fr * slide),
               t0 + d,
             );
-   g.gain.setValueAtTime(0.0001, t0);
+          g.gain.setValueAtTime(0.0001, t0);
           g.gain.exponentialRampToValueAtTime(
             Math.max(0.0002, (v || 0.1) * _spatialVol),
             t0 + Math.min(0.02, d / 3),
@@ -2405,7 +2659,7 @@ if (_purchase && _purchase.purchaseToken) {
           s.buffer = Aud.noiseBuf;
           f.type = ft || "lowpass";
           f.frequency.value = (fq || 1000) * pv();
-   g.gain.setValueAtTime(0.0001, t0);
+          g.gain.setValueAtTime(0.0001, t0);
           g.gain.exponentialRampToValueAtTime(
             Math.max(0.0002, v * _spatialVol),
             t0 + 0.02,
@@ -2969,7 +3223,7 @@ if (_purchase && _purchase.purchaseToken) {
         mythic: "#FF00FF",
       };
 
-            const STAFFS = [
+      const STAFFS = [
         // ===== COMMON =====
         {
           id: "wood",
@@ -5336,7 +5590,14 @@ if (_purchase && _purchase.purchaseToken) {
               c.fill();
             }
             c.globalCompositeOperation = "source-over";
-            const og = c.createRadialGradient(ox - 1.5, oy - 1.5, 1, ox, oy, 11);
+            const og = c.createRadialGradient(
+              ox - 1.5,
+              oy - 1.5,
+              1,
+              ox,
+              oy,
+              11,
+            );
             og.addColorStop(0, "#FFFFFF");
             og.addColorStop(0.3, "#FFEE00");
             og.addColorStop(0.7, "#FF8C00");
@@ -5401,7 +5662,7 @@ if (_purchase && _purchase.purchaseToken) {
         const sk = m.staff ? m.staff.id : "wood";
         if (sk === "alpha") return drawStaffShark(c, m, f);
         if (sk === "meow") return drawStaffCat(c, m, f);
-        if (sk === "gold") return drawStaffStar(c, m, f);
+        if (sk === "gold") return drawStaffStar(c, m, f); // 🆕 легендарный — всегда звезда
         if (sk === "abyss") return drawStaffVoid(c, m, f);
         if (sk === "flame") return drawStaffFire(c, m, f);
 
@@ -6424,7 +6685,7 @@ if (_purchase && _purchase.purchaseToken) {
                 p.m = p.l = rnd(0.12, 0.3);
                 p.vx = rnd(-60, 60);
                 p.vy = rnd(-60, 60);
-        } else if (th.amb === "cloud") {
+              } else if (th.amb === "cloud") {
                 p.s = rnd(55, 100);
                 p.vx = rnd(-24, -8);
                 p.vy = rnd(-2, 2);
@@ -6472,7 +6733,7 @@ if (_purchase && _purchase.purchaseToken) {
           } else if (p.k === "drop") {
             c.fillStyle = "rgba(" + th.glow + "," + k + ")";
             c.fillRect(p.x - 1.2, p.y, 2.4, 5);
-   } else if (p.k === "cloud") {
+          } else if (p.k === "cloud") {
             const a = 0.35 * Math.min(1, k * 2, (1 - k) * 3);
             // тень-подложка для контраста на светлом фоне
             c.fillStyle = "rgba(180,200,230," + a * 0.6 + ")";
@@ -8095,6 +8356,19 @@ if (_purchase && _purchase.purchaseToken) {
         sfx(u.mega ? "mega" : "ult", u.a, u.b);
         duckMusic(u.mega ? 2.5 : 1.5);
         G.epicT = 4;
+        // 🆕 Плавное «всасывание» перед выстрелом
+        for (let k = 0; k < 3; k++) {
+          G.rings.push({
+            x: m.x,
+            y: m.y - 22,
+            r0: 120 - k * 20,
+            r1: 10,
+            l: 0.45 + k * 0.08,
+            m: 0.45 + k * 0.08,
+            c: elemColor(k % 2 ? u.a : u.b),
+            w: 4,
+          });
+        }
         if (me) {
           FX.dark = 0.6;
           FX.zoom = u.mega ? -0.15 : 0.15;
@@ -8373,6 +8647,27 @@ if (_purchase && _purchase.purchaseToken) {
             t.kvx += (dx / k) * opt.kb;
             t.kvy += (dy / k) * opt.kb;
             limitKv(t);
+            // 🆕 Видимая волна отброса
+            burst(
+              t.x,
+              t.y - 20,
+              ["#FFFFFF", "#B0E0E6", "#E0F4FF"],
+              10,
+              220,
+              3,
+              0.4,
+              true,
+            );
+            G.rings.push({
+              x: t.x,
+              y: t.y - 10,
+              r0: 8,
+              r1: 60,
+              l: 0.35,
+              m: 0.35,
+              c: "#FFFFFF",
+              w: 3,
+            });
           }
           if (opt.freeze) applyStatus(t, "freeze", opt.freeze);
           if (opt.slow) applyStatus(t, "slow", opt.slow[0], opt.slow[1]);
@@ -8778,11 +9073,35 @@ if (_purchase && _purchase.purchaseToken) {
               if (!isFoe(m, t)) continue;
               const a = Math.atan2(t.y - CY, t.x - CX),
                 rr = G.safeR * 0.9;
-              burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
+              // 🆕 След-разлом от старой позиции до новой
+              const fromX = t.x,
+                fromY = t.y;
+              burst(fromX, fromY - 20, E(4), 24, 240, 4, 0.6, true);
+              G.rings.push({
+                x: fromX,
+                y: fromY - 10,
+                r0: 5,
+                r1: 100,
+                l: 0.5,
+                m: 0.5,
+                c: "#6A0DAD",
+                w: 5,
+              });
               t.x = CX + Math.cos(a) * rr;
               t.y = CY + Math.sin(a) * rr;
               if (t.resetVerlet) t.resetVerlet();
-              burst(t.x, t.y - 20, E(4), 20, 200, 4, 0.6, true);
+              // 🆕 Прибытие — вспышка
+              burst(t.x, t.y - 20, E(4), 24, 240, 4, 0.6, true);
+              G.rings.push({
+                x: t.x,
+                y: t.y - 10,
+                r0: 5,
+                r1: 100,
+                l: 0.5,
+                m: 0.5,
+                c: "#D070FF",
+                w: 5,
+              });
               dealDamage(m, t, 30 * dmgMul, { type: "zone" });
             }
             splashM(mx, my, 300, E(4), 1.2);
@@ -8966,8 +9285,24 @@ if (_purchase && _purchase.purchaseToken) {
             if (!glob && d > z.r + t.r) continue;
             if (z.pull && d > 8) {
               const fall = glob ? 1 : clamp(1.2 - d / (z.r * 1.2), 0.3, 1);
-              t.x += (dx / d) * z.pull * fall * dt;
-              t.y += (dy / d) * z.pull * fall * dt;
+              const nx = t.x + (dx / d) * z.pull * fall * dt;
+              const ny = t.y + (dy / d) * z.pull * fall * dt;
+              // 🆕 Проверяем, не влетает ли враг в камень — иначе его
+              // вытолкнет collideWorld и он «задёргается»
+              let blocked = false;
+              for (const rk of G.rocks) {
+                const rx = nx - rk.x,
+                  ry = ny - rk.y,
+                  rSum = rk.r + t.r * 0.8;
+                if (rx * rx + ry * ry < rSum * rSum) {
+                  blocked = true;
+                  break;
+                }
+              }
+              if (!blocked) {
+                t.x = nx;
+                t.y = ny;
+              }
             }
             if (tk) {
               let dmg = z.dps * 0.5;
@@ -9318,9 +9653,7 @@ if (_purchase && _purchase.purchaseToken) {
               const distFactor = 1 - d / 110; // 0 на краю, 1 в упор
               // 🆕 Чем быстрее маг — тем мощнее «магнит»
               const spd =
-                m.isBot || m.remote
-                  ? 220
-                  : Math.hypot(m.vx || 0, m.vy || 0);
+                m.isBot || m.remote ? 220 : Math.hypot(m.vx || 0, m.vy || 0);
               const speedFactor = clamp(spd / 220, 0.5, 2);
               const pull = 90 + 230 * distFactor * speedFactor;
               p.x += ((m.x - p.x) / d) * pull * dt;
@@ -12365,7 +12698,7 @@ if (_purchase && _purchase.purchaseToken) {
           });
         }
         cam.z = 1;
-     if (!G.player) {
+        if (!G.player) {
           console.error("[startMatch] G.player === null (myId не совпал)");
           toast(t("connErr"));
           const _wasOnline = G.online;
@@ -12875,7 +13208,7 @@ if (_purchase && _purchase.purchaseToken) {
         c.globalCompositeOperation = "source-over";
       }
 
-            function drawProjShape(c, p, col) {
+      function drawProjShape(c, p, col) {
         const style = p.style || "orb",
           r = p.r || 14;
         const elCol = elemColor(p.e);
@@ -12895,14 +13228,7 @@ if (_purchase && _purchase.purchaseToken) {
           c.translate(p.x, p.y);
           c.beginPath();
           c.moveTo(0, r * 0.7);
-          c.bezierCurveTo(
-            -r * 1.5,
-            -r * 0.6,
-            -r * 0.9,
-            -r * 1.7,
-            0,
-            -r * 0.7,
-          );
+          c.bezierCurveTo(-r * 1.5, -r * 0.6, -r * 0.9, -r * 1.7, 0, -r * 0.7);
           c.bezierCurveTo(r * 0.9, -r * 1.7, r * 1.5, -r * 0.6, 0, r * 0.7);
           c.fill();
           c.stroke();
@@ -12949,10 +13275,7 @@ if (_purchase && _purchase.purchaseToken) {
             0.35,
             `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},.28)`,
           );
-          gOuter.addColorStop(
-            1,
-            `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`,
-          );
+          gOuter.addColorStop(1, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`);
           c.fillStyle = gOuter;
           c.beginPath();
           c.arc(p.x, p.y, rv * 3.4, 0, TAU);
@@ -13008,7 +13331,10 @@ if (_purchase && _purchase.purchaseToken) {
             rv * 0.7,
           );
           gCore.addColorStop(0, "rgba(255,255,255,.95)");
-          gCore.addColorStop(0.35, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},.75)`);
+          gCore.addColorStop(
+            0.35,
+            `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},.75)`,
+          );
           gCore.addColorStop(1, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`);
           c.fillStyle = gCore;
           c.beginPath();
@@ -13056,14 +13382,8 @@ if (_purchase && _purchase.purchaseToken) {
           // 🆕 пламя — теперь цвет от стихии (в т.ч. ледяное или грозовое)
           c.globalCompositeOperation = "lighter";
           const gr = c.createRadialGradient(p.x, p.y, 1, p.x, p.y, r * 2.9);
-          gr.addColorStop(
-            0,
-            `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},.75)`,
-          );
-          gr.addColorStop(
-            1,
-            `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`,
-          );
+          gr.addColorStop(0, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},.75)`);
+          gr.addColorStop(1, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`);
           c.fillStyle = gr;
           c.beginPath();
           c.arc(p.x, p.y, r * 2.9, 0, TAU);
@@ -13095,14 +13415,8 @@ if (_purchase && _purchase.purchaseToken) {
           // 🆕 ледяная/стихийная грань
           c.globalCompositeOperation = "lighter";
           const gr = c.createRadialGradient(p.x, p.y, 1, p.x, p.y, r * 2.5);
-          gr.addColorStop(
-            0,
-            `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},.6)`,
-          );
-          gr.addColorStop(
-            1,
-            `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`,
-          );
+          gr.addColorStop(0, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},.6)`);
+          gr.addColorStop(1, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`);
           c.fillStyle = gr;
           c.beginPath();
           c.arc(p.x, p.y, r * 2.5, 0, TAU);
@@ -14239,6 +14553,29 @@ if (_purchase && _purchase.purchaseToken) {
           rx = 16 * u;
         // 🆕 4 ячейки ультимейта
         if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null]; // 🆕
+        // 🆕 все 4 слота одной стихии → мега-индикатор
+        const _allSame =
+          p.ultSlots[0] != null &&
+          p.ultSlots[1] === p.ultSlots[0] &&
+          p.ultSlots[2] === p.ultSlots[0] &&
+          p.ultSlots[3] === p.ultSlots[0];
+        if (_allSame) {
+          const col = elemColor(p.ultSlots[0]);
+          const pulse = 0.55 + 0.45 * Math.sin(TM * 6);
+          for (let i = 0; i < 4; i++) {
+            const x = rx + i * 38 * u + 16 * u;
+            c.save();
+            c.globalAlpha = pulse;
+            c.shadowColor = col;
+            c.shadowBlur = 16;
+            c.strokeStyle = col;
+            c.lineWidth = 3;
+            c.beginPath();
+            c.arc(x, ry, 18 * u, 0, TAU);
+            c.stroke();
+            c.restore();
+          }
+        }
         for (let i = 0; i < 4; i++) {
           const x = rx + i * 38 * u + 16 * u;
           const e = p.ultSlots[i];
@@ -14256,7 +14593,6 @@ if (_purchase && _purchase.purchaseToken) {
           c.stroke();
           if (e != null)
             c.drawImage(IC["e" + e], x - 12 * u, ry - 12 * u, 24 * u, 24 * u);
-          // 🆕 Метка «базовая» на слоте 0
           if (i === 0) {
             c.font = "800 " + 8 * u + "px Arial";
             c.fillStyle = "#FFD84A";
@@ -15162,7 +15498,7 @@ if (_purchase && _purchase.purchaseToken) {
           skin: { id: "" },
         };
 
-  c.save();
+        c.save();
         c.translate(90, 110);
         c.scale(3.2, 3.2);
         drawStaff(c, fakeMage, 1);
@@ -16125,6 +16461,13 @@ if (_purchase && _purchase.purchaseToken) {
           tone(1760, 0.3, "triangle", 0.2, 1, 0.2);
           toast(SAVE.devMode ? "DEV MODE" : "DEV MODE OFF", 3000);
           vib([60, 40, 60, 40, 120]);
+          // 🆕 Показать/скрыть dev-консоль
+          if (SAVE.devMode) {
+            DevConsole.init();
+          } else {
+            const dc = $("devConsole");
+            if (dc) dc.style.display = "none";
+          }
         }
       });
       $("codeIn").addEventListener("input", (e) => {
@@ -17662,7 +18005,7 @@ if (_purchase && _purchase.purchaseToken) {
               m.y = lerp(m.y, last.y, Math.min(1, dt * 8));
             }
           }
-    m.atkCd -= dt;
+          m.atkCd -= dt;
           m.dashCd -= dt;
           m.castLock -= dt;
           m._atkSwitchCd = Math.max(0, (m._atkSwitchCd || 0) - dt);
@@ -17783,6 +18126,7 @@ if (_purchase && _purchase.purchaseToken) {
           const fps = fpsN / fpsT;
           fpsT = 0;
           fpsN = 0;
+          if (SAVE.devMode) DevConsole.trackFps(fps); // 🆕
           if (fps < 30 && Q.lvl < 3) {
             Q.lvl++;
             lowCnt = 0;
@@ -18108,6 +18452,7 @@ if (_purchase && _purchase.purchaseToken) {
         applyQuality();
         applyLang();
         updateTopbar();
+        if (SAVE.devMode) DevConsole.init();
         setInterval(updateTopbar, 1000);
         setInterval(() => {
           try {
