@@ -1566,7 +1566,7 @@
             this.errors.push(rec);
             if (this.errors.length > 100) this.errors.shift();
           }
-          
+
           // 🆕 Throttling: обновляем DOM не чаще 2 раз в секунду
           if (!this._renderT || Date.now() - this._renderT > 500) {
             this._renderT = Date.now();
@@ -2424,15 +2424,17 @@
       function submitScore(s) {
         try {
           if (!window.ysdk) return;
-          const lb = ysdk.leaderboards || (ysdk.getLeaderboards ? ysdk.getLeaderboards() : null);
+          const lb =
+            ysdk.leaderboards ||
+            (ysdk.getLeaderboards ? ysdk.getLeaderboards() : null);
           if (!lb) return;
-          
+
           const submit = (instance) => {
             instance.setLeaderboardScore("arcane", s).catch((err) => {
               console.warn("[LB] setLeaderboardScore failed:", err);
             });
           };
-          
+
           if (lb.then) lb.then(submit).catch(() => {});
           else submit(lb);
         } catch (e) {
@@ -16335,11 +16337,12 @@
 
         // 🆕 Yandex-лидерборд
         try {
-          if (window.ysdk && ysdk.getLeaderboards && window.player) {
-                const _lb = window.ysdk ? (ysdk.leaderboards || (ysdk.getLeaderboards ? await ysdk.getLeaderboards() : null)) : null;
+          const _lb = window.ysdk
+            ? ysdk.leaderboards ||
+              (ysdk.getLeaderboards ? await ysdk.getLeaderboards() : null)
+            : null;
           if (_lb && window.player) {
             const entries = await _lb.getLeaderboardEntries("arcane", {
-
               quantityTop: 10,
               includeUser: true,
               quantityAround: 3,
@@ -18475,12 +18478,17 @@
         initCustomSelects();
         // 🆕 Проверка конфигурации лидерборда (без падения)
         try {
-          const _lb = window.ysdk ? (ysdk.leaderboards || (ysdk.getLeaderboards ? ysdk.getLeaderboards() : null)) : null;
+          const _lb = window.ysdk
+            ? ysdk.leaderboards ||
+              (ysdk.getLeaderboards ? ysdk.getLeaderboards() : null)
+            : null;
           if (_lb && _lb.then) {
-            _lb.then((lb) => {
-              if (lb.getLeaderboardDescription)
-                return lb.getLeaderboardDescription("arcane");
-            }).catch(() => {});
+            _lb
+              .then((lb) => {
+                if (lb.getLeaderboardDescription)
+                  return lb.getLeaderboardDescription("arcane");
+              })
+              .catch(() => {});
           } else if (_lb && _lb.getLeaderboardDescription) {
             _lb.getLeaderboardDescription("arcane").catch(() => {});
           }
