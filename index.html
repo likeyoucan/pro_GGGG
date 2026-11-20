@@ -1566,7 +1566,12 @@
             this.errors.push(rec);
             if (this.errors.length > 100) this.errors.shift();
           }
-          this.render();
+          
+          // 🆕 Throttling: обновляем DOM не чаще 2 раз в секунду
+          if (!this._renderT || Date.now() - this._renderT > 500) {
+            this._renderT = Date.now();
+            this.render();
+          }
         },
         esc(s) {
           return String(s).replace(
@@ -2418,22 +2423,18 @@
       }
       function submitScore(s) {
         try {
-          if (!window.ysdk || !ysdk.getLeaderboards) return;
-          ysdk
-            .getLeaderboards()
-            .then((lb) => lb.setLeaderboardScore("arcane", s))
-            .catch((err) => {
+          if (!window.ysdk) return;
+          const lb = ysdk.leaderboards || (ysdk.getLeaderboards ? ysdk.getLeaderboards() : null);
+          if (!lb) return;
+          
+          const submit = (instance) => {
+            instance.setLeaderboardScore("arcane", s).catch((err) => {
               console.warn("[LB] setLeaderboardScore failed:", err);
-              // 🆕 ретрай через 2 секунды (мог быть сетевой сбой)
-              setTimeout(() => {
-                try {
-                  ysdk
-                    .getLeaderboards()
-                    .then((lb2) => lb2.setLeaderboardScore("arcane", s))
-                    .catch(() => {});
-                } catch (e) {}
-              }, 2000);
             });
+          };
+          
+          if (lb.then) lb.then(submit).catch(() => {});
+          else submit(lb);
         } catch (e) {
           console.warn("[LB] not available", e);
         }
@@ -13253,7 +13254,8 @@
           }
           c.restore();
         } else if (style === "void") {
-          // 🆕 ядро тёмное (void-стиль), но свечение — от стихии
+          // 🆕 ФИКС: ядро теперь вычисляется через RGB
+          const elCoreRGB = hexRGB(elCore);
           const t = TM * 6 + p.id * 0.37;
           const pulse = 0.85 + 0.15 * Math.sin(t);
           const rv = r * pulse;
@@ -13289,7 +13291,11 @@
             p.y,
             rv * 1.9,
           );
-          gMid.addColorStop(0, `rgba(${elCore},.75)`);
+          // 🆕 ФИКС: используем elCoreRGB вместо elCore
+          gMid.addColorStop(
+            0,
+            `rgba(${elCoreRGB[0]},${elCoreRGB[1]},${elCoreRGB[2]},.75)`,
+          );
           gMid.addColorStop(1, `rgba(${elRGB[0]},${elRGB[1]},${elRGB[2]},0)`);
           c.fillStyle = gMid;
           c.beginPath();
@@ -16330,8 +16336,10 @@
         // 🆕 Yandex-лидерборд
         try {
           if (window.ysdk && ysdk.getLeaderboards && window.player) {
-            const lb = await ysdk.getLeaderboards();
-            const entries = await lb.getLeaderboardEntries("arcane", {
+                const _lb = window.ysdk ? (ysdk.leaderboards || (ysdk.getLeaderboards ? await ysdk.getLeaderboards() : null)) : null;
+          if (_lb && window.player) {
+            const entries = await _lb.getLeaderboardEntries("arcane", {
+
               quantityTop: 10,
               includeUser: true,
               quantityAround: 3,
@@ -18467,16 +18475,14 @@
         initCustomSelects();
         // 🆕 Проверка конфигурации лидерборда (без падения)
         try {
-          if (window.ysdk && ysdk.getLeaderboards) {
-            ysdk
-              .getLeaderboards()
-              .then((lb) => {
-                if (lb.getLeaderboardDescription)
-                  return lb.getLeaderboardDescription("arcane");
-              })
-              .catch(() =>
-                console.warn("[LB] leaderboard 'arcane' not configured"),
-              );
+          const _lb = window.ysdk ? (ysdk.leaderboards || (ysdk.getLeaderboards ? ysdk.getLeaderboards() : null)) : null;
+          if (_lb && _lb.then) {
+            _lb.then((lb) => {
+              if (lb.getLeaderboardDescription)
+                return lb.getLeaderboardDescription("arcane");
+            }).catch(() => {});
+          } else if (_lb && _lb.getLeaderboardDescription) {
+            _lb.getLeaderboardDescription("arcane").catch(() => {});
           }
         } catch (e) {}
 
