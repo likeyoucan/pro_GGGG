@@ -1079,6 +1079,9 @@
         <button class="btn small" data-act="fs">
           <span data-i18n="fullscreen"></span>
         </button>
+        <button class="btn small" data-act="resetSettings">
+          <span data-i18n="resetSettings">Сбросить</span>
+        </button>
       </div>
       <button class="btn" data-act="back">
         <span data-i18n="back"></span>
@@ -1685,12 +1688,6 @@
           path: "/",
           secure: true,
         },
-        "peerjs.cloudflare.com": {
-          host: "peerjs.cloudflare.com",
-          port: 443,
-          path: "/",
-          secure: true,
-        },
         "arena.likeyoucan.workers.dev": {
           host: "arena.likeyoucan.workers.dev",
           port: 443,
@@ -1913,6 +1910,7 @@
           trail: "СЛЕД",
           aura: "АУРА",
           default: "БАЗОВЫЙ",
+          resetSettings: "Сбросить настройки",
         },
         en: {
           play: "PLAY",
@@ -2042,6 +2040,7 @@
           trail: "TRAIL",
           aura: "AURA",
           default: "DEFAULT",
+          resetSettings: "Reset settings",
         },
       };
       let lang = CONFIG.DEFAULT_LANGUAGE;
@@ -2137,6 +2136,7 @@
         ads: 0,
         dailyDay: 0,
         dailyLast: 0,
+        lastAdT: 0,
         questsReady: [],
         questsClaimed: [],
         botDifficulty: "normal",
@@ -2466,6 +2466,32 @@
             s.classList.remove("show");
         });
         if (id) $(id).classList.add("show");
+
+        // 🆕 автоматический GameplayAPI для Яндекса
+        const inGameplay = ["PLAYING", "PAUSED", "LEVELUP", "REVIVE"].includes(
+          state,
+        );
+        try {
+          if (inGameplay) gameplayStart();
+          else gameplayStop();
+        } catch (e) {}
+
+        // 🆕 баннер на неигровых экранах
+        const showBanner =
+          !id ||
+          [
+            "sc-menu",
+            "sc-shop",
+            "sc-settings",
+            "sc-lb",
+            "sc-codex",
+            "sc-quests",
+            "sc-tutorial",
+            "sc-online",
+          ].includes(id);
+        if (showBanner) showBannerSafe();
+        else hideBannerSafe();
+
         $("topbar").style.display =
           id === "sc-menu" ||
           id === "sc-shop" ||
@@ -2980,7 +3006,8 @@
         // 🆕 работает только когда вкладка скрыта, иначе gameLoop сам справится
         if (!document.hidden) return;
         if (!G || !G.online || G.role !== "host" || state !== "PLAYING") return;
-        inp.mx = 0; inp.my = 0; // 🆕 хост не «уезжает» в фоне
+        inp.mx = 0;
+        inp.my = 0; // 🆕 хост не «уезжает» в фоне
         frameNo++;
         const now = performance.now(),
           rd = Math.min((now - lastTime) / 1000, 3);
@@ -6533,43 +6560,94 @@
         }
         drawLayer(c, ARENA.B, vx0, vy0, vx1, vy1);
       }
-      function drawRock(c, rk, th) {
-        if (rk.hp <= 0) return;
-        c.save();
-        const sh =
-          rk.shakeT > 0 ? Math.sin(TM * 60) * 2 * (rk.shakeT / 0.15) : 0;
-        c.translate(rk.x + sh, rk.y);
-        c.lineJoin = "round";
+
+      // 🆕 Статическое тело камня: тень + base + top + блик.
+      // Рисуется один раз в offscreen canvas, потом только drawImage.
+      function _drawRockBody(cc, rk, th) {
+        cc.lineJoin = "round";
 
         // Тень
-        c.fillStyle = "rgba(0,0,0,0.4)";
-        c.beginPath();
-        c.ellipse(0, 2, rk.r * 1.2, rk.r * 0.4, 0, 0, TAU);
-        c.fill();
+        cc.fillStyle = "rgba(0,0,0,0.4)";
+        cc.beginPath();
+        cc.ellipse(0, 2, rk.r * 1.2, rk.r * 0.4, 0, 0, TAU);
+        cc.fill();
 
         // Основа
-        c.beginPath();
+        cc.beginPath();
         rk.poly.forEach((v, i) =>
-          i ? c.lineTo(v[0], v[1] * 0.6) : c.moveTo(v[0], v[1] * 0.6),
+          i ? cc.lineTo(v[0], v[1] * 0.6) : cc.moveTo(v[0], v[1] * 0.6),
         );
-        c.closePath();
-        c.fillStyle = shade(th.rock, -0.3);
-        c.fill();
-        c.lineWidth = 3;
-        c.strokeStyle = "#000";
-        c.stroke();
+        cc.closePath();
+        cc.fillStyle = shade(th.rock, -0.3);
+        cc.fill();
+        cc.lineWidth = 3;
+        cc.strokeStyle = "#000";
+        cc.stroke();
 
         // Верх
-        c.beginPath();
+        cc.beginPath();
         rk.poly.forEach((v, i) => {
           const x = v[0] * 0.75,
             y = v[1] * 0.45 - rk.h;
-          i ? c.lineTo(x, y) : c.moveTo(x, y);
+          i ? cc.lineTo(x, y) : cc.moveTo(x, y);
         });
-        c.closePath();
-        c.fillStyle = shade(th.rock, 0.08);
-        c.fill();
-        c.stroke();
+        cc.closePath();
+        cc.fillStyle = shade(th.rock, 0.08);
+        cc.fill();
+        cc.stroke();
+
+        // Блик
+        cc.strokeStyle = shade(th.rock, 0.3);
+        cc.lineWidth = 1.5;
+        cc.beginPath();
+        cc.moveTo(-rk.r * 0.5, -rk.h - rk.r * 0.1);
+        cc.lineTo(-rk.r * 0.15, -rk.h - rk.r * 0.3);
+        cc.stroke();
+      }
+
+      // 🆕 Лениво строит/возвращает кэш камня.
+      // Кэш не зависит от hp — только от формы (rk.poly, rk.r, rk.h) и цвета темы.
+      // Камни не пересоздаются в рамках матча, поэтому кэш валиден до разрушения.
+      function _getRockCache(rk, th) {
+        const key = th.rock; // единственное, что может поменяться — цвет темы
+        if (rk._cache && rk._cacheKey === key) return rk._cache;
+        const pad = Math.ceil(rk.r * 0.6) + 2;
+        const w = Math.ceil(rk.r * 3) + pad * 2;
+        const h = Math.ceil(rk.h + rk.r * 1.8) + pad * 2;
+        const cv = document.createElement("canvas");
+        cv.width = w;
+        cv.height = h;
+        const cc = cv.getContext("2d");
+        const ox = w / 2;
+        const oy = rk.h + rk.r * 0.9 + pad;
+        cc.translate(ox, oy);
+        _drawRockBody(cc, rk, th);
+        rk._cache = cv;
+        rk._cacheOX = ox;
+        rk._cacheOY = oy;
+        rk._cacheKey = key;
+        return cv;
+      }
+      function drawRock(c, rk, th) {
+        if (rk.hp <= 0) return;
+
+        // 🆕 тряска — динамика, вынесена вне кэша
+        const sh =
+          rk.shakeT > 0 ? Math.sin(TM * 60) * 2 * (rk.shakeT / 0.15) : 0;
+
+        // 🆕 статическое тело из кэша (тень + base + top + блик)
+        const cache = _getRockCache(rk, th);
+        c.save();
+        c.translate(rk.x + sh, rk.y);
+        c.drawImage(cache, -rk._cacheOX, -rk._cacheOY);
+        c.restore();
+
+        // 🆕 динамика: трещины, кристалл, HP-бар — рисуем поверх напрямую
+        c.save();
+        c.translate(rk.x + sh, rk.y);
+        c.lineJoin = "round";
+
+        // Трещины (зависят от hp — нельзя кэшировать)
         const hpFrac = rk.hp / rk.maxHp;
         if (hpFrac < 0.66) {
           c.strokeStyle = "rgba(0,0,0,.7)";
@@ -6593,15 +6671,7 @@
           }
         }
 
-        // Блик
-        c.strokeStyle = shade(th.rock, 0.3);
-        c.lineWidth = 1.5;
-        c.beginPath();
-        c.moveTo(-rk.r * 0.5, -rk.h - rk.r * 0.1);
-        c.lineTo(-rk.r * 0.15, -rk.h - rk.r * 0.3);
-        c.stroke();
-
-        // 💎 Кристалл
+        // 💎 Кристалл (пульсирует — динамика)
         if (rk.crystal) {
           const pulse = 0.7 + 0.3 * Math.sin(TM * 6 + rk.x);
           c.globalCompositeOperation = "lighter";
@@ -6872,7 +6942,7 @@
           lastHit: null,
           dmgTaken: 0,
         };
-        mo.maxHp = d[3] * (1 + wave * 0.12) * (aura === "blue" ? 2 : 1);
+        mo.maxHp = d[3] * (1 + wave * 0.12) * (aura === "blue" ? 1.6 : 1);
         mo.hp = mo.maxHp;
         mo.speed = d[4] * (aura === "yellow" ? 1.35 : 1);
         mo.dmg = d[5] * (1 + wave * 0.04) * (aura === "red" ? 1.5 : 1);
@@ -7755,9 +7825,11 @@
         m.facing = Math.cos(ang) >= 0 ? 1 : -1;
         emote(m, "cast", 0.3);
 
-        let dmgMult = 1 + (m.multiStacks - 1) * 0.15;
+        const stacks = m.multiStacks - 1;
+        let dmgMult = 1 + Math.pow(stacks, 0.7) * 0.15;
         if (m.synergies && m.synergies.includes("arcane_barrage"))
-          dmgMult += (m.multiStacks - 1) * 0.3;
+          dmgMult += Math.pow(stacks, 0.7) * 0.25;
+        dmgMult += (m.multiStacks - 1) * 0.3;
         const base =
           (m.runes.length ? 20 : 15) * (m.elem === 0 ? 1.15 : 1) * dmgMult;
 
@@ -10281,7 +10353,10 @@
         }
 
         // Ульта заряжается быстрее (было 20, стало 12)
-        m.ultCharge = Math.min(100, m.ultCharge + (100 / 12) * dt * m.up.ult * (m.ultChargeRate || 1));
+        m.ultCharge = Math.min(
+          100,
+          m.ultCharge + (100 / 12) * dt * m.up.ult * (m.ultChargeRate || 1),
+        );
 
         if (m.aura > 0) m.aura -= dt;
         if (m.auraElem === 2 && m.arcs.length > 0) m.arcT -= dt;
@@ -12852,7 +12927,14 @@
         showScreen("sc-menu");
         initMenuMages();
         updateQuestsBadge();
-        if (fromResult && ++SAVE.ads % 2 === 0) showInterstitial();
+        // 🆕 interstitial не чаще раза в 3 минуты
+        if (fromResult && ++SAVE.ads % 2 === 0) {
+          const _now = Date.now();
+          if (!SAVE.lastAdT || _now - SAVE.lastAdT > 180000) {
+            SAVE.lastAdT = _now;
+            showInterstitial();
+          }
+        }
         persist();
       }
       function rematch() {
@@ -13177,7 +13259,16 @@
           t("kills") +
           ": <b>" +
           p.kills +
-          "</b><br>" +
+          "</b>" +
+          // 🆕 урон получен
+          (p.dmgTaken
+            ? "<br>" +
+              (lang === "ru" ? "Урона получено" : "Damage taken") +
+              ": <b>" +
+              Math.round(p.dmgTaken) +
+              "</b>"
+            : "") +
+          "<br>" +
           t("reward") +
           ': <b style="color:#ffd23a">+' +
           total +
@@ -16870,22 +16961,24 @@
           case "settings":
             openSettings();
             break;
+          case "resetSettings": {
+            const def = DEF_SAVE();
+            SAVE.music = def.music;
+            SAVE.sfx = def.sfx;
+            SAVE.vib = def.vib;
+            SAVE.muteAll = def.muteAll;
+            SAVE.shakePower = def.shakePower;
+            SAVE.flashPower = def.flashPower;
+            SAVE.quality = def.quality;
+            persist();
+            applyVolumes();
+            applyQuality();
+            openSettings();
+            toast(lang === "ru" ? "Настройки сброшены" : "Settings reset");
+            break;
+          }
           case "lb":
             openLB();
-            break;
-          case "back":
-            if (G && G.uiPause) {
-              if (G.online) {
-                G.uiPause = false;
-                showScreen(null);
-                canvas.focus();
-                lastTime = performance.now();
-                hideBannerSafe();
-              } else {
-                state = "PAUSED";
-                showScreen("sc-pause");
-              }
-            } else goMenu();
             break;
           case "startSetup":
             startFromSetup();
@@ -17253,6 +17346,22 @@
             sendTo(conn, { type: "error", msg: "nickTaken" });
             return;
           }
+          // 🆕 reconnect: если ник совпадает с недавно отключённым — вернуть его id
+          const _reconnect = NET.players.find(p => p.nick === joinNick && p.disconnected);
+          if (_reconnect && G && G.online) {
+            _reconnect.conn = conn;
+            _reconnect.disconnected = false;
+            conn.pid = _reconnect.id;
+            const m = G.mages.find(x => x.id === _reconnect.id);
+            if (m) {
+              m.remote = true;
+              m.isBot = false;
+              m.netIn = null;
+            }
+            sendTo(conn, { type: "welcome", id: _reconnect.id, code: NET.code });
+            broadcastLobby();
+            return;
+          }
           const id = NET.nextId++;
           conn.pid = id;
           NET.players.push({
@@ -17268,6 +17377,15 @@
           sfx("pickup");
         } else if (d.type === "input") {
           if (!G || !conn.pid) return;
+
+          const now = performance.now();
+          conn._lastInput = conn._lastInput || 0;
+          conn._inputCount = conn._inputCount || 0;
+          if (now - conn._lastInput > 1000) {
+            conn._lastInput = now;
+            conn._inputCount = 0;
+          }
+          if (++conn._inputCount > 30) return;
           const m = G.mages.find((x) => x.id === conn.pid);
           if (!m || m.dead) return;
           const mx = +d.moveX,
@@ -17321,7 +17439,17 @@
         const i = NET.players.findIndex((p) => p.conn === conn);
         if (i < 0) return;
         const p = NET.players[i];
-        NET.players.splice(i, 1);
+        // 🆕 не удаляем сразу — даём 30с на reconnect
+        p.disconnected = true;
+        p.conn = null;
+        p._dropT = Date.now();
+        setTimeout(() => {
+          const idx = NET.players.findIndex(x => x.id === p.id && x.disconnected);
+          if (idx >= 0) {
+            NET.players.splice(idx, 1);
+            if (state === "LOBBY") { renderRoom(); broadcastLobby(); }
+          }
+        }, 30000);
         if (G && G.online) {
           const m = G.mages.find((x) => x.id === p.id);
           if (m) {
@@ -17766,11 +17894,22 @@
               p.trailPts = [{ x: q.x, y: q.y }];
             }
           }
-          // Позиция/скорость — всегда с сервера (reconciliation)
-          p.x = q.x;
-          p.y = q.y;
-          p.vx = q.vx;
-          p.vy = q.vy;
+          // 🆕 мягкая коррекция — не «дёргаем» снаряд каждый снапшот
+          const dx = q.x - p.x,
+            dy = q.y - p.y;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 > 10000) {
+            // >100px — жёсткий snap (лаг, телепорт)
+            p.x = q.x;
+            p.y = q.y;
+            p.vx = q.vx;
+            p.vy = q.vy;
+          } else {
+            p.x += dx * 0.3;
+            p.y += dy * 0.3;
+            p.vx = lerp(p.vx, q.vx, 0.4);
+            p.vy = lerp(p.vy, q.vy, 0.4);
+          }
           p.e = q.element;
           p.own = G.mages.find((x) => x.id === q.ownerId) || null;
         }
@@ -18665,7 +18804,7 @@
         }, 600);
       }
       // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
-            // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
+      // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
       window.addEventListener("beforeunload", () => {
         try {
           localStorage.setItem("arcane_save", JSON.stringify(SAVE));
@@ -18676,7 +18815,9 @@
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
           // 🆕 Яндекс требует: звук должен затихать при потере фокуса
-          try { pauseAudio(); } catch (e) {}
+          try {
+            pauseAudio();
+          } catch (e) {}
           // 🆕 фоновый цикл хоста — чтобы матч не «замирал» при свёрнутой вкладке
           if (G && G.online && G.role === "host" && state === "PLAYING") {
             lastTime = performance.now();
@@ -18693,9 +18834,14 @@
           }
         } else {
           // 🆕 при возврате — возобновляем звук
-          try { resumeAudio(); } catch (e) {}
+          try {
+            resumeAudio();
+          } catch (e) {}
           // 🆕 останавливаем фоновый цикл, дальше работает gameLoop (rAF)
-          if (bgTimer) { clearTimeout(bgTimer); bgTimer = null; }
+          if (bgTimer) {
+            clearTimeout(bgTimer);
+            bgTimer = null;
+          }
           lastTime = performance.now();
         }
       });
