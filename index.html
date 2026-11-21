@@ -5912,6 +5912,29 @@
       function drawMage(c, m, o) {
         if (!m || !m.skin) return; // 🆕
         o = o || {};
+        // 🆕 Круг воскрешения для павших союзников
+        if (m.dead && m.revivable && m.reviveLeft > 0) {
+          c.save();
+          c.translate(m.x, m.y);
+          const prog = clamp((m.reviveProgress || 0) / 2.5, 0, 1);
+          c.strokeStyle = "rgba(80,255,120,0.8)";
+          c.lineWidth = 4;
+          c.beginPath();
+          c.arc(0, 2, 50, -Math.PI / 2, -Math.PI / 2 + TAU * prog);
+          c.stroke();
+          // Пульсирующий крестик (доступен для воскрешения)
+          if (prog === 0 && Math.sin(TM * 6) > 0) {
+            c.strokeStyle = "#50FF70";
+            c.lineWidth = 5;
+            c.beginPath();
+            c.moveTo(-10, -10);
+            c.lineTo(10, 10);
+            c.moveTo(10, -10);
+            c.lineTo(-10, 10);
+            c.stroke();
+          }
+          c.restore();
+        }
         const alpha = (m.alpha ?? 1) * (o.alpha === undefined ? 1 : o.alpha); // 🆕
         if (alpha <= 0.01) return;
         const f = m.facing,
@@ -7571,6 +7594,8 @@
         o = o || {};
         if (!t || t.dead) return 0;
         if ((t.inv || 0) > 0) return 0;
+
+        if (t.boss) amt *= 0.8;
         if (t.fx.shield > 0) {
           t.fx.shield = 0;
           burst(t.x, t.y - 20, "#60A0FF", 20, 160, 3, 0.5, true);
@@ -7774,6 +7799,12 @@
         }
         t.deathT = 0;
         t.mana = 0;
+        // 🆕 Даем возможность воскреснуть (только для Выживания)
+        if (G.mode === "survival" && t !== G.player) {
+          t.revivable = true;
+          t.reviveLeft = 15;
+          t.reviveProgress = 0;
+        }
         sfx("death");
         burst(t.x, t.y - 22, "#FFFFFF", 30, 260, 3, 0.5, true);
         hitstop(120);
@@ -11039,7 +11070,36 @@
         for (const o of g.all) GRID.add(o);
         if (g.role !== "client") {
           matchLogic(dt);
-          for (const m of g.mages) updateMage(m, dt);
+          for (const m of g.mages) {
+            updateMage(m, dt);
+            // 🆕 Логика воскрешения союзников
+            if (m.dead && m.revivable && m !== g.player) {
+              m.reviveLeft -= dt;
+              if (m.reviveLeft <= 0) {
+                m.revivable = false; // Время вышло
+              } else {
+                const pl = g.player;
+                if (pl && !pl.dead && dist(pl.x, pl.y, m.x, m.y) < 80) {
+                  m.reviveProgress = (m.reviveProgress || 0) + dt;
+                  if (m.reviveProgress >= 2.5) {
+                    m.dead = false;
+                    m.revivable = false;
+                    m.hp = Math.round(m.maxHp * 0.5);
+                    m.deathT = 0;
+                    m.alpha = 1;
+                    m.inv = 1.5;
+                    announce(
+                      lang === "ru" ? "СОЮЗНИК ВОССТАНОВЛЕН" : "ALLY REVIVED",
+                      "#50FF70",
+                    );
+                    sfx("purchase");
+                  }
+                } else {
+                  m.reviveProgress = 0;
+                }
+              }
+            }
+          }
           for (const mo of g.monsters) updateMonster(mo, dt);
 
           // 🆕 Чистим мёртвых и одновременно ищем босса
@@ -14399,8 +14459,8 @@
       function drawNameplates() {
         const u = UIS * 1.15,
           c = ctx;
-        for (const m of G.mages) {
-          if (m.dead && m.alpha < 0.1) continue;
+                for (const m of G.mages) {
+          if (m.dead && m.alpha < 0.1 && !m.revivable) continue;
           const sp = w2s(m.x, m.y - 52 - m.lev);
           if (sp.x < -80 || sp.x > W + 80 || sp.y < -60 || sp.y > H + 60)
             continue;
@@ -14445,7 +14505,13 @@
             tx += ic + 3 * u;
           }
           txt(c, m.name, tx, y, 13 * u, me ? "#ffe27a" : "#fff", "left", 3);
-          if (!m.dead) drawBuffRow(c, m, x, y - 28 * u, u);
+                    if (!m.dead) {
+            drawBuffRow(c, m, x, y - 28 * u, u);
+          } else if (m.revivable && m.reviveLeft > 0) {
+            // 🆕 Обратный отсчет
+            txt(c, Math.ceil(m.reviveLeft) + "s", x, y - 10 * u, 14 * u, "#50FF70", "center", 3);
+          }
+        }
         }
         c.globalAlpha = 1;
         const p = G.player;
@@ -14937,10 +15003,22 @@
             sz,
           );
         }
-        for (const m of G.mages) {
-          if (m.dead) continue;
-          c.fillStyle =
-            m === p ? "#fff" : G.mode === "survival" ? "#50ff70" : "#ff5050";
+                for (const m of G.mages) {
+          if (m.dead) {
+            // 🆕 Крестик для воскрешаемых
+            if (m.revivable && m.reviveLeft > 0) {
+              const mxp = mx + (m.x - CX) * ms;
+              const myp = my + (m.y - CY) * ms;
+              c.strokeStyle = "#50FF70";
+              c.lineWidth = 2;
+              c.beginPath();
+              c.moveTo(mxp - 4, myp - 4); c.lineTo(mxp + 4, myp + 4);
+              c.moveTo(mxp + 4, myp - 4); c.lineTo(mxp - 4, myp + 4);
+              c.stroke();
+            }
+            continue;
+          }
+          c.fillStyle = m === p ? "#fff" : G.mode === "survival" ? "#50ff70" : "#ff5050";
           c.beginPath();
           c.arc(
             mx + (m.x - CX) * ms,
@@ -16443,7 +16521,7 @@
         const EMO_E = ["🔥", "❄️", "⚡", "💨", "🌑"];
         let secE = "";
         for (const e of ELEMS) {
-          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><span style="font-size:20px;width:26px;text-align:center">${EMO_E[e.id]}</span><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
+          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><canvas data-elem="${e.id}" width="64" height="64" style="width:40px;height:40px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
         }
         h += sec("⚗️ " + t("codexElems"), secE);
         let secC = "";
@@ -16451,14 +16529,14 @@
           for (let b = a; b < 5; b++) {
             const k = a + "-" + b,
               desc = lang === "ru" ? ULT_DESC[k] : "";
-            secC += `<div style="padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(b)}"><b style="color:${elemColor(b)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[a][lang]} + ${ELEMS[b][lang]}${desc ? " — " + desc : ""}</div></div>`;
+                        secC += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(b)}"><canvas data-combo="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(b)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[a][lang]} + ${ELEMS[b][lang]}${desc ? " — " + desc : ""}</div></div></div>`;
           }
         h += sec("✨ " + t("codexCombos"), secC);
         let secM = "";
         for (let e = 0; e < 5; e++) {
           const k = e + "-" + e + "-" + e,
             desc = lang === "ru" ? ULT_DESC[k] : "";
-          secM += `<div style="padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e)}"><b style="color:${elemColor(e)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[e][lang]} ×3${desc ? " — " + desc : ""}</div></div>`;
+          secM += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e)}"><canvas data-mega="${e}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(e)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[e][lang]} ×3${desc ? " — " + desc : ""}</div></div></div>`;
         }
         h += sec("💥 " + t("codexMega"), secM);
         const itemInfo = {
@@ -16503,7 +16581,7 @@
         for (const k of PK_KEYS) {
           const info = itemInfo[k];
           if (!info) continue;
-          secP += `<div style="padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${PK[k].col}"><b style="color:${PK[k].col};font-size:13px">${info.e} ${PK[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${info[lang]}</div></div>`;
+                    secP += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${PK[k].col}"><canvas data-item="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${PK[k].col};font-size:13px">${PK[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${info[lang]}</div></div></div>`;
         }
         h += sec("🎁 " + (lang === "ru" ? "ПРЕДМЕТЫ" : "ITEMS"), secP);
         let secF = "";
@@ -16669,6 +16747,22 @@
           c.scale(skinScale, skinScale);
           drawMage(c, mm, { noShadow: false });
           c.restore();
+        });
+                document.querySelectorAll("canvas[data-elem]").forEach(cv => {
+          const id = +cv.dataset.elem;
+          cv.getContext("2d").drawImage(IC["e" + id], 0, 0, 64, 64);
+        });
+                document.querySelectorAll("canvas[data-combo]").forEach(cv => {
+          const k = cv.dataset.combo;
+          if (IC["c" + k]) cv.getContext("2d").drawImage(IC["c" + k], 0, 0, 64, 64);
+        });
+                document.querySelectorAll("canvas[data-mega]").forEach(cv => {
+          const id = +cv.dataset.mega;
+          if (IC["m" + id]) cv.getContext("2d").drawImage(IC["m" + id], 0, 0, 64, 64);
+        });
+                document.querySelectorAll("canvas[data-item]").forEach(cv => {
+          const t = cv.dataset.item;
+          if (IC[t]) cv.getContext("2d").drawImage(IC[t], 0, 0, 64, 64);
         });
       }
 
