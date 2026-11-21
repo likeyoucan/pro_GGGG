@@ -11413,7 +11413,7 @@
             if (document.activeElement) document.activeElement.blur();
 
             // 🆕 Выход из игры через Esc в меню
-                        if (
+            if (
               state === "MENU" ||
               state === "SHOP" ||
               state === "SETTINGS" ||
@@ -14459,7 +14459,7 @@
       function drawNameplates() {
         const u = UIS * 1.15,
           c = ctx;
-                for (const m of G.mages) {
+        for (const m of G.mages) {
           if (m.dead && m.alpha < 0.1 && !m.revivable) continue;
           const sp = w2s(m.x, m.y - 52 - m.lev);
           if (sp.x < -80 || sp.x > W + 80 || sp.y < -60 || sp.y > H + 60)
@@ -14505,14 +14505,23 @@
             tx += ic + 3 * u;
           }
           txt(c, m.name, tx, y, 13 * u, me ? "#ffe27a" : "#fff", "left", 3);
-                    if (!m.dead) {
+          if (!m.dead) {
             drawBuffRow(c, m, x, y - 28 * u, u);
           } else if (m.revivable && m.reviveLeft > 0) {
             // 🆕 Обратный отсчет
-            txt(c, Math.ceil(m.reviveLeft) + "s", x, y - 10 * u, 14 * u, "#50FF70", "center", 3);
+            txt(
+              c,
+              Math.ceil(m.reviveLeft) + "s",
+              x,
+              y - 10 * u,
+              14 * u,
+              "#50FF70",
+              "center",
+              3,
+            );
           }
         }
-        }
+
         c.globalAlpha = 1;
         const p = G.player;
         if (p)
@@ -14982,7 +14991,7 @@
             2,
           );
         }
-              // 🆕 Кэш ближайших монстров — пересчитываем не чаще 5 раз в секунду
+        // 🆕 Кэш ближайших монстров — пересчитываем не чаще 5 раз в секунду
         if (!G._mmCache || TM - G._mmCacheT > 0.2) {
           const _pView = G.player || { x: CX, y: CY };
           G._mmCache = G.monsters
@@ -15015,13 +15024,16 @@
               c.strokeStyle = "#50FF70";
               c.lineWidth = 2;
               c.beginPath();
-              c.moveTo(mxp - 4, myp - 4); c.lineTo(mxp + 4, myp + 4);
-              c.moveTo(mxp + 4, myp - 4); c.lineTo(mxp - 4, myp + 4);
+              c.moveTo(mxp - 4, myp - 4);
+              c.lineTo(mxp + 4, myp + 4);
+              c.moveTo(mxp + 4, myp - 4);
+              c.lineTo(mxp - 4, myp + 4);
               c.stroke();
             }
             continue;
           }
-          c.fillStyle = m === p ? "#fff" : G.mode === "survival" ? "#50ff70" : "#ff5050";
+          c.fillStyle =
+            m === p ? "#fff" : G.mode === "survival" ? "#50ff70" : "#ff5050";
           c.beginPath();
           c.arc(
             mx + (m.x - CX) * ms,
@@ -15525,7 +15537,7 @@
           m.tail = null;
         }
         m.staff = STAFF_BY_ID[SAVE.staff] || STAFFS[0];
-               m.mantle =
+        m.mantle =
           sk.mantle ||
           (typeof setup !== "undefined" && setup && setup.hex
             ? setup.hex
@@ -15678,7 +15690,7 @@
         c.fillStyle = fg;
         c.fillRect(0, horizonY, W, H * 0.12);
         menuBoltT -= rd;
-               if (menuBoltT <= 0) {
+        if (menuBoltT <= 0) {
           menuBoltT = rnd(0.8, 2.2);
           const sx = clamp(
             Math.random() < 0.5 ? W * rnd(0.02, 0.3) : W * rnd(0.7, 0.98),
@@ -16000,7 +16012,7 @@
           skin: { id: "" },
         };
 
-               _previewMode = true;
+        _previewMode = true;
         try {
           c.save();
           c.translate(90, 110);
@@ -16159,8 +16171,10 @@
               persist();
               buildShop();
             };
-                       if (gold)
-              box.appendChild(mkShopBtn("coin", String(gold), () => buy("gold")));
+            if (gold)
+              box.appendChild(
+                mkShopBtn("coin", String(gold), () => buy("gold")),
+              );
             if (gems)
               box.appendChild(
                 mkShopBtn("gemIcon", String(gems), () => buy("gems")),
@@ -16541,7 +16555,7 @@
           for (let b = a; b < 5; b++) {
             const k = a + "-" + b,
               desc = lang === "ru" ? ULT_DESC[k] : "";
-                        secC += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(b)}"><canvas data-combo="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(b)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[a][lang]} + ${ELEMS[b][lang]}${desc ? " — " + desc : ""}</div></div></div>`;
+            secC += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(b)}"><canvas data-combo="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(b)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[a][lang]} + ${ELEMS[b][lang]}${desc ? " — " + desc : ""}</div></div></div>`;
           }
         h += sec("✨ " + t("codexCombos"), secC);
         let secM = "";
@@ -16593,7 +16607,7 @@
         for (const k of PK_KEYS) {
           const info = itemInfo[k];
           if (!info) continue;
-                    secP += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${PK[k].col}"><canvas data-item="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${PK[k].col};font-size:13px">${PK[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${info[lang]}</div></div></div>`;
+          secP += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${PK[k].col}"><canvas data-item="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${PK[k].col};font-size:13px">${PK[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${info[lang]}</div></div></div>`;
         }
         h += sec("🎁 " + (lang === "ru" ? "ПРЕДМЕТЫ" : "ITEMS"), secP);
         let secF = "";
@@ -16760,19 +16774,21 @@
           drawMage(c, mm, { noShadow: false });
           c.restore();
         });
-                document.querySelectorAll("canvas[data-elem]").forEach(cv => {
+        document.querySelectorAll("canvas[data-elem]").forEach((cv) => {
           const id = +cv.dataset.elem;
           cv.getContext("2d").drawImage(IC["e" + id], 0, 0, 64, 64);
         });
-                document.querySelectorAll("canvas[data-combo]").forEach(cv => {
+        document.querySelectorAll("canvas[data-combo]").forEach((cv) => {
           const k = cv.dataset.combo;
-          if (IC["c" + k]) cv.getContext("2d").drawImage(IC["c" + k], 0, 0, 64, 64);
+          if (IC["c" + k])
+            cv.getContext("2d").drawImage(IC["c" + k], 0, 0, 64, 64);
         });
-                document.querySelectorAll("canvas[data-mega]").forEach(cv => {
+        document.querySelectorAll("canvas[data-mega]").forEach((cv) => {
           const id = +cv.dataset.mega;
-          if (IC["m" + id]) cv.getContext("2d").drawImage(IC["m" + id], 0, 0, 64, 64);
+          if (IC["m" + id])
+            cv.getContext("2d").drawImage(IC["m" + id], 0, 0, 64, 64);
         });
-                document.querySelectorAll("canvas[data-item]").forEach(cv => {
+        document.querySelectorAll("canvas[data-item]").forEach((cv) => {
           const t = cv.dataset.item;
           if (IC[t]) cv.getContext("2d").drawImage(IC[t], 0, 0, 64, 64);
         });
@@ -16872,7 +16888,7 @@
               quantityAround: 3,
             });
             if (entries && entries.entries && entries.entries.length) {
-                           let myUid = null;
+              let myUid = null;
               try {
                 if (typeof player !== "undefined" && player) {
                   myUid = player.getUniqueID
@@ -18849,12 +18865,10 @@
               FX.slow.t -= rd;
             }
           }
-                 if (G.player) {
+          if (G.player) {
             const p = G.player;
             MUS.tgt =
-              G.epicT > 0 ||
-              p.hp < p.maxHp * 0.25 ||
-              (G.boss && !G.boss.dead)
+              G.epicT > 0 || p.hp < p.maxHp * 0.25 || (G.boss && !G.boss.dead)
                 ? 1
                 : 0.55;
           }
@@ -19167,7 +19181,7 @@
           }
         } catch (e) {}
 
-           setProg(30, "boot3");
+        setProg(30, "boot3");
         await buildIcons((p) => setProg(30 + p * 45)); // 30 → 75
         setProg(78, "boot4");
         await delay(50);
