@@ -1453,6 +1453,20 @@
         <b>DEV CONSOLE</b>
         <div>
           <button
+            id="devMin"
+            style="
+              background: #ff0;
+              color: #000;
+              border: 0;
+              padding: 2px 8px;
+              cursor: pointer;
+              margin-right: 4px;
+              font-weight: 900;
+            "
+          >
+            —
+          </button>
+          <button
             id="devCopy"
             style="
               background: #0f0;
@@ -1567,6 +1581,16 @@
               this.fps = [];
               this.drops = [];
               this.render();
+            };
+          const minBtn = $("devMin");
+          if (minBtn)
+            minBtn.onclick = () => {
+              const stats = $("devStats");
+              const log = $("devLog");
+              const isHidden = stats.style.display === "none";
+              stats.style.display = isHidden ? "block" : "none";
+              log.style.display = isHidden ? "block" : "none";
+              minBtn.textContent = isHidden ? "—" : "□";
             };
           setInterval(() => this.updateStats(), 400);
         },
@@ -4517,7 +4541,8 @@
           this.baseElem = 0;
           this.runes = [];
           this.ultSlots = [0, null, null, null]; // 🆕 4 ячейки: [0] = базовый elem
-          this.ultActive = 0; // 🆕 индекс активной ячейки
+          this.ultActive = 0;
+          this.replaceIdx = null; // 🆕 индекс руны на замену (1-3)
           this.ultCharge = 0;
           this.atkCd = 0;
           this.dashCd = 0;
@@ -8017,7 +8042,7 @@
               0.92,
             );
           }
-                   const stStyle = m.staff ? m.staff.atkStyle : "orb";
+          const stStyle = m.staff ? m.staff.atkStyle : "orb";
           const stCol = null;
           // 🆕 Размер снаряда зависит от количества совпадающих рун
           let sameRunes = 0;
@@ -8037,7 +8062,7 @@
               {
                 life,
                 trail: m === G.player ? SAVE.fxTrail : "",
-                         style: stStyle,
+                style: stStyle,
                 col: stCol,
                 r: projR, // 🆕 Применяем размер
               },
@@ -9702,7 +9727,13 @@
           }
         }
 
-        // 2) Все заняты. Приоритет — собрать 4 одинаковых.
+        // 2) Если игрок выбрал слот для замены вручную (кликом)
+        if (m.replaceIdx >= 1 && m.replaceIdx <= 3) {
+          _commit(m.replaceIdx);
+          return;
+        }
+
+        // 3) Все заняты. Приоритет — собрать 4 одинаковых.
         const counts = {};
         for (let i = 0; i < 4; i++) {
           const v = m.ultSlots[i];
@@ -9908,6 +9939,33 @@
           mx = Math.cos(a.wander);
           my = Math.sin(a.wander);
         }
+        // 🆕 Уклонение от ультов и зон
+        if (a.dodgeCd <= 0 && m.dashCd <= 0) {
+          let threat = null,
+            threatD = 999;
+          for (const t of G.tele) {
+            const d = dist(m.x, m.y, t.x, t.y);
+            if (d < t.r + 40 && d < threatD) {
+              threat = t;
+              threatD = d;
+            }
+          }
+          for (const z of G.zones) {
+            if (z.style === "global") continue;
+            const d = dist(m.x, m.y, z.x, z.y);
+            if (d < z.r + 40 && d < threatD && z.own !== m) {
+              threat = z;
+              threatD = d;
+            }
+          }
+          if (threat && Math.random() < a.dodgeChance * 1.5) {
+            const ang =
+              Math.atan2(m.y - threat.y, m.x - threat.x) + rnd(-0.4, 0.4);
+            mageDash(m, ang);
+            a.dodgeCd = 0.8;
+          }
+        }
+
         if (a.dodgeCd <= 0) {
           for (const p of PR.active) {
             if (!p.on || !p.own || p.own === m || !isFoe(m, p.own)) continue;
@@ -10374,6 +10432,28 @@
           updateEyes(m, dt);
           return;
         }
+        // 🆕 Поведение при победе (парит, подпрыгивает, пускает искры)
+        if (m.victory && !m.dead) {
+          m.celebT = (m.celebT || 0) + dt;
+          // Плавное покачивание вверх-вниз
+          m.y -= Math.abs(Math.sin(m.celebT * 5)) * 3;
+          // Искры вокруг мага
+          if (Math.random() < 0.2 && G) {
+            pt(
+              m.x + rnd(-20, 20),
+              m.y + rnd(-40, 0),
+              rnd(-10, 10),
+              rnd(-50, -100),
+              0.8,
+              rnd(2, 4),
+              pick(["#FFD700", "#FFFFFF", "#50FF70"]),
+              0,
+              true,
+              0.95,
+            );
+          }
+        }
+
         m.atkCd -= dt;
         m.dashCd -= dt;
         m.castLock -= dt;
@@ -10503,7 +10583,7 @@
         if (mo.dead) return;
         mo.tT -= dt;
         if (mo.tT <= 0 || !mo.tg || mo.tg.dead) {
-          mo.tT = 0.35;
+          mo.tT = 0.5;
           mo.tg = nearestFoe(mo, mo.x, mo.y, 1e9);
         }
         const accel = 1 + 0.05 * Math.floor(G.time / 30);
@@ -10515,10 +10595,18 @@
           dy = 0;
         if (mo.tg) {
           const ax = mo.tg.x - mo.x,
-            ay = mo.tg.y - mo.y,
-            d = Math.hypot(ax, ay) || 1;
+            ay = mo.tg.y - mo.y;
+          const d = Math.hypot(ax, ay) || 1;
           dx = ax / d;
           dy = ay / d;
+
+          // 🆕 Диагональное движение (пытаются обойти/нагнать)
+          if (!mo.boss && d > 100) {
+            const side = Math.sin(TM * 2 + mo.an) > 0 ? 1 : -1;
+            dx += (-ay / d) * 0.4 * side;
+            dy += (ax / d) * 0.4 * side;
+          }
+
           if (mo.boss && d < 220) {
             dx *= 0.1;
             dy *= 0.1;
@@ -11187,10 +11275,25 @@
       });
       const B = { dash: mkBtn(), attack: mkBtn(), ult: mkBtn() };
       let aiming = false;
-   const GAME_KEYS = [
-        "KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE", "Space",
-        "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyF", "Escape",
-        "KeyR", "Digit1", "Digit2", "Digit3", "Digit4" // 🆕
+      const GAME_KEYS = [
+        "KeyW",
+        "KeyA",
+        "KeyS",
+        "KeyD",
+        "KeyQ",
+        "KeyE",
+        "Space",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "KeyF",
+        "Escape",
+        "KeyR",
+        "Digit1",
+        "Digit2",
+        "Digit3",
+        "Digit4", // 🆕
       ];
       const isTyping = () => {
         const a = document.activeElement;
@@ -11247,9 +11350,28 @@
         }
         if (!e.repeat) {
           if (e.code === "Escape") {
-            if (document.activeElement) document.activeElement.blur(); // 🆕
+            if (document.activeElement) document.activeElement.blur();
+
+            // 🆕 Выход из игры через Esc в меню
+            if (
+              state === "MENU" ||
+              state === "SHOP" ||
+              state === "SETTINGS" ||
+              state === "CODEX" ||
+              state === "LB" ||
+              state === "QUESTIONS" ||
+              state === "TUTORIAL"
+            ) {
+              window._escExit = true; // Флаг для окна
+              $("confirmText").innerHTML =
+                lang === "ru"
+                  ? "Вы уверены, что хотите покинуть Арену?"
+                  : "Are you sure you want to leave the Arena?";
+              showScreen("sc-confirm");
+              return;
+            }
+
             if (state === "PLAYING") {
-              // 🆕 Отмена прицела по Esc
               if (
                 aiming ||
                 B.ult.st === 2 ||
@@ -11263,7 +11385,7 @@
             } else if (state === "PAUSED") resumeGame();
             return;
           }
-               if (state === "PLAYING" && G && G.player && !G.player.dead) {
+          if (state === "PLAYING" && G && G.player && !G.player.dead) {
             if (e.code === "Space") btnDown("dash", "key", 0, 0, -2);
             else if (e.code === "KeyQ" || e.code === "KeyE")
               btnDown("ult", "key", 0, 0, -3);
@@ -11279,8 +11401,13 @@
                   G.player.baseElem = slots[num - 1];
                   G.player._atkSwitchCd = 0.5;
                   sfx("pickup");
-                  G.events.push({ k: "atkstyle", id: G.player.id, e: G.player.elem });
-                  if (G.role === "client") netSendAct({ k: "asel", atk: G.player.elem });
+                  G.events.push({
+                    k: "atkstyle",
+                    id: G.player.id,
+                    e: G.player.elem,
+                  });
+                  if (G.role === "client")
+                    netSendAct({ k: "asel", atk: G.player.elem });
                 }
               }
             }
@@ -11684,6 +11811,20 @@
         ) {
           cycleAtkStyle();
           return;
+        }
+        // 🆕 Клик по слотам рун (1-3) — назначение приоритета
+        const ry = H - 52 * u;
+        const rx = 16 * u;
+        for (let i = 1; i < 4; i++) {
+          const slotX = rx + i * 38 * u + 16 * u;
+          if (Math.hypot(x - slotX, y - ry) < 15 * u * 1.5) {
+            const p = G.player;
+            if (p.ultSlots[i] != null) {
+              p.replaceIdx = p.replaceIdx === i ? null : i;
+              sfx("click");
+            }
+            return;
+          }
         }
         const n = hitButton(x, y);
         try {
@@ -14847,16 +14988,19 @@
           const x = rx + i * 38 * u + 16 * u;
           const e = p.ultSlots[i];
           const active = (p.ultActive || 0) === i;
+          const isReplace = p.replaceIdx === i;
           c.beginPath();
           c.arc(x, ry, 15 * u, 0, TAU);
           c.fillStyle = active ? "rgba(80,40,120,.9)" : "rgba(20,10,30,.7)";
           c.fill();
-          c.lineWidth = active ? 3.5 : 2;
-          c.strokeStyle = active
-            ? "#FFD84A"
-            : e != null
-              ? elemColor(e)
-              : "rgba(218,165,32,.5)";
+          c.lineWidth = active || isReplace ? 3.5 : 2;
+          c.strokeStyle = isReplace
+            ? "#FF3030"
+            : active
+              ? "#FFD84A"
+              : e != null
+                ? elemColor(e)
+                : "rgba(218,165,32,.5)";
           c.stroke();
           if (e != null)
             c.drawImage(IC["e" + e], x - 12 * u, ry - 12 * u, 24 * u, 24 * u);
@@ -14936,11 +15080,17 @@
           c.fillText("ATK", 0, asw.r + 10 * u);
           c.restore();
         }
-             const nm = t("ult") + ": " + ultName(_uk.key);
+        const nm = t("ult") + ": " + ultName(_uk.key);
         c.font = "800 " + 13 * u + 'px "Segoe UI",Arial';
-        const textOffsetX = rx + 3 * 38 * u + 50 * u; 
+        const textOffsetX = rx + 3 * 38 * u + 50 * u;
         if (_ui.img)
-          c.drawImage(_ui.img, textOffsetX - 24 * u, H - 38 * u, 20 * u, 20 * u);
+          c.drawImage(
+            _ui.img,
+            textOffsetX - 24 * u,
+            H - 38 * u,
+            20 * u,
+            20 * u,
+          );
         txt(
           c,
           nm,
@@ -16538,8 +16688,8 @@
           "🔥",
           isRu ? "РУНЫ И УЛЬТА" : "RUNES & ULT",
           isRu
-            ? `Руны стихий: 🔥❄️⚡💨🌑<br><br>🔹 1 руна → простая ульта<br>🔹 2 руны → комбо-ульта<br>🔹 4 одинаковые → МЕГА-УЛЬТА (самый сильный)<br><br>🟣 Руна выстрела → +1 снаряд (до 15)<br>🟢 Базовая стихия (слот BASE) не меняется от рун`
-            : `Element runes: 🔥❄️⚡💨🌑<br><br>🔹 1 rune → simple ult<br>🔹 2 runes → combo ult<br>🔹 4 same → MEGA ULT (strongest)<br><br>🟣 Shot rune → +1 projectile (max 15)<br>🟢 Base element (BASE slot) is not changed by runes`,
+            ? `Руны стихий: 🔥❄️⚡💨🌑<br><br>🔹 1 руна → простая ульта<br>🔹 2 руны → комбо-ульта<br>🔹 4 одинаковые → МЕГА-УЛЬТА (самый сильный)<br><br>🟣 Руна выстрела → +1 снаряд (до 15)<br>🟢 Базовая стихия (слот BASE) не меняется от рун<br><br>🗑️ <b>Замена рун:</b> Нажмите на слот руны (внизу слева), чтобы отметить её красным. Следующая подобранная руна заменит именно её. Повторный клик снимает приоритет.<br><br>⌨️ <b>Хоткеи:</b> [R] — сменить стихию, [1][2][3][4] — мгновенно выбрать стихию из слота.<br>💥 Чем больше одинаковых рун, тем крупнее и мощнее ваши снаряды!`
+            : `Element runes: 🔥❄️⚡💨🌑<br><br>🔹 1 rune → simple ult<br>🔹 2 runes → combo ult<br>🔹 4 same → MEGA ULT (strongest)<br><br>🟣 Shot rune → +1 projectile (max 15)<br>🟢 Base element (BASE slot) is not changed by runes<br><br>🗑️ <b>Rune Replace:</b> Click a rune slot (bottom left) to mark it red. The next rune picked up replaces it. Click again to unmark.<br><br>⌨️ <b>Hotkeys:</b> [R] — cycle element, [1][2][3][4] — select element from slot.<br>💥 More same runes = bigger and stronger projectiles!`,
         );
         h += sect(
           "🧟",
@@ -17121,13 +17271,28 @@
             break;
           }
           case "confirmYes": {
-            const fr = G && G.pendingQuit;
             $("sc-confirm").classList.remove("show");
+            // 🆕 Выход из игры
+            if (window._escExit) {
+              window._escExit = false;
+              try {
+                window.close(); // Пытаемся закрыть вкладку
+                window.location.href = "about:blank"; // Если не закрылась — уводим на пустую страницу
+              } catch (e) {}
+              return;
+            }
+            const fr = G && G.pendingQuit;
             quitToMenu(fr);
             break;
           }
           case "confirmNo": {
             $("sc-confirm").classList.remove("show");
+            // 🆕 Отмена выхода из игры
+            if (window._escExit) {
+              window._escExit = false;
+              showScreen("sc-menu"); // Возвращаемся в меню
+              return;
+            }
             if (G && G.uiPause) {
               if (!G.online) state = "PAUSED";
               showScreen("sc-pause");
