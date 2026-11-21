@@ -5385,15 +5385,15 @@
             c.stroke();
           },
           () => {
-            const tipX = f * 22 - f * 16,
+            const tipX = f * 22 + f * 16,
               tipY = topY - 24,
               baseY = topY + 16,
               baseX = f * 22;
             c.beginPath();
             c.moveTo(baseX, baseY);
-            c.lineTo(baseX - f * 22, baseY - 6);
-            c.quadraticCurveTo(baseX - f * 16, topY - 10, tipX, tipY);
-            c.quadraticCurveTo(baseX - f * 6, topY + 2, baseX, topY + 4);
+            c.lineTo(baseX + f * 22, baseY - 6);
+            c.quadraticCurveTo(baseX + f * 16, topY - 10, tipX, tipY);
+            c.quadraticCurveTo(baseX + f * 6, topY + 2, baseX, topY + 4);
             c.closePath();
             const fg = c.createLinearGradient(baseX, baseY, tipX, tipY);
             fg.addColorStop(0, "#FFC8E0");
@@ -5660,25 +5660,29 @@
             const ox = f * 22,
               oy = topY - 8,
               pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
-            // 🆕 Крупнее, ярче, с «языками пламени»
             c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 44);
+            // Меньше свечение сверху
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 28);
             gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
-            gr.addColorStop(0.25, "rgba(255,238,0," + 0.85 * pul + ")");
-            gr.addColorStop(0.55, "rgba(255,140,0," + 0.6 * pul + ")");
+            gr.addColorStop(0.3, "rgba(255,238,0," + 0.85 * pul + ")");
+            gr.addColorStop(0.7, "rgba(255,140,0," + 0.5 * pul + ")");
             gr.addColorStop(1, "rgba(255,69,0,0)");
             c.fillStyle = gr;
             c.beginPath();
-            c.arc(ox, oy, 44, 0, TAU);
+            c.arc(ox, oy, 28, 0, TAU);
             c.fill();
-            // 🆕 Вращающиеся языки пламени
-            for (let i = 0; i < 5; i++) {
-              const a = TM * 3 + (i * TAU) / 5;
-              const fx2 = ox + Math.cos(a) * 12;
-              const fy2 = oy + Math.sin(a) * 10 - 6;
-              c.fillStyle = "rgba(255,120,0," + 0.6 * pul + ")";
+            // 🆕 Пламя обвивает шар по спирали
+            for (let i = 0; i < 8; i++) {
+              const a = TM * 4 + (i * TAU) / 8;
+              const rad = 14 + Math.sin(a * 2) * 4;
+              const fx2 = ox + Math.cos(a) * rad;
+              const fy2 = oy + Math.sin(a) * rad;
+              c.fillStyle =
+                i % 2
+                  ? "rgba(255,69,0," + 0.8 * pul + ")"
+                  : "rgba(255,140,0," + 0.9 * pul + ")";
               c.beginPath();
-              c.ellipse(fx2, fy2, 4, 8, a * 0.5, 0, TAU);
+              c.ellipse(fx2, fy2, 6, 10, a, 0, TAU);
               c.fill();
             }
             c.globalCompositeOperation = "source-over";
@@ -5688,7 +5692,7 @@
               1,
               ox,
               oy,
-              11,
+              10,
             );
             og.addColorStop(0, "#FFFFFF");
             og.addColorStop(0.3, "#FFEE00");
@@ -5696,7 +5700,7 @@
             og.addColorStop(1, "#FF4500");
             c.fillStyle = og;
             c.beginPath();
-            c.arc(ox, oy, 11, 0, TAU);
+            c.arc(ox, oy, 10, 0, TAU);
             c.fill();
           },
         );
@@ -5739,11 +5743,11 @@
             c.globalCompositeOperation = "source-over";
             c.fillStyle = "#FF69B4";
             c.strokeStyle = "#000";
-            c.lineWidth = 1.8;
+            c.lineWidth = 2;
             c.beginPath();
-            c.moveTo(ox, oy + 7);
-            c.bezierCurveTo(ox - 11, oy - 3, ox - 8, oy - 13, ox, oy - 5);
-            c.bezierCurveTo(ox + 8, oy - 13, ox + 11, oy - 3, ox, oy + 7);
+            c.moveTo(ox, oy + 12);
+            c.bezierCurveTo(ox - 16, oy - 4, ox - 12, oy - 18, ox, oy - 7);
+            c.bezierCurveTo(ox + 12, oy - 18, ox + 16, oy - 4, ox, oy + 12);
             c.fill();
             c.stroke();
           },
@@ -5799,6 +5803,15 @@
             const ox = f * 22,
               oy = topY - 8,
               pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+            c.globalCompositeOperation = "lighter";
+            c.fillStyle = rgba(
+              el.color === "#6A0DAD" ? "#B040FF" : el.color,
+              0.25 * pul,
+            );
+            c.beginPath();
+            c.arc(ox, oy, 35 + Math.sin(TM * 8) * 5, 0, TAU);
+            c.fill();
+            c.globalCompositeOperation = "source-over";
             let coreCol = el.core,
               outerCol = el.color === "#6A0DAD" ? "#B040FF" : el.color;
             if (sk === "ice") {
@@ -5807,6 +5820,16 @@
             } else if (sk === "rainbow") {
               coreCol = "#FFFFFF";
               outerCol = `hsl(${(TM * 200) % 360}, 100%, 60%)`;
+              // 🆕 Радужный ореол
+              c.globalCompositeOperation = "lighter";
+              for (let i = 0; i < 3; i++) {
+                const hue = (TM * 150 + i * 120) % 360;
+                c.fillStyle = `hsla(${hue}, 100%, 60%, 0.25)`;
+                c.beginPath();
+                c.arc(ox, oy, 30 + i * 8 + Math.sin(TM * 5 + i) * 4, 0, TAU);
+                c.fill();
+              }
+              c.globalCompositeOperation = "source-over";
             }
 
             // Веточки
@@ -5836,7 +5859,8 @@
             c.stroke();
 
             c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
+            const rSize = sk === "rainbow" ? 30 : 22;
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, rSize);
             gr.addColorStop(0, rgba(coreCol, 0.9 * pul));
             gr.addColorStop(0.3, rgba(outerCol, 0.6 * pul));
             gr.addColorStop(1, rgba(outerCol, 0));
@@ -6799,8 +6823,8 @@
               }
             return null;
           };
-        const lim = Q.pmul < 1 ? 40 : 120;
-        if (cE < lim && Math.random() < 0.85) {
+        const lim = Q.pmul < 1 ? 30 : 80;
+        if (cE < lim && Math.random() < 0.6) {
           const x = rx(),
             y = ry();
           if (dist(x, y, CX, CY) < G.safeR + 20) {
@@ -6821,9 +6845,10 @@
                 p.vx = rnd(-60, 60);
                 p.vy = rnd(-60, 60);
               } else if (th.amb === "cloud") {
-                p.s = rnd(55, 100);
-                p.vx = rnd(-24, -8);
-                p.vy = rnd(-2, 2);
+                p.s = rnd(40, 120);
+                p.vx = rnd(-30, -5);
+                p.vy = rnd(-3, 3);
+                p.m = p.l = rnd(4, 8);
               }
             }
           }
@@ -15140,7 +15165,7 @@
             c.fillStyle = "rgba(20,20,40,.25)";
             c.fillRect(0, 0, W, H);
           } else if (g.k === "oblivion") {
-            // 🆕 УМЕНЬШЕНО ЗАТЕМНЕНИЕ
+            const fade = Math.min(1, (g.m - g.t) * 5, g.t * 5);
             const gr = c.createRadialGradient(
               W / 2,
               H / 2,
@@ -15149,17 +15174,13 @@
               H / 2,
               Math.max(W, H) * 0.7,
             );
-            gr.addColorStop(0, "rgba(0,0,0,.25)"); // Было .6
-            gr.addColorStop(
-              1,
-              "rgba(40,0,70," + 0.2 * Math.min(1, k * 3) + ")", // Было 0.5
-            );
+            gr.addColorStop(0, `rgba(0,0,0,${0.25 * fade})`);
+            gr.addColorStop(1, `rgba(40,0,70,${0.3 * fade})`);
             c.fillStyle = gr;
             c.fillRect(0, 0, W, H);
           }
         }
         if (FX.dark > 0) {
-          // 🆕 УМЕНЬШЕН МНОЖИТЕЛЬ
           c.fillStyle = "rgba(0,0,0," + FX.dark * 0.3 + ")"; // Было * 0.6
           c.fillRect(0, 0, W, H);
         }
@@ -15920,8 +15941,8 @@
 
         if (shopTab === "skins")
           for (const s of SKINS) {
-            // 🆕 Используем t(s.rar) для перевода
-            const k = card(s[lang], t(s.rar), RAR_COL[s.rar]);
+            const rarColor = s.rar === "epic" ? "#FF3030" : RAR_COL[s.rar];
+            const k = card(s[lang], t(s.rar), rarColor);
             drawSkinPreview(k.cv, s);
             k.c.appendChild(
               btns(
@@ -16060,10 +16081,11 @@
         else if (shopTab === "arenas")
           for (const id of THEME_IDS) {
             const th = THEMES[id];
+            const isEpic = id === "void";
             const k = card(
               th[lang],
-              id === "void" ? t("epic") : th.gold ? t("rare") : t("default"),
-              id === "void" ? "#C060FF" : "#4DA6FF",
+              isEpic ? t("epic") : th.gold ? t("rare") : t("default"),
+              isEpic ? "#FF3030" : "#4DA6FF",
             );
             // 🆕 Рисуем мини-превью арены
             drawArenaPreview(k.cv, th);

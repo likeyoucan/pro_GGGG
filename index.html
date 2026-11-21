@@ -8017,8 +8017,14 @@
               0.92,
             );
           }
-          const stStyle = m.staff ? m.staff.atkStyle : "orb";
-          const stCol = null; // 🆕 больше не фиксируем цвет посоха — берём из стихии
+                   const stStyle = m.staff ? m.staff.atkStyle : "orb";
+          const stCol = null;
+          // 🆕 Размер снаряда зависит от количества совпадающих рун
+          let sameRunes = 0;
+          for (let i = 0; i < 4; i++) if (m.ultSlots[i] === m.elem) sameRunes++;
+          let projR = 10; // базовый (уменьшен)
+          if (sameRunes === 3) projR = 14; // заметно больше
+          if (sameRunes === 4) projR = 17; // еще больше
           const spreadRad = 0.16;
           for (let i = 0; i < n; i++)
             spawnProj(
@@ -8031,9 +8037,9 @@
               {
                 life,
                 trail: m === G.player ? SAVE.fxTrail : "",
-                style: stStyle,
+                         style: stStyle,
                 col: stCol,
-                r: 12,
+                r: projR, // 🆕 Применяем размер
               },
             );
           elemFx(ex, ey, m.elem, 8, 140);
@@ -9719,23 +9725,6 @@
       function collect(m, p) {
         const k = p.type,
           info = PK[k];
-        // 🆕 руна Пустоты — только с доступом (скин/посох)
-        if (k === "r4" && m && !m.isMonster) {
-          const hasVoidAccess =
-            !!(m.skin && m.skin.voidElem) || !!(m.staff && m.staff.voidElem);
-          if (!hasVoidAccess) {
-            if (m === G.player) {
-              toast(
-                lang === "ru"
-                  ? "🔒 Нужен скин/посох Пустоты"
-                  : "🔒 Requires Void skin/staff",
-                1400,
-              );
-              sfx("error");
-            }
-            return; // не подбираем
-          }
-        }
         switch (k) {
           case "hp1":
             heal(m, 30);
@@ -9796,13 +9785,6 @@
           }
           for (const m of G.mages) {
             if (m.dead) continue;
-            // 🆕 руна Пустоты не магнитится к магам без доступа
-            if (p.type === "r4" && !m.isMonster) {
-              const hasVoid =
-                !!(m.skin && m.skin.voidElem) ||
-                !!(m.staff && m.staff.voidElem);
-              if (!hasVoid) continue;
-            }
             const d = dist(m.x, m.y, p.x, p.y);
             if (d < 110 && (m === G.player || m.isBot || m.remote)) {
               // 🆕 Чем ближе к игроку — тем сильнее притяжение
@@ -11205,20 +11187,10 @@
       });
       const B = { dash: mkBtn(), attack: mkBtn(), ult: mkBtn() };
       let aiming = false;
-      const GAME_KEYS = [
-        "KeyW",
-        "KeyA",
-        "KeyS",
-        "KeyD",
-        "KeyQ",
-        "KeyE",
-        "Space",
-        "ArrowUp",
-        "ArrowDown",
-        "ArrowLeft",
-        "ArrowRight",
-        "KeyF",
-        "Escape",
+   const GAME_KEYS = [
+        "KeyW", "KeyA", "KeyS", "KeyD", "KeyQ", "KeyE", "Space",
+        "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyF", "Escape",
+        "KeyR", "Digit1", "Digit2", "Digit3", "Digit4" // 🆕
       ];
       const isTyping = () => {
         const a = document.activeElement;
@@ -11291,10 +11263,27 @@
             } else if (state === "PAUSED") resumeGame();
             return;
           }
-          if (state === "PLAYING" && G && G.player && !G.player.dead) {
+               if (state === "PLAYING" && G && G.player && !G.player.dead) {
             if (e.code === "Space") btnDown("dash", "key", 0, 0, -2);
             else if (e.code === "KeyQ" || e.code === "KeyE")
               btnDown("ult", "key", 0, 0, -3);
+            // 🆕 Хоткеи смены стихии
+            else if (e.code === "KeyR") {
+              cycleAtkStyle();
+            } else if (e.code.startsWith("Digit")) {
+              const num = +e.code.replace("Digit", "");
+              if (num >= 1 && num <= 4) {
+                const slots = G.player.ultSlots;
+                if (slots && slots[num - 1] != null) {
+                  G.player.elem = slots[num - 1];
+                  G.player.baseElem = slots[num - 1];
+                  G.player._atkSwitchCd = 0.5;
+                  sfx("pickup");
+                  G.events.push({ k: "atkstyle", id: G.player.id, e: G.player.elem });
+                  if (G.role === "client") netSendAct({ k: "asel", atk: G.player.elem });
+                }
+              }
+            }
           }
         }
         keys[e.code] = true;
@@ -14947,14 +14936,15 @@
           c.fillText("ATK", 0, asw.r + 10 * u);
           c.restore();
         }
-        const nm = t("ult") + ": " + ultName(_uk.key);
+             const nm = t("ult") + ": " + ultName(_uk.key);
         c.font = "800 " + 13 * u + 'px "Segoe UI",Arial';
+        const textOffsetX = rx + 3 * 38 * u + 50 * u; 
         if (_ui.img)
-          c.drawImage(_ui.img, rx, H - 28 * u - 10 * u, 20 * u, 20 * u);
+          c.drawImage(_ui.img, textOffsetX - 24 * u, H - 38 * u, 20 * u, 20 * u);
         txt(
           c,
           nm,
-          rx + 24 * u,
+          textOffsetX,
           H - 28 * u,
           13 * u,
           p.ultCharge >= 100 ? "#FFD84A" : "#ccc",
