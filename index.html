@@ -11413,13 +11413,13 @@
             if (document.activeElement) document.activeElement.blur();
 
             // 🆕 Выход из игры через Esc в меню
-            if (
+                        if (
               state === "MENU" ||
               state === "SHOP" ||
               state === "SETTINGS" ||
               state === "CODEX" ||
               state === "LB" ||
-              state === "QUESTIONS" ||
+              state === "QUESTS" ||
               state === "TUTORIAL"
             ) {
               window._escExit = true; // Флаг для окна
@@ -14982,18 +14982,21 @@
             2,
           );
         }
-        // 🆕 Ограничиваем 40 ближайшими монстрами
-        const _pView = G.player || { x: CX, y: CY };
-        const _mons = G.monsters
-          .filter((mo) => !mo.dead)
-          .sort(
-            (a, b) =>
-              (a.x - _pView.x) ** 2 +
-              (a.y - _pView.y) ** 2 -
-              ((b.x - _pView.x) ** 2 + (b.y - _pView.y) ** 2),
-          )
-          .slice(0, 40);
-        for (const mo of _mons) {
+              // 🆕 Кэш ближайших монстров — пересчитываем не чаще 5 раз в секунду
+        if (!G._mmCache || TM - G._mmCacheT > 0.2) {
+          const _pView = G.player || { x: CX, y: CY };
+          G._mmCache = G.monsters
+            .filter((mo) => !mo.dead)
+            .sort(
+              (a, b) =>
+                (a.x - _pView.x) ** 2 +
+                (a.y - _pView.y) ** 2 -
+                ((b.x - _pView.x) ** 2 + (b.y - _pView.y) ** 2),
+            )
+            .slice(0, 40);
+          G._mmCacheT = TM;
+        }
+        for (const mo of G._mmCache) {
           c.fillStyle = mo.boss ? "#ff00ff" : "#ff4040";
           const sz = mo.boss ? 4 : 2;
           c.fillRect(
@@ -15522,9 +15525,9 @@
           m.tail = null;
         }
         m.staff = STAFF_BY_ID[SAVE.staff] || STAFFS[0];
-        m.mantle =
+               m.mantle =
           sk.mantle ||
-          (typeof setup !== "undefined" && setup.hex
+          (typeof setup !== "undefined" && setup && setup.hex
             ? setup.hex
             : colorHex(SAVE.color));
         m.elem = 0;
@@ -15675,12 +15678,16 @@
         c.fillStyle = fg;
         c.fillRect(0, horizonY, W, H * 0.12);
         menuBoltT -= rd;
-        if (menuBoltT <= 0) {
+               if (menuBoltT <= 0) {
           menuBoltT = rnd(0.8, 2.2);
-          const sx =
-            Math.random() < 0.5 ? W * rnd(0.02, 0.3) : W * rnd(0.7, 0.98);
+          const sx = clamp(
+            Math.random() < 0.5 ? W * rnd(0.02, 0.3) : W * rnd(0.7, 0.98),
+            20,
+            W - 20,
+          );
+          const ex = clamp(sx + rnd(-90, 90), 0, W);
           menuBolt = {
-            pts: bolt(sx, 0, sx + rnd(-90, 90), H * 0.5, 9, 28),
+            pts: bolt(sx, 0, ex, H * 0.5, 9, 28),
             l: 0.18,
           };
         }
@@ -15993,11 +16000,16 @@
           skin: { id: "" },
         };
 
-        c.save();
-        c.translate(90, 110);
-        c.scale(3.2, 3.2);
-        drawStaff(c, fakeMage, 1);
-        c.restore();
+               _previewMode = true;
+        try {
+          c.save();
+          c.translate(90, 110);
+          c.scale(3.2, 3.2);
+          drawStaff(c, fakeMage, 1);
+          c.restore();
+        } finally {
+          _previewMode = false;
+        }
       }
 
       function drawArenaPreview(cv, th) {
@@ -16147,11 +16159,11 @@
               persist();
               buildShop();
             };
-            if (gold)
-              box.appendChild(mkShopBtn("coin", " " + gold, () => buy("gold")));
+                       if (gold)
+              box.appendChild(mkShopBtn("coin", String(gold), () => buy("gold")));
             if (gems)
               box.appendChild(
-                mkShopBtn("gemIcon", " " + gems, () => buy("gems")),
+                mkShopBtn("gemIcon", String(gems), () => buy("gems")),
               );
           }
           return box;
@@ -16860,11 +16872,13 @@
               quantityAround: 3,
             });
             if (entries && entries.entries && entries.entries.length) {
-              let myUid = null;
+                           let myUid = null;
               try {
-                myUid = player.getUniqueID
-                  ? player.getUniqueID()
-                  : player.uniqueID || null;
+                if (typeof player !== "undefined" && player) {
+                  myUid = player.getUniqueID
+                    ? player.getUniqueID()
+                    : player.uniqueID || null;
+                }
               } catch (e) {}
               let yh =
                 '<div style="text-align:center;color:#ffd23a;font-weight:900;margin:14px 0 8px;font-size:14px">🌐 YANDEX TOP</div>';
@@ -18835,12 +18849,12 @@
               FX.slow.t -= rd;
             }
           }
-          if (G.player) {
+                 if (G.player) {
             const p = G.player;
             MUS.tgt =
               G.epicT > 0 ||
               p.hp < p.maxHp * 0.25 ||
-              G.monsters.some((m) => m.boss && !m.dead)
+              (G.boss && !G.boss.dead)
                 ? 1
                 : 0.55;
           }
@@ -19153,16 +19167,12 @@
           }
         } catch (e) {}
 
-        setProg(30, "boot3");
+           setProg(30, "boot3");
         await buildIcons((p) => setProg(30 + p * 45)); // 30 → 75
         setProg(78, "boot4");
         await delay(50);
 
         // 🆕 строим арену с показом прогресса
-        setProg(30, "boot3");
-        await buildIcons((p) => setProg(30 + p * 45)); // 30 → 75
-        setProg(78, "boot4");
-        await delay(60); // 🆕 пусть браузер отрисует 78%
         drawTopbarIconsOnce();
         ensureArena("lava");
         setProg(88, "boot4");
