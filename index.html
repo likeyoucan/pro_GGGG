@@ -12,6 +12,219 @@
       src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"
       onerror="window.PEERJS_FAILED = true"
     ></script>
+    <script>
+(function() {
+    // Настройки селектора
+    const BTN_SELECTOR = 'button.btn[data-act="back"]';
+    let logContainer = null;
+
+    // 1. Перехват системных методов остановки событий (Monkey Patching)
+    const origStopProp = Event.prototype.stopPropagation;
+    const origStopImm = Event.prototype.stopImmediatePropagation;
+    const origPrevDef = Event.prototype.preventDefault;
+
+    function isTargetBtn(el) {
+        return el && el.closest && el.closest(BTN_SELECTOR);
+    }
+
+    Event.prototype.stopPropagation = function() {
+        if (isTargetBtn(this.target)) {
+            debugLog('⚠️ ВНИМАНИЕ: Какой-то скрипт вызвал event.stopPropagation()! Всплытие клика остановлено.', 'warn');
+            console.trace('Traced stopPropagation');
+        }
+        return origStopProp.apply(this, arguments);
+    };
+
+    Event.prototype.stopImmediatePropagation = function() {
+        if (isTargetBtn(this.target)) {
+            debugLog('🛑 КРИТИЧНО: Вызван event.stopImmediatePropagation()! Другие скрипты не узнают о клике.', 'error');
+        }
+        return origStopImm.apply(this, arguments);
+    };
+
+    Event.prototype.preventDefault = function() {
+        if (isTargetBtn(this.target) && this.type === 'click') {
+            debugLog('ℹ️ Вызван event.preventDefault() при клике.', 'info');
+        }
+        return origPrevDef.apply(this, arguments);
+    };
+
+    // 2. Перехват глобальных ошибок JS
+    window.addEventListener('error', function(e) {
+        debugLog(`❌ ОШИБКА JS: ${e.message} (в ${e.filename}:${e.lineno})`, 'error');
+    });
+
+    // 3. Функция логирования в наш интерфейс
+    function debugLog(msg, type = 'normal') {
+        if (!logContainer) {
+            console.log('[DEBUG]', msg);
+            return;
+        }
+        const item = document.createElement('div');
+        const time = new Date().toLocaleTimeString();
+        item.style.cssText = 'padding: 4px 8px; border-bottom: 1px solid #333; font-family: monospace; font-size: 12px; line-height: 1.4;';
+        
+        if (type === 'error') item.style.color = '#ff6b6b';
+        else if (type === 'warn') item.style.color = '#feca57';
+        else if (type === 'success') item.style.color = '#1dd1a1';
+        else if (type === 'info') item.style.color = '#54a0ff';
+        else item.style.color = '#c8d6e5';
+
+        item.innerHTML = `<span style="color:#576574">[${time}]</span> ${msg}`;
+        logContainer.appendChild(item);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // 4. Отслеживание кликов на стадии ПЕРЕХВАТА (Capture) - срабатывает самым первым
+    window.addEventListener('click', function(e) {
+        // Игнорируем клики по самой консоли дебаггера
+        if (e.target.closest('#debug-overlay-console')) return;
+
+        const btn = isTargetBtn(e.target);
+
+        if (btn) {
+            debugLog(`👇 <b>[КЛИК ЗАФИКСИРОВАН]</b> (Фаза перехвата)`, 'success');
+            
+            // Проверка проблемы со SPAN
+            if (e.target !== btn) {
+                debugLog(`⚠️ Вы кликнули по вложенному элементу <b>&lt;${e.target.tagName.toLowerCase()}&gt;</b>, а не по самой кнопке! Если скрипт сайта проверяет <i>e.target</i> вместо <i>e.currentTarget</i>, кнопка работать не будет! (Нажмите кнопку "Починить SPAN" выше, чтобы проверить эту теорию).`, 'warn');
+            } else {
+                debugLog(`🎯 Клик пришелся ровно по тегу <b>&lt;button&gt;</b>.`, 'info');
+            }
+
+            // Проверка атрибутов
+            if (btn.disabled) debugLog(`❌ Кнопка имеет атрибут <b>disabled</b>!`, 'error');
+
+        } else {
+            // Если кликнули НЕ по кнопке, проверяем, не находилась ли кнопка ПОД курсором (перекрытие другим элементом)
+            const allBtns = document.querySelectorAll(BTN_SELECTOR);
+            allBtns.forEach((b, index) => {
+                const rect = b.getBoundingClientRect();
+                // Если координаты клика совпадают с координатами кнопки
+                if (rect.width > 0 && rect.height > 0 &&
+                    e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                    
+                    debugLog(`🛑 <b>КНОПКА ПЕРЕКРЫТА!</b> Вы кликнули в область кнопки #${index + 1}, но клик перехватил прозрачный элемент сверху: <b>&lt;${e.target.tagName.toLowerCase()} class="${e.target.className}"&gt;</b>`, 'error');
+                }
+            });
+        }
+    }, true); // true = Capture phase
+
+    // 5. Отслеживание кликов на стадии ВСПЛЫТИЯ (Bubble) - дошел ли клик до конца
+    window.addEventListener('click', function(e) {
+        if (e.target.closest('#debug-overlay-console')) return;
+        const btn = isTargetBtn(e.target);
+        if (btn) {
+            debugLog(`👆 <b>[КЛИК ВСПЛЫЛ]</b> Событие успешно прошло весь DOM до верха. Если ничего не произошло, значит на кнопке просто <b>нет обработчика событий (EventListener)</b>, либо условие внутри него не выполнилось.`, 'info');
+        }
+    }, false); // false = Bubble phase
+
+    // 6. Функция сканирования всех кнопок на странице
+    function scanButtons() {
+        const btns = document.querySelectorAll(BTN_SELECTOR);
+        debugLog(`🔍 <b>Сканирование... Найдено кнопок: ${btns.length}</b>`, 'info');
+        
+        if (btns.length === 0) {
+            debugLog(`❌ Кнопки не найдены в DOM! Возможно, они создаются позже через JS.`, 'error');
+            return;
+        }
+
+        btns.forEach((btn, i) => {
+            const style = window.getComputedStyle(btn);
+            const rect = btn.getBoundingClientRect();
+            let issues = [];
+
+            if (btn.disabled) issues.push('disabled=true');
+            if (style.display === 'none') issues.push('display: none');
+            if (style.visibility === 'hidden') issues.push('visibility: hidden');
+            if (style.pointerEvents === 'none') issues.push('pointer-events: none (клики отключены через CSS)');
+            if (style.opacity === '0') issues.push('opacity: 0 (невидима)');
+            if (rect.width === 0 || rect.height === 0) issues.push('размер 0x0 пикселей');
+
+            // Проверка перекрытия по центру кнопки
+            if (rect.width > 0 && rect.height > 0) {
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const topEl = document.elementFromPoint(centerX, centerY);
+                if (topEl && !btn.contains(topEl) && topEl !== btn) {
+                    issues.push(`перекрыта элементом <${topEl.tagName.toLowerCase()} class="${topEl.className}">`);
+                }
+            }
+
+            // Проверка jQuery событий (если сайт на jQuery)
+            let hasJqueryEvents = false;
+            if (window.jQuery && window.jQuery._data) {
+                const events = window.jQuery._data(btn, "events");
+                if (events && events.click) hasJqueryEvents = true;
+            }
+
+            if (issues.length > 0) {
+                debugLog(`Кнопка #${i+1}: ❌ Проблемы: ${issues.join(', ')}`, 'error');
+            } else {
+                debugLog(`Кнопка #${i+1}: ✅ Визуально доступна для клика. ${hasJqueryEvents ? '(Есть jQuery click)' : ''} (onclick: ${!!btn.onclick})`, 'success');
+            }
+        });
+    }
+
+    // 7. Создание графического интерфейса после загрузки DOM
+    window.addEventListener('DOMContentLoaded', function() {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'debug-overlay-console';
+        wrapper.style.cssText = 'position: fixed; bottom: 0; left: 0; width: 100%; height: 250px; background: rgba(15, 15, 20, 0.95); z-index: 2147483647; display: flex; flex-direction: column; border-top: 2px solid #54a0ff; box-shadow: 0 -5px 20px rgba(0,0,0,0.5);';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'padding: 5px 10px; background: #1e272e; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #333;';
+        header.innerHTML = `<strong style="color: #fff; font-family: sans-serif; font-size: 13px; margin-right: auto;">🕵️ Отладчик кнопок [data-act="back"]</strong>`;
+
+        const btnStyle = 'padding: 3px 8px; background: #3c40c6; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; font-family: sans-serif;';
+
+        // Кнопка сканирования
+        const scanBtn = document.createElement('button');
+        scanBtn.innerText = '🔍 Сканировать кнопки';
+        scanBtn.style.cssText = btnStyle;
+        scanBtn.onclick = scanButtons;
+
+        // Кнопка фикса SPAN (частая проблема)
+        const fixSpanBtn = document.createElement('button');
+        fixSpanBtn.innerText = '🛠 Починить SPAN (Тест)';
+        fixSpanBtn.style.cssText = btnStyle + 'background: #05c46b;';
+        fixSpanBtn.onclick = function() {
+            const spans = document.querySelectorAll(`${BTN_SELECTOR} *`);
+            spans.forEach(s => s.style.pointerEvents = 'none');
+            debugLog(`🛠 Свойство <b>pointer-events: none</b> применено ко всем элементам внутри кнопок. Теперь клик всегда будет попадать ровно по тегу &lt;button&gt;. Попробуйте нажать на вашу кнопку сейчас!`, 'success');
+        };
+
+        // Кнопка очистки
+        const clearBtn = document.createElement('button');
+        clearBtn.innerText = 'Очистить';
+        clearBtn.style.cssText = btnStyle + 'background: #576574;';
+        clearBtn.onclick = () => logContainer.innerHTML = '';
+
+        // Кнопка сворачивания
+        const toggleBtn = document.createElement('button');
+        toggleBtn.innerText = 'Свернуть _';
+        toggleBtn.style.cssText = btnStyle + 'background: #ff3f34;';
+        let isMin = false;
+        toggleBtn.onclick = () => {
+            isMin = !isMin;
+            wrapper.style.height = isMin ? '32px' : '250px';
+            toggleBtn.innerText = isMin ? 'Развернуть  square' : 'Свернуть _';
+        };
+
+        header.append(scanBtn, fixSpanBtn, clearBtn, toggleBtn);
+
+        logContainer = document.createElement('div');
+        logContainer.style.cssText = 'flex: 1; overflow-y: auto; padding: 5px;';
+
+        wrapper.append(header, logContainer);
+        document.body.appendChild(wrapper);
+
+        debugLog('Система отладки запущена. Нажмите на проблемную кнопку на сайте или нажмите "Сканировать кнопки".', 'info');
+        setTimeout(scanButtons, 1000); // Автоскан через секунду
+    });
+})();
+</script>
     <style>
       * {
         box-sizing: border-box;
