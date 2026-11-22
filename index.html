@@ -16210,11 +16210,14 @@
           skin: { id: "" },
         };
 
-        _previewMode = true;
+              _previewMode = true;
         try {
           c.save();
-          c.translate(90 - 22 * 3.2, 110);
-          c.scale(3.2, 3.2);
+          // 🆕 уменьшили масштаб (3.2 → 2.2) и опустили центр (110 → 165),
+          // чтобы верх посоха (включая сферы / пламя / рога) полностью
+          // помещался в canvas 180×200
+          c.translate(90 - 22 * 2.2, 165);
+          c.scale(2.2, 2.2);
           drawStaff(c, fakeMage, 1);
           c.restore();
         } finally {
