@@ -5468,7 +5468,7 @@
             c.stroke();
             const ox = tipX,
               oy = tipY,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
             c.globalCompositeOperation = "lighter";
             const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
             gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
@@ -5507,7 +5507,7 @@
           () => {
             const ox = f * 22,
               oy = topY - 2,
-              pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 1.8 + m.id);
             c.globalCompositeOperation = "lighter";
             const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
             gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
@@ -5575,7 +5575,7 @@
           () => {
             const ox = f * 22,
               oy = topY - 4,
-              pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
 
             // 1) Рога/шипы
             c.fillStyle = "#4B0082";
@@ -5621,7 +5621,7 @@
             c.globalCompositeOperation = "source-over";
 
             // 4) Чёрная дыра с пульсацией
-            const holeR = 12 + Math.sin(TM * 4 + m.id) * 1.5;
+            const holeR = 12 + Math.sin(TM * 1.5 + m.id) * 1.5;
             c.fillStyle = "#000000";
             c.beginPath();
             c.arc(ox, oy, holeR, 0, TAU);
@@ -5721,7 +5721,7 @@
           () => {
             const ox = f * 22,
               oy = topY - 8,
-              pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2.5 + m.id);
             c.globalCompositeOperation = "lighter";
             const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 20);
             gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
@@ -5791,7 +5791,7 @@
           () => {
             const ox = f * 22,
               oy = topY - 8,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
             c.globalCompositeOperation = "lighter";
             const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 24);
             gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
@@ -5863,14 +5863,14 @@
             const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
             const ox = f * 22,
               oy = topY - 8,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
             c.globalCompositeOperation = "lighter";
             c.fillStyle = rgba(
               el.color === "#6A0DAD" ? "#B040FF" : el.color,
               0.25 * pul,
             );
             c.beginPath();
-            c.arc(ox, oy, 24 + Math.sin(TM * 8) * 4, 0, TAU);
+            c.arc(ox, oy, 24 + Math.sin(TM * 2.5) * 3, 0, TAU);
             c.fill();
             c.globalCompositeOperation = "source-over";
             let coreCol = el.core,
