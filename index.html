@@ -4577,7 +4577,7 @@
           this.elem = 0;
           this.baseElem = 0;
           this.runes = [];
-                    this.ultSlots = [0, null, null, null]; // 4 ячейки: [0] = базовый elem
+          this.ultSlots = [0, null, null, null]; // 4 ячейки: [0] = базовый elem
           this.ultActive = 0;
           // 🆕 [0] всегда true (BASE заблокирован навсегда),
           //    1–3 — переключаются кнопками над кругами
@@ -9776,7 +9776,7 @@
       function addMulti(m) {
         m.multiStacks = Math.min(15, m.multiStacks + 1);
       }
-            function addRune(m, e) {
+      function addRune(m, e) {
         if (!m.ultSlots) m.ultSlots = [m.elem, null, null, null];
         if (!m.lockedSlots) m.lockedSlots = [true, false, false, false];
         m.lockedSlots[0] = true; // BASE всегда заблокирован
@@ -9900,7 +9900,7 @@
               p.x += ((m.x - p.x) / d) * pull * dt;
               p.y += ((m.y - 10 - p.y) / d) * pull * dt;
             }
-                        if (d < 35) {
+            if (d < 35) {
               // 🆕 Руна не подбирается, если у мага заблокированы
               //    ВСЕ слоты 1–3. Руна остаётся лежать на земле.
               if (p.type[0] === "r") {
@@ -11537,23 +11537,54 @@
             // 🆕 Хоткеи смены стихии
             else if (e.code === "KeyR") {
               cycleAtkStyle();
-            } else if (e.code.startsWith("Digit")) {
+            }
+            // 🆕 Клавиши 1–4 = блокировка/разблокировка слотов рун.
+            //    [1][2][3] — toggle конкретного слота,
+            //    [4] — toggle всех трёх (1–3) разом.
+            else if (e.code.startsWith("Digit")) {
               const num = +e.code.replace("Digit", "");
               if (num >= 1 && num <= 4) {
-                const slots = G.player.ultSlots;
-                if (slots && slots[num - 1] != null) {
-                  G.player.elem = slots[num - 1];
-                  G.player.baseElem = slots[num - 1];
-                  G.player._atkSwitchCd = 0.5;
-                  sfx("pickup");
-                  G.events.push({
-                    k: "atkstyle",
-                    id: G.player.id,
-                    e: G.player.elem,
-                  });
-                  if (G.role === "client")
-                    netSendAct({ k: "asel", atk: G.player.elem });
+                const pl = G.player;
+                if (!pl.lockedSlots)
+                  pl.lockedSlots = [true, false, false, false];
+                pl.lockedSlots[0] = true;
+
+                if (num === 4) {
+                  const allLocked =
+                    pl.lockedSlots[1] && pl.lockedSlots[2] && pl.lockedSlots[3];
+                  const newVal = !allLocked;
+                  pl.lockedSlots[1] = newVal;
+                  pl.lockedSlots[2] = newVal;
+                  pl.lockedSlots[3] = newVal;
+                  sfx("click");
+                  toast(
+                    lang === "ru"
+                      ? newVal
+                        ? "🔒 Слоты 1-3 заблокированы"
+                        : "🔓 Слоты 1-3 разблокированы"
+                      : newVal
+                        ? "🔒 Slots 1-3 locked"
+                        : "🔓 Slots 1-3 unlocked",
+                    1200,
+                  );
+                } else {
+                  pl.lockedSlots[num] = !pl.lockedSlots[num];
+                  sfx("click");
+                  toast(
+                    lang === "ru"
+                      ? (pl.lockedSlots[num] ? "🔒 Слот " : "🔓 Слот ") + num
+                      : (pl.lockedSlots[num] ? "🔒 Slot " : "🔓 Slot ") + num,
+                    900,
+                  );
                 }
+
+                // 🆕 Синхронизация с хостом (в онлайне подбор рун
+                //    обрабатывается на хосте — ему нужно знать lockedSlots)
+                if (G.role === "client")
+                  netSendAct({
+                    k: "lockslot",
+                    arr: pl.lockedSlots.slice(),
+                  });
               }
             }
           }
@@ -11959,7 +11990,7 @@
           return;
         }
         // 🆕 Клик по слотам рун (1-3) — назначение приоритета
-              // 🆕 Клик по кнопкам блокировки «1 2 3 4» над слотами
+        // 🆕 Клик по кнопкам блокировки «1 2 3 4» над слотами
         if (G.player) {
           if (!G.player.lockedSlots)
             G.player.lockedSlots = [true, false, false, false];
@@ -15148,7 +15179,7 @@
         c.lineWidth = 2.5;
         c.strokeStyle = "#DAA520";
         c.stroke();
-                const ry = H - 70 * u,   // 🆕 приподняли слоты (было H - 52*u)
+        const ry = H - 70 * u, // 🆕 приподняли слоты (было H - 52*u)
           rx = 16 * u;
         if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null];
         if (!p.lockedSlots) p.lockedSlots = [true, false, false, false];
@@ -15170,11 +15201,7 @@
           c.fill();
           c.lineWidth = 1.5;
           c.strokeStyle =
-            i === 0
-              ? "#DAA520"
-              : locked
-                ? "#FF6060"
-                : "rgba(218,165,32,.6)";
+            i === 0 ? "#DAA520" : locked ? "#FF6060" : "rgba(218,165,32,.6)";
           c.stroke();
           c.font = "900 " + 10 * u + "px Arial";
           c.textAlign = "center";
@@ -15227,13 +15254,14 @@
           c.fillStyle = active ? "rgba(80,40,120,.9)" : "rgba(20,10,30,.7)";
           c.fill();
           c.lineWidth = active ? 3.5 : 2;
-          c.strokeStyle = locked && i > 0
-            ? "#FF6060"
-            : active
-              ? "#FFD84A"
-              : e != null
-                ? elemColor(e)
-                : "rgba(218,165,32,.5)";
+          c.strokeStyle =
+            locked && i > 0
+              ? "#FF6060"
+              : active
+                ? "#FFD84A"
+                : e != null
+                  ? elemColor(e)
+                  : "rgba(218,165,32,.5)";
           c.stroke();
           if (e != null)
             c.drawImage(IC["e" + e], x - 12 * u, ry - 12 * u, 24 * u, 24 * u);
@@ -15277,17 +15305,9 @@
         c.lineJoin = "round";
         c.lineWidth = 2.5 * u;
         c.strokeStyle = "#000";
-        c.strokeText(
-          _nmLabel,
-          iconCx + iconSize / 2 + 6 * u,
-          iconCy + 0.5 * u,
-        );
+        c.strokeText(_nmLabel, iconCx + iconSize / 2 + 6 * u, iconCy + 0.5 * u);
         c.fillStyle = p.ultCharge >= 100 ? "#FFD84A" : "#ccc";
-        c.fillText(
-          _nmLabel,
-          iconCx + iconSize / 2 + 6 * u,
-          iconCy + 0.5 * u,
-        );
+        c.fillText(_nmLabel, iconCx + iconSize / 2 + 6 * u, iconCy + 0.5 * u);
         if (p.multiStacks > 1) {
           let mx2 = rx + 3 * 38 * u + 16 * u + 40 * u;
           // 🆕 не вылезать за правый край
@@ -16988,7 +17008,7 @@
           "🔥",
           isRu ? "РУНЫ И УЛЬТА" : "RUNES & ULT",
           isRu
-            ? `Руны стихий: 🔥❄️⚡💨🌑<br><br>🔹 1 руна → простая ульта<br>🔹 2 руны → комбо-ульта<br>🔹 4 одинаковые → МЕГА-УЛЬТА (самый сильный)<br><br>🟣 Руна выстрела → +1 снаряд (до 15)<br>🟢 Базовая стихия (слот BASE) не меняется от рун<br><br>🗑️ <b>Замена рун:</b> Нажмите на слот руны (внизу слева), чтобы отметить её красным. Следующая подобранная руна заменит именно её. Повторный клик снимает приоритет.<br><br>⌨️ <b>Хоткеи:</b> [R] — сменить стихию, [1][2][3][4] — мгновенно выбрать стихию из слота.<br>💥 Чем больше одинаковых рун, тем крупнее и мощнее ваши снаряды!`
+            ? `Руны стихий: 🔥❄️⚡💨🌑<br><br>🔹 1 руна → простая ульта<br>🔹 2 руны → комбо-ульта<br>🔹 4 одинаковые → МЕГА-УЛЬТА (самый сильный)<br><br>🟣 Руна выстрела → +1 снаряд (до 15)<br>🟢 Базовая стихия (слот BASE) не меняется от рун<br><br>🔒 <b>Блокировка слотов:</b> нажмите на круг слота внизу слева или клавиши <b>[1][2][3]</b> — слот заблокируется (🔒). Заблокированный слот никогда не заменяется руной. Клавиша <b>[4]</b> — заблокировать/разблокировать все три слота разом. Слот BASE заблокирован навсегда.<br><br>⌨️ <b>Хоткеи:</b> [R] — сменить стихию, [1][2][3] — блокировка слотов, [4] — все слоты.<br>💥 Чем больше одинаковых рун, тем крупнее и мощнее ваши снаряды!`
             : `Element runes: 🔥❄️⚡💨🌑<br><br>🔹 1 rune → simple ult<br>🔹 2 runes → combo ult<br>🔹 4 same → MEGA ULT (strongest)<br><br>🟣 Shot rune → +1 projectile (max 15)<br>🟢 Base element (BASE slot) is not changed by runes<br><br>🗑️ <b>Rune Replace:</b> Click a rune slot (bottom left) to mark it red. The next rune picked up replaces it. Click again to unmark.<br><br>⌨️ <b>Hotkeys:</b> [R] — cycle element, [1][2][3][4] — select element from slot.<br>💥 More same runes = bigger and stronger projectiles!`,
         );
         h += sect(
@@ -18006,6 +18026,11 @@
           m.netLastIn = performance.now(); // 🆕
           if (Array.isArray(d.acts)) {
             for (const a of d.acts.slice(0, 6)) {
+              // 🆕 Синхронизация lockedSlots от клиента
+              if (a.k === "lockslot" && Array.isArray(a.arr)) {
+                m.lockedSlots = [true, !!a.arr[1], !!a.arr[2], !!a.arr[3]];
+                continue;
+              }
               if (a.k === "usel" && m.ultSlots) {
                 // 🆕 переключение ульты
                 if (
