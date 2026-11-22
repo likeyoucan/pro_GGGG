@@ -4579,9 +4579,12 @@
           this.runes = [];
           this.ultSlots = [0, null, null, null]; // 4 ячейки: [0] = базовый elem
           this.ultActive = 0;
-          // 🆕 [0] всегда true (BASE заблокирован навсегда),
-          //    1–3 — переключаются кнопками над кругами
+          // [0] всегда true (BASE заблокирован навсегда)
           this.lockedSlots = [true, false, false, false];
+          // 🆕 Три режима AUTO: "auto" | "off" | "locked"
+          this.autoMode = "auto";
+          // 🆕 Индекс слота для ручной замены (используется в режиме "off")
+          this.replaceIdx = null;
           this.ultCharge = 0;
           this.atkCd = 0;
           this.dashCd = 0;
@@ -9933,7 +9936,8 @@
       function addRune(m, e) {
         if (!m.ultSlots) m.ultSlots = [m.elem, null, null, null];
         if (!m.lockedSlots) m.lockedSlots = [true, false, false, false];
-        m.lockedSlots[0] = true; // BASE всегда заблокирован
+        if (!m.autoMode) m.autoMode = "auto";
+        m.lockedSlots[0] = true;
 
         const _commit = (slot) => {
           m.ultSlots[slot] = e;
@@ -9944,17 +9948,42 @@
           if (m === G.player) SAVE.stats.runesCollected++;
         };
 
-        // 1) Первый свободный незаблокированный слот 1–3
+        // === РЕЖИМ "locked": руна не подбирается (проверка в updatePickups),
+        //     но на всякий случай выходим ===
+        if (m.autoMode === "locked") return;
+
+        // === РЕЖИМ "off": игрок вручную выбирает слот замены ===
+        if (m.autoMode === "off") {
+          // 1) Свободный незаблокированный слот
+          for (let i = 1; i < 4; i++) {
+            if (m.ultSlots[i] == null && !m.lockedSlots[i]) {
+              _commit(i);
+              return;
+            }
+          }
+          // 2) Игрок выбрал слот (replaceIdx)
+          if (
+            m.replaceIdx >= 1 &&
+            m.replaceIdx <= 3 &&
+            !m.lockedSlots[m.replaceIdx]
+          ) {
+            _commit(m.replaceIdx);
+            m.replaceIdx = null; // сброс после замены
+            return;
+          }
+          // 3) Некуда девать — руна остаётся на земле (continue в updatePickups)
+          return;
+        }
+
+        // === РЕЖИМ "auto" (по умолчанию) ===
+        // 1) Свободный незаблокированный слот
         for (let i = 1; i < 4; i++) {
           if (m.ultSlots[i] == null && !m.lockedSlots[i]) {
             _commit(i);
             return;
           }
         }
-
-        // 2) Все слоты 1–3 заняты (или свободные заблокированы).
-        //    Заменяем незаблокированный слот с НАИМЕНЕЕ ЧАСТЫМ элементом.
-        //    Tie-break — меньший индекс (1 → 2 → 3).
+        // 2) Заменяем незаблокированный слот с наименее частым элементом
         const counts = {};
         for (let i = 0; i < 4; i++) {
           const v = m.ultSlots[i];
@@ -9971,13 +10000,7 @@
             bestSlot = i;
           }
         }
-        if (bestSlot >= 0) {
-          _commit(bestSlot);
-          return;
-        }
-
-        // 3) Все слоты 1–3 заблокированы — руна НЕ подбирается.
-        //    Проверка уже сделана в updatePickups: этот код не выполнится.
+        if (bestSlot >= 0) _commit(bestSlot);
       }
       function collect(m, p) {
         const k = p.type,
@@ -10044,17 +10067,28 @@
             if (m.dead) continue;
             const d = dist(m.x, m.y, p.x, p.y);
             if (d < 110 && (m === G.player || m.isBot || m.remote)) {
-              // 🆕 Руна не притягивается, если все слоты 1–3 заблокированы.
-              //    Иначе она «гоняется» за игроком, хотя подобрать её нельзя.
+              // 🆕 Руна не притягивается, если её нельзя подобрать
               let canPull = true;
               if (p.type[0] === "r") {
                 const ls = m.lockedSlots || [true, false, false, false];
-                if (ls[1] && ls[2] && ls[3]) canPull = false;
+                // Режим "locked" — все 1-3 заблокированы
+                if (m.autoMode === "locked" || (ls[1] && ls[2] && ls[3]))
+                  canPull = false;
+                // Режим "off" — нет свободного и не выбран replaceIdx
+                if (m.autoMode === "off" && !m.isBot) {
+                  let freeSlot = false;
+                  for (let i = 1; i < 4; i++) {
+                    if (m.ultSlots[i] == null && !ls[i]) {
+                      freeSlot = true;
+                      break;
+                    }
+                  }
+                  if (!freeSlot && !(m.replaceIdx >= 1 && m.replaceIdx <= 3))
+                    canPull = false;
+                }
               }
               if (canPull) {
-                // 🆕 Чем ближе к игроку — тем сильнее притяжение
-                const distFactor = 1 - d / 110; // 0 на краю, 1 в упор
-                // 🆕 Чем быстрее маг — тем мощнее «магнит»
+                const distFactor = 1 - d / 110;
                 const spd =
                   m.isBot || m.remote ? 220 : Math.hypot(m.vx || 0, m.vy || 0);
                 const speedFactor = clamp(spd / 220, 0.5, 2);
@@ -10064,12 +10098,22 @@
               }
             }
             if (d < 35) {
-              // 🆕 Руна не подбирается, если у мага заблокированы
-              //    ВСЕ слоты 1–3. Руна остаётся лежать на земле.
               if (p.type[0] === "r") {
                 const ls = m.lockedSlots || [true, false, false, false];
-                if (ls[1] && ls[2] && ls[3]) {
-                  continue; // пропускаем мага, руна не исчезает
+                // Режим "locked" — не подбираем
+                if (m.autoMode === "locked" || (ls[1] && ls[2] && ls[3]))
+                  continue;
+                // Режим "off" без выбранного слота — не подбираем
+                if (m.autoMode === "off" && !m.isBot) {
+                  let freeSlot = false;
+                  for (let i = 1; i < 4; i++) {
+                    if (m.ultSlots[i] == null && !ls[i]) {
+                      freeSlot = true;
+                      break;
+                    }
+                  }
+                  if (!freeSlot && !(m.replaceIdx >= 1 && m.replaceIdx <= 3))
+                    continue;
                 }
               }
               collect(m, p);
@@ -12133,46 +12177,92 @@
           cycleAtkStyle();
           return;
         }
-        // 🆕 Клики по слот-кнопкам и кругам
+        // 🆕 Клики по слот-кнопкам и кругам (зависят от autoMode)
         if (G.player) {
           const pl = G.player;
           if (!pl.lockedSlots) pl.lockedSlots = [true, false, false, false];
+          if (!pl.autoMode) pl.autoMode = "auto";
           pl.lockedSlots[0] = true;
 
           const slotRy = H - 70 * u;
           const slotRx = 16 * u;
           const lockRy = slotRy - 26 * u;
+          const mode = pl.autoMode;
 
-          // 1) Клик по кнопкам 1 / 2 / 3 (НАД слотами) — toggle слота
-          for (let i = 1; i <= 3; i++) {
-            const bx = slotRx + i * 38 * u + 16 * u;
-            if (Math.hypot(x - bx, y - lockRy) < 11 * u) {
-              pl.lockedSlots[i] = !pl.lockedSlots[i];
-              sfx("click");
-              if (G.role === "client")
-                netSendAct({ k: "lockslot", arr: pl.lockedSlots.slice() });
-              return;
-            }
-          }
-
-          // 2) Клик по кнопке AUTO (4-я над слотами) — toggle всех трёх
+          // 1) Клик по кнопке AUTO (4) — циклически сменить режим
           {
             const bx = slotRx + 4 * 38 * u + 16 * u;
             if (Math.hypot(x - bx, y - lockRy) < 12 * u) {
-              const allLocked =
-                pl.lockedSlots[1] && pl.lockedSlots[2] && pl.lockedSlots[3];
-              const newVal = !allLocked;
-              pl.lockedSlots[1] = newVal;
-              pl.lockedSlots[2] = newVal;
-              pl.lockedSlots[3] = newVal;
+              if (mode === "auto") {
+                pl.autoMode = "off";
+                pl.replaceIdx = null;
+              } else if (mode === "off") {
+                pl.autoMode = "locked";
+                pl.lockedSlots[1] = true;
+                pl.lockedSlots[2] = true;
+                pl.lockedSlots[3] = true;
+                pl.replaceIdx = null;
+              } else {
+                pl.autoMode = "auto";
+                pl.lockedSlots[1] = false;
+                pl.lockedSlots[2] = false;
+                pl.lockedSlots[3] = false;
+              }
               sfx("click");
+              toast(
+                lang === "ru"
+                  ? pl.autoMode === "auto"
+                    ? "🟢 AUTO: автоподбор включён"
+                    : pl.autoMode === "off"
+                      ? "🟠 OFF: выберите слот 1/2/3 для замены"
+                      : "🔒 LOCKED: все слоты заблокированы"
+                  : pl.autoMode === "auto"
+                    ? "🟢 AUTO: auto-pickup enabled"
+                    : pl.autoMode === "off"
+                      ? "🟠 OFF: choose slot 1/2/3 to replace"
+                      : "🔒 LOCKED: all slots locked",
+                1800,
+              );
               if (G.role === "client")
-                netSendAct({ k: "lockslot", arr: pl.lockedSlots.slice() });
+                netSendAct({
+                  k: "lockslot",
+                  arr: pl.lockedSlots.slice(),
+                  am: pl.autoMode,
+                  ri: pl.replaceIdx,
+                });
               return;
             }
           }
 
-          // 3) Клик по самим кругам слотов — toggle соответствующего слота
+          // 2) Клик по кнопкам 1 / 2 / 3
+          for (let idx = 1; idx <= 3; idx++) {
+            const bx = slotRx + idx * 38 * u + 16 * u;
+            if (Math.hypot(x - bx, y - lockRy) < 11 * u) {
+              if (mode === "locked") {
+                sfx("error");
+                return; // в режиме locked ничего не делаем
+              }
+              if (mode === "off") {
+                // Выбор слота для замены
+                pl.replaceIdx = pl.replaceIdx === idx ? null : idx;
+                sfx("click");
+              } else {
+                // auto — toggle блокировки
+                pl.lockedSlots[idx] = !pl.lockedSlots[idx];
+                sfx("click");
+              }
+              if (G.role === "client")
+                netSendAct({
+                  k: "lockslot",
+                  arr: pl.lockedSlots.slice(),
+                  am: pl.autoMode,
+                  ri: pl.replaceIdx,
+                });
+              return;
+            }
+          }
+
+          // 3) Клик по самим кругам слотов
           for (let i = 0; i < 4; i++) {
             const slotX = slotRx + i * 38 * u + 16 * u;
             if (Math.hypot(x - slotX, y - slotRy) < 18 * u) {
@@ -12186,10 +12276,24 @@
                 );
                 return;
               }
-              pl.lockedSlots[i] = !pl.lockedSlots[i];
-              sfx("click");
+              if (mode === "locked") {
+                sfx("error");
+                return;
+              }
+              if (mode === "off") {
+                pl.replaceIdx = pl.replaceIdx === i ? null : i;
+                sfx("click");
+              } else {
+                pl.lockedSlots[i] = !pl.lockedSlots[i];
+                sfx("click");
+              }
               if (G.role === "client")
-                netSendAct({ k: "lockslot", arr: pl.lockedSlots.slice() });
+                netSendAct({
+                  k: "lockslot",
+                  arr: pl.lockedSlots.slice(),
+                  am: pl.autoMode,
+                  ri: pl.replaceIdx,
+                });
               return;
             }
           }
@@ -15368,25 +15472,76 @@
         if (!p.lockedSlots) p.lockedSlots = [true, false, false, false];
         p.lockedSlots[0] = true;
 
-        // 🆕 Кнопки 1 / 2 / 3 — toggle конкретного слота (без 🔒)
+        // 🆕 Кнопки 1 / 2 / 3 — поведение зависит от autoMode
         const lockRy = ry - 26 * u;
+        const mode = p.autoMode || "auto";
         for (let i = 0; i < 3; i++) {
-          const x = rx + (i + 1) * 38 * u + 16 * u;
-          const locked = p.lockedSlots[i + 1];
+          const idx = i + 1;
+          const x = rx + idx * 38 * u + 16 * u;
+          const locked = p.lockedSlots[idx];
+          const isReplace = mode === "off" && p.replaceIdx === idx;
+          let bg, br, fg;
+          if (mode === "locked") {
+            bg = "rgba(200,50,50,.95)"; // всё 🔒 — красное
+            br = "#FF8080";
+            fg = "#FFF";
+          } else if (mode === "off") {
+            // Режим выбора: если replaceIdx — жёлтый, иначе тёмный
+            bg = isReplace ? "rgba(255,215,60,.95)" : "rgba(40,20,60,.85)";
+            br = isReplace ? "#FFF6A0" : "rgba(218,165,32,.6)";
+            fg = isReplace ? "#1a0500" : "#ddd";
+          } else {
+            // Режим "auto" — как раньше: красный если заблокирован
+            bg = locked ? "rgba(200,50,50,.95)" : "rgba(40,20,60,.85)";
+            br = locked ? "#FF8080" : "rgba(218,165,32,.6)";
+            fg = locked ? "#FFF" : "#aaa";
+          }
           c.beginPath();
           c.arc(x, lockRy, 9 * u, 0, TAU);
-          c.fillStyle = locked
-            ? "rgba(200,50,50,.95)" // заблокирован — красный
-            : "rgba(40,20,60,.85)"; // свободен — тёмный
+          c.fillStyle = bg;
           c.fill();
           c.lineWidth = 1.5;
-          c.strokeStyle = locked ? "#FF8080" : "rgba(218,165,32,.6)";
+          c.strokeStyle = br;
           c.stroke();
           c.font = "900 " + 10 * u + "px Arial";
           c.textAlign = "center";
           c.textBaseline = "middle";
-          c.fillStyle = locked ? "#FFF" : "#aaa";
-          c.fillText(String(i + 1), x, lockRy + 0.5 * u);
+          c.fillStyle = fg;
+          c.fillText(String(idx), x, lockRy + 0.5 * u);
+        }
+
+        // 🆕 Кнопка «AUTO» (4) — циклически переключает режим
+        {
+          const x = rx + 4 * 38 * u + 16 * u;
+          let bg, br, fg, label;
+          if (mode === "auto") {
+            bg = "rgba(60,180,90,.95)";
+            br = "#90FF90";
+            fg = "#fff";
+            label = "AUTO";
+          } else if (mode === "off") {
+            bg = "rgba(255,140,40,.95)"; // оранжевый — авто выключено
+            br = "#FFB060";
+            fg = "#fff";
+            label = "OFF";
+          } else {
+            bg = "rgba(200,50,50,.95)"; // красный — заблокировано
+            br = "#FF8080";
+            fg = "#fff";
+            label = "🔒";
+          }
+          c.beginPath();
+          c.arc(x, lockRy, 10 * u, 0, TAU);
+          c.fillStyle = bg;
+          c.fill();
+          c.lineWidth = 2.2;
+          c.strokeStyle = br;
+          c.stroke();
+          c.font = "900 " + (mode === "locked" ? 11 : 7.5) * u + "px Arial";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillStyle = fg;
+          c.fillText(label, x, lockRy + 0.5 * u);
         }
 
         // 🆕 Кнопка «AUTO» (4) — toggle всех трёх слотов разом.
@@ -16420,15 +16575,19 @@
 
       function drawStaffPreview(cv, staff) {
         const c = cv.getContext("2d");
-        cv.width = 180;
-        cv.height = 200;
+        if (cv.width !== 180) {
+          cv.width = 180;
+          cv.height = 200;
+        }
         c.clearRect(0, 0, 180, 200);
+
         const g = c.createRadialGradient(90, 120, 10, 90, 120, 90);
         g.addColorStop(0, "rgba(120,70,180,.5)");
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
 
+        // 🆕 Анимированный «фейковый маг» — пульсирует и слегка покачивается
         const fakeMage = {
           x: 0,
           y: 0,
@@ -16440,17 +16599,32 @@
           lev: 0,
           staff: staff,
           skin: { id: "" },
+          // 🆕 Анимация: посох слегка покачивается + «дышит»
+          staffAnim: Math.sin(TM * 2) * 0.5 + 0.5,
         };
 
         _previewMode = true;
         try {
           c.save();
-          // 🆕 уменьшили масштаб (3.2 → 2.2) и опустили центр (110 → 165),
-          // чтобы верх посоха (включая сферы / пламя / рога) полностью
-          // помещался в canvas 180×200
-          c.translate(90 - 22 * 2.2, 165);
+          // 🆕 Лёгкое покачивание по вертикали
+          const bob = Math.sin(TM * 1.8) * 2;
+          c.translate(90 - 22 * 2.2, 165 + bob);
           c.scale(2.2, 2.2);
+          // 🆕 Небольшой наклон от анимации
+          c.rotate(Math.sin(TM * 1.2) * 0.04);
           drawStaff(c, fakeMage, 1);
+          c.restore();
+
+          // 🆕 Лёгкое свечение под посохом (тень)
+          c.save();
+          c.globalAlpha = 0.25 + 0.1 * Math.sin(TM * 2);
+          const sg = c.createRadialGradient(90, 190, 4, 90, 190, 35);
+          sg.addColorStop(0, "rgba(120,80,200,.6)");
+          sg.addColorStop(1, "rgba(120,80,200,0)");
+          c.fillStyle = sg;
+          c.beginPath();
+          c.ellipse(90, 190, 35, 8, 0, 0, TAU);
+          c.fill();
           c.restore();
         } finally {
           _previewMode = false;
@@ -16516,6 +16690,7 @@
 
       function buildShop() {
         clearInterval(shopTimer);
+        shopTimer = null;
         const tabs = $("shopTabs");
         tabs.innerHTML = "";
         for (const [id, k] of [
@@ -16971,6 +17146,35 @@
             (menuMages[0].staff && menuMages[0].staff.id !== SAVE.staff))
         )
           initMenuMages();
+        // 🆕 Анимировать превью посохов, пока открыта вкладка «Посохи»
+        if (shopTab === "staffs") {
+          document.querySelectorAll(".card > canvas").forEach((cv, i) => {
+            // привязываем staffId, чтобы знать, что рисовать
+            const card = cv.parentElement;
+            const nameEl = card.querySelector("b");
+            if (!nameEl) return;
+            const title = nameEl.textContent;
+            for (const st of STAFFS) {
+              if (st[lang] === title) {
+                cv.dataset.staff = st.id;
+                break;
+              }
+            }
+          });
+          shopTimer = setInterval(() => {
+            if (state !== "SHOP" || shopTab !== "staffs") {
+              clearInterval(shopTimer);
+              shopTimer = null;
+              return;
+            }
+            document
+              .querySelectorAll(".card > canvas[data-staff]")
+              .forEach((cv) => {
+                const staff = STAFF_BY_ID[cv.dataset.staff];
+                if (staff) drawStaffPreview(cv, staff);
+              });
+          }, 50);
+        }
       }
 
       function buildCodex() {
