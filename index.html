@@ -4577,9 +4577,11 @@
           this.elem = 0;
           this.baseElem = 0;
           this.runes = [];
-          this.ultSlots = [0, null, null, null]; // 🆕 4 ячейки: [0] = базовый elem
+                    this.ultSlots = [0, null, null, null]; // 4 ячейки: [0] = базовый elem
           this.ultActive = 0;
-          this.replaceIdx = null; // 🆕 индекс руны на замену (1-3)
+          // 🆕 [0] всегда true (BASE заблокирован навсегда),
+          //    1–3 — переключаются кнопками над кругами
+          this.lockedSlots = [true, false, false, false];
           this.ultCharge = 0;
           this.atkCd = 0;
           this.dashCd = 0;
@@ -9774,8 +9776,10 @@
       function addMulti(m) {
         m.multiStacks = Math.min(15, m.multiStacks + 1);
       }
-      function addRune(m, e) {
+            function addRune(m, e) {
         if (!m.ultSlots) m.ultSlots = [m.elem, null, null, null];
+        if (!m.lockedSlots) m.lockedSlots = [true, false, false, false];
+        m.lockedSlots[0] = true; // BASE всегда заблокирован
 
         const _commit = (slot) => {
           m.ultSlots[slot] = e;
@@ -9786,39 +9790,40 @@
           if (m === G.player) SAVE.stats.runesCollected++;
         };
 
-        // 1) Свободный слот (1–3). Слот 0 — базовая стихия — НЕ трогаем.
+        // 1) Первый свободный незаблокированный слот 1–3
         for (let i = 1; i < 4; i++) {
-          if (m.ultSlots[i] == null) {
+          if (m.ultSlots[i] == null && !m.lockedSlots[i]) {
             _commit(i);
             return;
           }
         }
 
-        // 2) Если игрок выбрал слот для замены вручную (кликом)
-        if (m.replaceIdx >= 1 && m.replaceIdx <= 3) {
-          _commit(m.replaceIdx);
-          return;
-        }
-
-        // 3) Все заняты. Приоритет — собрать 4 одинаковых.
+        // 2) Все слоты 1–3 заняты (или свободные заблокированы).
+        //    Заменяем незаблокированный слот с НАИМЕНЕЕ ЧАСТЫМ элементом.
+        //    Tie-break — меньший индекс (1 → 2 → 3).
         const counts = {};
         for (let i = 0; i < 4; i++) {
           const v = m.ultSlots[i];
           if (v != null) counts[v] = (counts[v] || 0) + 1;
         }
-
-        // Если e уже есть в слотах — заменяем слот 1–3 с ДРУГОЙ стихией
-        if ((counts[e] || 0) >= 1) {
-          for (let i = 1; i < 4; i++) {
-            if (m.ultSlots[i] !== e && m.ultSlots[i] != null) {
-              _commit(i);
-              return;
-            }
+        let bestSlot = -1;
+        let bestCount = Infinity;
+        for (let i = 1; i < 4; i++) {
+          if (m.lockedSlots[i]) continue;
+          const v = m.ultSlots[i];
+          const c = counts[v] || 0;
+          if (c < bestCount) {
+            bestCount = c;
+            bestSlot = i;
           }
         }
+        if (bestSlot >= 0) {
+          _commit(bestSlot);
+          return;
+        }
 
-        // Иначе — заменяем слот 1 (вторая стихия — первый кандидат)
-        _commit(1);
+        // 3) Все слоты 1–3 заблокированы — руна НЕ подбирается.
+        //    Проверка уже сделана в updatePickups: этот код не выполнится.
       }
       function collect(m, p) {
         const k = p.type,
@@ -9895,7 +9900,15 @@
               p.x += ((m.x - p.x) / d) * pull * dt;
               p.y += ((m.y - 10 - p.y) / d) * pull * dt;
             }
-            if (d < 35) {
+                        if (d < 35) {
+              // 🆕 Руна не подбирается, если у мага заблокированы
+              //    ВСЕ слоты 1–3. Руна остаётся лежать на земле.
+              if (p.type[0] === "r") {
+                const ls = m.lockedSlots || [true, false, false, false];
+                if (ls[1] && ls[2] && ls[3]) {
+                  continue; // пропускаем мага, руна не исчезает
+                }
+              }
               collect(m, p);
               G.pickups[i] = G.pickups[G.pickups.length - 1];
               G.pickups.pop();
@@ -11946,17 +11959,29 @@
           return;
         }
         // 🆕 Клик по слотам рун (1-3) — назначение приоритета
-        const ry = H - 52 * u;
-        const rx = 16 * u;
-        for (let i = 1; i < 4; i++) {
-          const slotX = rx + i * 38 * u + 16 * u;
-          if (Math.hypot(x - slotX, y - ry) < 15 * u * 1.5) {
-            const p = G.player;
-            if (p.ultSlots[i] != null) {
-              p.replaceIdx = p.replaceIdx === i ? null : i;
+              // 🆕 Клик по кнопкам блокировки «1 2 3 4» над слотами
+        if (G.player) {
+          if (!G.player.lockedSlots)
+            G.player.lockedSlots = [true, false, false, false];
+          const lockRy = H - 70 * u - 26 * u;
+          const lockRx = 16 * u;
+          for (let i = 0; i < 4; i++) {
+            const slotX = lockRx + i * 38 * u + 16 * u;
+            if (Math.hypot(x - slotX, y - lockRy) < 11 * u) {
+              if (i === 0) {
+                sfx("error");
+                toast(
+                  lang === "ru"
+                    ? "Базовый слот всегда заблокирован"
+                    : "Base slot is always locked",
+                  1400,
+                );
+                return;
+              }
+              G.player.lockedSlots[i] = !G.player.lockedSlots[i];
               sfx("click");
+              return;
             }
-            return;
           }
         }
         const n = hitButton(x, y);
@@ -15123,11 +15148,47 @@
         c.lineWidth = 2.5;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        const ry = H - 52 * u,
+                const ry = H - 70 * u,   // 🆕 приподняли слоты (было H - 52*u)
           rx = 16 * u;
-        // 🆕 4 ячейки ультимейта
-        if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null]; // 🆕
-        // 🆕 все 4 слота одной стихии → мега-индикатор
+        if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null];
+        if (!p.lockedSlots) p.lockedSlots = [true, false, false, false];
+        p.lockedSlots[0] = true;
+
+        // 🆕 Кнопки блокировки «1 / 2 / 3 / 🔒» НАД кругами слотов
+        const lockRy = ry - 26 * u;
+        for (let i = 0; i < 4; i++) {
+          const x = rx + i * 38 * u + 16 * u;
+          const locked = i === 0 ? true : p.lockedSlots[i];
+          c.beginPath();
+          c.arc(x, lockRy, 9 * u, 0, TAU);
+          c.fillStyle =
+            i === 0
+              ? "rgba(80,40,20,.9)"
+              : locked
+                ? "rgba(160,40,40,.9)"
+                : "rgba(40,20,60,.85)";
+          c.fill();
+          c.lineWidth = 1.5;
+          c.strokeStyle =
+            i === 0
+              ? "#DAA520"
+              : locked
+                ? "#FF6060"
+                : "rgba(218,165,32,.6)";
+          c.stroke();
+          c.font = "900 " + 10 * u + "px Arial";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          if (locked) {
+            c.fillStyle = i === 0 ? "#FFD84A" : "#FFA0A0";
+            c.fillText("🔒", x, lockRy + 0.5 * u);
+          } else {
+            c.fillStyle = "#ddd";
+            c.fillText(String(i), x, lockRy + 0.5 * u);
+          }
+        }
+
+        // 🆕 MEGA-пульсация при 4 одинаковых
         const _allSame =
           p.ultSlots[0] != null &&
           p.ultSlots[1] === p.ultSlots[0] &&
@@ -15140,7 +15201,6 @@
             const x = rx + i * 38 * u + 16 * u;
             c.save();
             c.globalAlpha = pulse;
-            // 🆕 Заливка + обводка
             c.fillStyle = rgba(col, 0.25 * pulse);
             c.beginPath();
             c.arc(x, ry, 18 * u, 0, TAU);
@@ -15155,18 +15215,20 @@
             c.restore();
           }
         }
+
+        // 🆕 Сами круги слотов
         for (let i = 0; i < 4; i++) {
           const x = rx + i * 38 * u + 16 * u;
           const e = p.ultSlots[i];
           const active = (p.ultActive || 0) === i;
-          const isReplace = p.replaceIdx === i;
+          const locked = i === 0 ? true : p.lockedSlots[i];
           c.beginPath();
           c.arc(x, ry, 15 * u, 0, TAU);
           c.fillStyle = active ? "rgba(80,40,120,.9)" : "rgba(20,10,30,.7)";
           c.fill();
-          c.lineWidth = active || isReplace ? 3.5 : 2;
-          c.strokeStyle = isReplace
-            ? "#FF3030"
+          c.lineWidth = active ? 3.5 : 2;
+          c.strokeStyle = locked && i > 0
+            ? "#FF6060"
             : active
               ? "#FFD84A"
               : e != null
@@ -15179,9 +15241,53 @@
             c.font = "800 " + 8 * u + "px Arial";
             c.fillStyle = "#FFD84A";
             c.textAlign = "center";
+            c.textBaseline = "middle";
             c.fillText("BASE", x, ry + 24 * u);
           }
         }
+
+        // 🆕 Иконка ульты СПРАВА от 4-го круга, на той же высоте ry,
+        //    чтобы выравнивалась по кругам (не налезала на слоты)
+        const slotRightX = rx + 3 * 38 * u + 16 * u + 15 * u;
+        const iconCx = slotRightX + 14 * u;
+        const iconCy = ry;
+        const iconSize = 20 * u;
+        if (_ui.img) {
+          c.beginPath();
+          c.arc(iconCx, iconCy, iconSize / 2 + 2 * u, 0, TAU);
+          c.fillStyle = "rgba(20,10,30,.85)";
+          c.fill();
+          c.lineWidth = 2 * u;
+          c.strokeStyle =
+            p.ultCharge >= 100 ? "#FFD84A" : "rgba(218,165,32,.55)";
+          c.stroke();
+          c.drawImage(
+            _ui.img,
+            iconCx - iconSize / 2,
+            iconCy - iconSize / 2,
+            iconSize,
+            iconSize,
+          );
+        }
+        // 🆕 Название ульты — справа от иконки, на одной высоте ry
+        const _nmLabel = t("ult") + ": " + ultName(_uk.key);
+        c.font = "800 " + 12 * u + 'px "Segoe UI",Arial';
+        c.textAlign = "left";
+        c.textBaseline = "middle";
+        c.lineJoin = "round";
+        c.lineWidth = 2.5 * u;
+        c.strokeStyle = "#000";
+        c.strokeText(
+          _nmLabel,
+          iconCx + iconSize / 2 + 6 * u,
+          iconCy + 0.5 * u,
+        );
+        c.fillStyle = p.ultCharge >= 100 ? "#FFD84A" : "#ccc";
+        c.fillText(
+          _nmLabel,
+          iconCx + iconSize / 2 + 6 * u,
+          iconCy + 0.5 * u,
+        );
         if (p.multiStacks > 1) {
           let mx2 = rx + 3 * 38 * u + 16 * u + 40 * u;
           // 🆕 не вылезать за правый край
@@ -15251,33 +15357,6 @@
           c.fillText("ATK", 0, asw.r + 10 * u);
           c.restore();
         }
-        const nm = t("ult") + ": " + ultName(_uk.key);
-        c.font = "800 " + 13 * u + 'px "Segoe UI",Arial';
-        // 🆕 центр между 4 слотами
-        const textCx = rx + (3 * 38 * u + 32 * u) / 2;
-        const textY = ry + 30 * u; // под слотами с отступом сверху
-        const iconSize = 18 * u;
-        const label = t("ult") + ": " + ultName(_uk.key);
-        const tw = c.measureText(label).width + (iconSize + 4 * u);
-        let tx = textCx - tw / 2 + iconSize + 4 * u;
-        if (_ui.img)
-          c.drawImage(
-            _ui.img,
-            tx - iconSize - 4 * u,
-            textY - iconSize / 2,
-            iconSize,
-            iconSize,
-          );
-        txt(
-          c,
-          label,
-          tx,
-          textY,
-          13 * u,
-          p.ultCharge >= 100 ? "#FFD84A" : "#ccc",
-          "left",
-          3,
-        );
         let bxx = rx;
         for (const b of _buffs) {
           const sz = 24 * u,
