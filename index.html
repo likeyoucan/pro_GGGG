@@ -5509,7 +5509,7 @@
               oy = topY - 2,
               pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
             c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
             gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
             gr.addColorStop(0.35, rgba("#FFFFC0", 0.55 * pul));
             gr.addColorStop(1, rgba("#FFB020", 0));
@@ -5598,7 +5598,7 @@
 
             // 2) 🆕 Круглое свечение — как у остальных посохов
             c.globalCompositeOperation = "lighter";
-            const outerGlow = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
+            const outerGlow = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
             outerGlow.addColorStop(0, `rgba(255, 100, 255, ${0.9 * pul})`);
             outerGlow.addColorStop(0.3, `rgba(180, 50, 255, ${0.6 * pul})`);
             outerGlow.addColorStop(1, "rgba(106, 13, 173, 0)");
@@ -5723,8 +5723,7 @@
               oy = topY - 8,
               pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
             c.globalCompositeOperation = "lighter";
-            // Меньше свечение сверху
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 28);
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 20);
             gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
             gr.addColorStop(0.3, "rgba(255,238,0," + 0.85 * pul + ")");
             gr.addColorStop(0.7, "rgba(255,140,0," + 0.5 * pul + ")");
@@ -8932,7 +8931,7 @@
         }
         for (const rk of Array.from(G.rocks)) {
           if (dist(rk.x, rk.y, x, y) < r + rk.r) {
-            damageRock(rk, dmg * 1.2, o, rk.x, rk.y);
+            damageRock(rk, dmg * 1.2, o);
           }
         }
         return hit;
@@ -16889,8 +16888,8 @@
             cv.getContext("2d").drawImage(IC["m" + id], 0, 0, 64, 64);
         });
         document.querySelectorAll("canvas[data-item]").forEach((cv) => {
-          const t = cv.dataset.item;
-          if (IC[t]) cv.getContext("2d").drawImage(IC[t], 0, 0, 64, 64);
+          const tkey = cv.dataset.item;
+          if (IC[tkey]) cv.getContext("2d").drawImage(IC[tkey], 0, 0, 64, 64);
         });
       }
 
@@ -17629,6 +17628,12 @@
       document.addEventListener("pointerout", (e) => {
         const b = e.target.closest && e.target.closest(".btn");
         if (b && _lastHover === b) _lastHover = null;
+      });
+
+      // 🆕 Обработчик кликов по кнопкам с data-act
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-act]");
+        if (b) act(b.dataset.act);
       });
 
       /* NETWORK */
@@ -19338,7 +19343,6 @@
           }
         }, 600);
       }
-      // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
       // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
       window.addEventListener("beforeunload", () => {
         try {
