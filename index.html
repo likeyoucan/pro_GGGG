@@ -7554,6 +7554,8 @@
         slow: { t: 0, s: 1 },
         vig: 0,
         flashC: "#fff",
+        invert: 0, // 🆕 инверсия цветов (0..1)
+        invertC: "#fff", // 🆕 цвет инверсии (не используется, но на будущее)
       };
       const cam = { x: CX, y: CY, z: 1, sx: 0, sy: 0 };
       const isFoe = (a, b) =>
@@ -8741,10 +8743,53 @@
         else if (!u.single) ultShake = 10;
         shake(ultShake);
         if (u.mega) {
-          if (!G.online) FX.slow = { t: 1, s: 0.1 };
+          // 🆕 Мега-ульта: каскад из 6 «ударов» с инверсией и тряской.
+          //    Эффект идёт в реальном времени (setTimeout), не привязан
+          //    к игровой симуляции — работает даже в slow-mo и hitstop.
+          if (!G.online) FX.slow = { t: 1.2, s: 0.12 };
           FX.flash = 1;
           FX.flashC = elemColor(u.a);
+          FX.invert = 1;
+          FX.chroma = 10;
+          FX.zoom = -0.2;
+          shake(20);
           announce("MEGA ULT!", elemColor(u.a));
+
+          const colA = elemColor(u.a);
+          const colB = elemColor(u.b);
+          const mMage = m; // для проверки в setTimeout
+
+          // 🆕 Каскад «ударов» (мс, параметры)
+          const pulses = [
+            { t: 0, inv: 1, fl: 1.0, zm: -0.2, col: colA, sh: 20 },
+            { t: 180, inv: 0, fl: 0.6, zm: 0.06, col: colB, sh: 10 },
+            { t: 360, inv: 1, fl: 0.9, zm: -0.15, col: colA, sh: 18 },
+            { t: 540, inv: 0, fl: 0.5, zm: 0.03, col: colB, sh: 8 },
+            { t: 720, inv: 1, fl: 0.7, zm: -0.1, col: colA, sh: 14 },
+            { t: 950, inv: 0, fl: 0.3, zm: 0, col: "#fff", sh: 4 },
+          ];
+          pulses.forEach((p) => {
+            setTimeout(() => {
+              // Игнорируем, если матч закончился / пауза / сменился игрок
+              if (state !== "PLAYING" || !G || G.uiPause) return;
+              FX.invert = p.inv;
+              FX.flash = p.fl;
+              FX.flashC = p.col;
+              FX.zoom = p.zm;
+              FX.chroma = 6;
+              shake(p.sh);
+              // Звук каждого удара — низкий гул + щелчок
+              tone(45 + p.sh, 0.4, "sine", 0.35, 0.6, 0, null, true);
+              tone(90 + p.sh * 2, 0.3, "sawtooth", 0.08, 0.5, 0.02, null, true);
+              noise(0.35, 0.22, 300, "lowpass");
+              vib(p.sh >= 14 ? [30, 20, 60] : [20, 15, 40]);
+            }, p.t);
+          });
+          // Финальная очистка (если игрок вышел из матча)
+          setTimeout(() => {
+            FX.invert = 0;
+            FX.chroma = 0;
+          }, 1200);
         }
         const uMega = u.mega,
           elems = [u.a, u.b];
@@ -13112,6 +13157,8 @@
         FX.hs = 0;
         FX.slow = { t: 0, s: 1 };
         FX.vig = 0;
+        FX.invert = 0; // 🆕
+        FX.chroma = 0; // 🆕
         G = {
           mode: o.mode,
           online: !!o.online,
@@ -13502,6 +13549,8 @@
         MUS.tgt = 0;
         Aud.duck = 1;
         applyVolumes();
+        FX.invert = 0; // 🆕 сброс на случай, если мега-ульта шла
+        FX.chroma = 0; // 🆕
         showScreen("sc-menu");
         initMenuMages();
         updateQuestsBadge();
@@ -15396,7 +15445,7 @@
 
         // 🆕 Сами круги слотов
         for (let i = 0; i < 4; i++) {
-          const x = rx + i * 38 * u  + 16 * u;
+          const x = rx + i * 38 * u + 16 * u;
           const e = p.ultSlots[i];
           const active = e != null && e === p.elem;
           const locked = i === 0 ? true : p.lockedSlots[i];
@@ -15794,6 +15843,38 @@
             "center",
             4,
           );
+        }
+
+        // 🆕 Инверсия цветов (мега-ульта).
+        //    globalCompositeOperation = "difference" с белым = инверсия:
+        //    чёрный → белый, белый → чёрный, красный → голубой и т.д.
+        if (FX.invert > 0) {
+          c.save();
+          c.globalCompositeOperation = "difference";
+          c.fillStyle = `rgba(255,255,255,${clamp(FX.invert, 0, 1)})`;
+          c.fillRect(0, 0, W, H);
+          c.restore();
+        }
+
+        // 🆕 Хроматическая аберрация — красные и синие полосы по краям.
+        //    Имитация «сбитой матрицы» / ударной волны.
+        if (FX.chroma > 0) {
+          const d = FX.chroma * 1.5; // сила
+          c.save();
+          c.globalCompositeOperation = "lighter";
+          // левый край — красный
+          const gL = c.createLinearGradient(0, 0, d * 4, 0);
+          gL.addColorStop(0, "rgba(255,0,64,0.55)");
+          gL.addColorStop(1, "rgba(255,0,64,0)");
+          c.fillStyle = gL;
+          c.fillRect(0, 0, d * 4, H);
+          // правый край — синий
+          const gR = c.createLinearGradient(W, 0, W - d * 4, 0);
+          gR.addColorStop(0, "rgba(0,180,255,0.55)");
+          gR.addColorStop(1, "rgba(0,180,255,0)");
+          c.fillStyle = gR;
+          c.fillRect(W - d * 4, 0, d * 4, H);
+          c.restore();
         }
       }
 
