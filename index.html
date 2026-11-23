@@ -8132,8 +8132,7 @@
           const stCol = null;
           // 🆕 Размер снаряда зависит от количества совпадающих рун
           let sameRunes = 0;
-          // 🆕 синхронизируем базовый слот перед подсчётом
-          if (m.ultSlots && m.ultSlots[0] !== m.elem) m.ultSlots[0] = m.elem;
+          for (let i = 0; i < 4; i++) if (m.ultSlots[i] === m.elem) sameRunes++;
           for (let i = 0; i < 4; i++) if (m.ultSlots[i] === m.elem) sameRunes++;
           let projR = 10; // базовый (уменьшен)
           if (sameRunes === 3) projR = 14; // заметно больше
@@ -8501,8 +8500,6 @@
       function ultKey(m) {
         const slots = m.ultSlots || [m.elem, null, null, null];
         const elem = m.elem;
-        // 🆕 жесткая синхронизация базового слота
-        if (slots[0] !== elem) slots[0] = elem;
 
         const counts = {};
         for (let i = 0; i < 4; i++) {
@@ -11954,8 +11951,6 @@
         if (idx < 0) idx = 0;
         p.elem = allowed[(idx + 1) % allowed.length];
         p.baseElem = p.elem;
-        // 🆕 синхронизируем базовый слот, чтобы ultKey считал корректно
-        if (p.ultSlots) p.ultSlots[0] = p.elem;
         p._atkSwitchCd = 0.5; // 0.5с блокировки
         sfx("pickup");
         G.events.push({ k: "atkstyle", id: p.id, e: p.elem });
@@ -12167,14 +12162,14 @@
           const px = 10 * u;
           const py = 10 * u;
           const ph = 80 * u;
-          const slotRy = py + ph + 45 * u;
-          const slotRx = px - 16 * u;
+          const slotRy = py + ph + 25 * u;
+          const slotRx = px + 10 * u;
           const lockRy = slotRy - 26 * u;
           const mode = pl.autoMode;
 
           // 1) Клик по кнопке AUTO (4) — переключение 2 режимов
           {
-            const bx = slotRx + 4 * 38 * u + 16 * u;
+            const bx = slotRx + 4 * 40 * u;
             if (Math.hypot(x - bx, y - lockRy) < 12 * u) {
               if (mode === "auto") {
                 pl.autoMode = "manual";
@@ -12210,7 +12205,7 @@
 
           // 2) Клик по кнопкам 1 / 2 / 3
           for (let idx = 1; idx <= 3; idx++) {
-            const bx = slotRx + idx * 38 * u + 16 * u;
+            const bx = slotRx + idx * 40 * u;
             if (Math.hypot(x - bx, y - lockRy) < 11 * u) {
               if (mode === "manual") {
                 // 🆕 только в manual выбираем слот
@@ -12232,7 +12227,7 @@
 
           // 3) Клик по самим кругам слотов
           for (let i = 0; i < 4; i++) {
-            const slotX = slotRx + i * 38 * u + 16 * u;
+            const slotX = slotRx + i * 40 * u;
             if (Math.hypot(x - slotX, y - slotRy) < 18 * u) {
               if (i === 0) {
                 sfx("error");
@@ -15471,7 +15466,7 @@
 
         // 🆕 Слоты под статус-баром
         const ry = py + ph + 45 * u, // 45*u — отступ от панели
-          rx = px - 16 * u; // Сдвиг влево для выравнивания
+          rx = px - 10 * u; // Сдвиг влево для выравнивания
 
         if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null];
         if (!p.lockedSlots) p.lockedSlots = [true, false, false, false];
@@ -15550,7 +15545,7 @@
           const col = elemColor(p.ultSlots[0]);
           const pulse = 0.55 + 0.45 * Math.sin(TM * 6);
           for (let i = 0; i < 4; i++) {
-            const x = rx + i * 38 * u + 16 * u;
+            const x = rx + i * 40 * u;
             c.save();
             c.globalAlpha = pulse;
             c.fillStyle = rgba(col, 0.25 * pulse);
@@ -19131,7 +19126,6 @@
           if (p.ultSlots) {
             m.ultSlots = p.ultSlots.slice();
             // 🆕 базовый слот всегда = текущая стихия атаки
-            m.ultSlots[0] = m.elem;
           }
           if (typeof p.ultActive === "number") m.ultActive = p.ultActive;
           m.ultCharge = p.ultCharge;
