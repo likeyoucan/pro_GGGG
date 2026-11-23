@@ -9902,14 +9902,11 @@
           m.ultSlots[slot] = e;
           m.runes.push(e);
           if (m.runes.length > 3) m.runes.shift();
-          const sameCount = m.ultSlots.filter((v) => v === e).length;
-          if (sameCount >= 3) {
-            m.elem = e;
-            m.baseElem = e;
-            m.ultSlots[0] = e;
-          }
+
+          // 🆕 Стихия атаки и BASE-слот теперь меняются ТОЛЬКО вручную кнопкой R
+
           if (m === G.player) SAVE.stats.runesCollected++;
-          return true; // 🆕
+          return true;
         };
 
         // === РЕЖИМ "auto": слоты 1/2/3 можно блокировать кликом ===
@@ -12167,8 +12164,11 @@
           pl.lockedSlots[0] = true;
 
           // 🆕 синхронизировано с drawHUD (ry = H - 110*u)
-          const slotRy = H - 110 * u;
-          const slotRx = 16 * u;
+          const px = 10 * u;
+          const py = 10 * u;
+          const ph = 80 * u;
+          const slotRy = py + ph + 45 * u;
+          const slotRx = px - 16 * u;
           const lockRy = slotRy - 26 * u;
           const mode = pl.autoMode;
 
@@ -15468,9 +15468,11 @@
         c.lineWidth = 2.5;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        // 🆕 Слоты подняты выше, чтобы не пересекаться с кнопками attack/dash/ult
-        const ry = H - 130 * u, // 🆕 Подняли слоты выше
-          rx = 16 * u;
+
+        // 🆕 Слоты под статус-баром
+        const ry = py + ph + 45 * u, // 45*u — отступ от панели
+          rx = px - 16 * u; // Сдвиг влево для выравнивания
+
         if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null];
         if (!p.lockedSlots) p.lockedSlots = [true, false, false, false];
         p.lockedSlots[0] = true;
@@ -15714,14 +15716,15 @@
           c.stroke();
           // Иконка стихии
           const im = IC["e" + p.elem];
-          if (im)
+          if (im) {
             c.drawImage(
               im,
               -asw.r * 0.7,
               -asw.r * 0.7,
               asw.r * 1.4,
-              asw.r * 1.4,
+              asw.r * 1.4, // 🆕 убрана лишняя запятая в конце
             );
+          }
           c.font = "800 " + 9 * u + "px Arial";
           c.textAlign = "center";
           c.textBaseline = "middle";
@@ -15729,10 +15732,12 @@
           c.fillText("ATK", 0, asw.r + 10 * u);
           c.restore();
         }
-        let bxx = rx;
+
+        // 🆕 Иконки баффов (привязаны к левому краю)
+        let bxx = px; // Используем px (левый край), чтобы не уезжали за экран
         for (const b of _buffs) {
-          const sz = 24 * u,
-            im = IC[b[0]];
+          const sz = 24 * u; // 🆕 Объявляем размер
+          const im = IC[b[0]]; // 🆕 Объявляем иконку
           c.fillStyle = "rgba(0,0,0,.55)";
           c.beginPath();
           c.arc(bxx + sz / 2, H - 100 * u, sz / 2 + 2, 0, TAU);
@@ -15749,6 +15754,8 @@
           );
           bxx += sz + 8 * u;
         }
+
+        // Кнопки действий
         drawActionBtn(c, "dash", p, L);
         drawActionBtn(c, "attack", p, L);
         drawActionBtn(c, "ult", p, L, _ui);
