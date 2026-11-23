@@ -1453,6 +1453,20 @@
         <b>DEV CONSOLE</b>
         <div>
           <button
+            id="devMin"
+            style="
+              background: #ff0;
+              color: #000;
+              border: 0;
+              padding: 2px 8px;
+              cursor: pointer;
+              margin-right: 4px;
+              font-weight: 900;
+            "
+          >
+            —
+          </button>
+          <button
             id="devCopy"
             style="
               background: #0f0;
@@ -1508,6 +1522,16 @@
         PEERJS_SECURE: true,
         YANDEX_SDK_URL: "https://yandex.ru/games/sdk/v2",
       };
+
+      // 🆕 Игра запущена внутри iframe (Яндекс.Игры или другой хост)
+      const IS_IN_IFRAME = (() => {
+        try {
+          return window.self !== window.top;
+        } catch (e) {
+          // Если доступа к window.top нет — значит, мы в iframe
+          return true;
+        }
+      })();
 
       // 🆕 DEV CONSOLE
       const DevConsole = {
@@ -1567,6 +1591,16 @@
               this.fps = [];
               this.drops = [];
               this.render();
+            };
+          const minBtn = $("devMin");
+          if (minBtn)
+            minBtn.onclick = () => {
+              const stats = $("devStats");
+              const log = $("devLog");
+              const isHidden = stats.style.display === "none";
+              stats.style.display = isHidden ? "block" : "none";
+              log.style.display = isHidden ? "block" : "none";
+              minBtn.textContent = isHidden ? "—" : "□";
             };
           setInterval(() => this.updateStats(), 400);
         },
@@ -2252,6 +2286,11 @@
         });
       }
       async function initYandexSDK() {
+        // 🆕 Вне iframe Yandex SDK не имеет смысла — не грузим
+        if (!IS_IN_IFRAME) {
+          console.log("[YandexSDK] skipped (not in iframe)");
+          return;
+        }
         try {
           await loadScript(CONFIG.YANDEX_SDK_URL);
           if (typeof YaGames !== "undefined") {
@@ -2284,6 +2323,9 @@
         if (Aud.ctx && Aud.ctx.state === "suspended") Aud.ctx.resume();
       }
       function showInterstitial() {
+        // 🆕 Вне iframe рекламы нет — тихо выходим, звук не трогаем
+        if (!IS_IN_IFRAME) return;
+
         let closed = false;
         const safeResume = () => {
           if (closed) return;
@@ -2302,8 +2344,8 @@
           }
         }, 3000);
         try {
-          if (window.ysdk && ysdk.adv && ysdk.adv.showFullscreenAdv)
-            ysdk.adv.showFullscreenAdv({
+          if (window.ysdk && ysdk.adv && ysdk.adv.showFullscreenAdv) {
+            const p = ysdk.adv.showFullscreenAdv({
               callbacks: {
                 onOpen: pauseAudio,
                 onClose: () => {
@@ -2316,12 +2358,25 @@
                 },
               },
             });
-          else clearTimeout(guard);
+            // 🆕 Глушим возможный reject от SDK
+            if (p && p.catch) p.catch(() => {});
+          } else clearTimeout(guard);
         } catch (e) {
           clearTimeout(guard);
         }
       }
       function showRewarded(onR) {
+        // 🆕 Вне iframe рекламы нет — имитируем успешный показ награды,
+        // чтобы локальная разработка и GitHub Pages не ломали фичи
+        if (!IS_IN_IFRAME) {
+          setTimeout(() => {
+            try {
+              if (typeof onR === "function") onR();
+            } catch (e) {}
+          }, 300);
+          return;
+        }
+
         let rw = false,
           op = false,
           closed = false;
@@ -2341,7 +2396,7 @@
         };
         try {
           if (window.ysdk && ysdk.adv && ysdk.adv.showRewardedVideo) {
-            ysdk.adv.showRewardedVideo({
+            const p = ysdk.adv.showRewardedVideo({
               callbacks: {
                 onOpen: () => {
                   op = true;
@@ -2360,6 +2415,8 @@
                 },
               },
             });
+            // 🆕 Глушим возможный reject от SDK
+            if (p && p.catch) p.catch(() => {});
             // Страховка: если onClose не пришёл за 30с
             setTimeout(() => {
               if (op && !closed) safeResume();
@@ -2376,6 +2433,8 @@
       let _bannerShown = false;
       function showBannerSafe() {
         if (_bannerShown) return;
+        // 🆕 Вне iframe баннеры не показываем
+        if (!IS_IN_IFRAME) return;
         try {
           if (window.ysdk && ysdk.adv && ysdk.adv.showBannerAdv) {
             const r = ysdk.adv.showBannerAdv();
@@ -2387,6 +2446,8 @@
       }
       function hideBannerSafe() {
         if (!_bannerShown) return;
+        // 🆕 Вне iframe скрывать нечего
+        if (!IS_IN_IFRAME) return;
         try {
           if (window.ysdk && ysdk.adv && ysdk.adv.hideBannerAdv) {
             const r = ysdk.adv.hideBannerAdv();
@@ -4065,38 +4126,38 @@
         easy: {
           skill: 0.65,
           aimErr: 3.0,
-          fireDelayMul: 2.2,
-          manaRegen: 1.3,
+          fireDelayMul: 2.6,
+          manaRegen: 0.8,
           hpMul: 0.7,
           dmgMul: 0.65,
           aggression: 0.3,
-          ultChance: 0.4,
+          ultChance: 0.2,
           retreatHp: 0.5,
-          dodgeChance: 0.3,
+          dodgeChance: 0.2,
           label: { ru: "ЛЕГКО", en: "EASY" },
         },
         normal: {
           skill: 1.0,
-          aimErr: 1.0,
-          fireDelayMul: 1.0,
-          manaRegen: 2.0,
+          aimErr: 1.2,
+          fireDelayMul: 1.6,
+          manaRegen: 1.1,
           hpMul: 1.0,
           dmgMul: 1.0,
           aggression: 0.6,
-          ultChance: 1.5,
+          ultChance: 0.9,
           retreatHp: 0.35,
-          dodgeChance: 0.5,
+          dodgeChance: 0.45,
           label: { ru: "СРЕДНЕ", en: "NORMAL" },
         },
         hard: {
           skill: 1.3,
           aimErr: 0.4,
-          fireDelayMul: 0.65,
-          manaRegen: 2.8,
+          fireDelayMul: 1.0,
+          manaRegen: 1.5,
           hpMul: 1.15,
           dmgMul: 1.2,
           aggression: 0.9,
-          ultChance: 2.5,
+          ultChance: 2.0,
           retreatHp: 0.2,
           dodgeChance: 0.7,
           label: { ru: "СЛОЖНО", en: "HARD" },
@@ -4516,8 +4577,14 @@
           this.elem = 0;
           this.baseElem = 0;
           this.runes = [];
-          this.ultSlots = [0, null, null, null]; // 🆕 4 ячейки: [0] = базовый elem
-          this.ultActive = 0; // 🆕 индекс активной ячейки
+          this.ultSlots = [0, null, null, null]; // 4 ячейки: [0] = базовый elem
+          this.ultActive = 0;
+          // [0] всегда true (BASE заблокирован навсегда)
+          this.lockedSlots = [true, false, false, false];
+          // 🆕 Три режима AUTO: "auto" | "off" | "locked"
+          this.autoMode = "auto";
+          // 🆕 Индекс слота для ручной замены (используется в режиме "off")
+          this.replaceIdx = null;
           this.ultCharge = 0;
           this.atkCd = 0;
           this.dashCd = 0;
@@ -5406,7 +5473,7 @@
             c.stroke();
             const ox = tipX,
               oy = tipY,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
             c.globalCompositeOperation = "lighter";
             const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
             gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
@@ -5445,15 +5512,15 @@
           () => {
             const ox = f * 22,
               oy = topY - 2,
-              pul = 0.85 + 0.15 * Math.sin(TM * 5 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 1.8 + m.id);
             c.globalCompositeOperation = "lighter";
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
             gr.addColorStop(0, rgba("#FFFFFF", 0.9 * pul));
             gr.addColorStop(0.35, rgba("#FFFFC0", 0.55 * pul));
             gr.addColorStop(1, rgba("#FFB020", 0));
             c.fillStyle = gr;
             c.beginPath();
-            c.arc(ox, oy, 30, 0, TAU);
+            c.arc(ox, oy, 22, 0, TAU);
             c.fill();
             c.globalCompositeOperation = "source-over";
             const star4 = (sx, sy, len, w) => {
@@ -5513,7 +5580,7 @@
           () => {
             const ox = f * 22,
               oy = topY - 4,
-              pul = 0.8 + 0.2 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
 
             // 1) Рога/шипы
             c.fillStyle = "#4B0082";
@@ -5536,13 +5603,13 @@
 
             // 2) 🆕 Круглое свечение — как у остальных посохов
             c.globalCompositeOperation = "lighter";
-            const outerGlow = c.createRadialGradient(ox, oy, 2, ox, oy, 30);
+            const outerGlow = c.createRadialGradient(ox, oy, 2, ox, oy, 22);
             outerGlow.addColorStop(0, `rgba(255, 100, 255, ${0.9 * pul})`);
             outerGlow.addColorStop(0.3, `rgba(180, 50, 255, ${0.6 * pul})`);
             outerGlow.addColorStop(1, "rgba(106, 13, 173, 0)");
             c.fillStyle = outerGlow;
             c.beginPath();
-            c.arc(ox, oy, 30, 0, TAU);
+            c.arc(ox, oy, 18, 0, TAU);
             c.fill();
             c.globalCompositeOperation = "source-over";
 
@@ -5559,7 +5626,7 @@
             c.globalCompositeOperation = "source-over";
 
             // 4) Чёрная дыра с пульсацией
-            const holeR = 12 + Math.sin(TM * 4 + m.id) * 1.5;
+            const holeR = 12 + Math.sin(TM * 1.5 + m.id) * 1.5;
             c.fillStyle = "#000000";
             c.beginPath();
             c.arc(ox, oy, holeR, 0, TAU);
@@ -5659,17 +5726,16 @@
           () => {
             const ox = f * 22,
               oy = topY - 8,
-              pul = 0.8 + 0.2 * Math.sin(TM * 8 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2.5 + m.id);
             c.globalCompositeOperation = "lighter";
-            // Меньше свечение сверху
-            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 28);
+            const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 20);
             gr.addColorStop(0, "rgba(255,255,255," + 0.95 * pul + ")");
             gr.addColorStop(0.3, "rgba(255,238,0," + 0.85 * pul + ")");
             gr.addColorStop(0.7, "rgba(255,140,0," + 0.5 * pul + ")");
             gr.addColorStop(1, "rgba(255,69,0,0)");
             c.fillStyle = gr;
             c.beginPath();
-            c.arc(ox, oy, 28, 0, TAU);
+            c.arc(ox, oy, 20, 0, TAU);
             c.fill();
             // 🆕 Пламя обвивает шар по спирали
             for (let i = 0; i < 8; i++) {
@@ -5730,7 +5796,7 @@
           () => {
             const ox = f * 22,
               oy = topY - 8,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
             c.globalCompositeOperation = "lighter";
             const gr = c.createRadialGradient(ox, oy, 2, ox, oy, 24);
             gr.addColorStop(0, rgba("#FFFFFF", 0.85 * pul));
@@ -5738,7 +5804,7 @@
             gr.addColorStop(1, rgba("#FFB6D9", 0));
             c.fillStyle = gr;
             c.beginPath();
-            c.arc(ox, oy, 24, 0, TAU);
+            c.arc(ox, oy, 20, 0, TAU);
             c.fill();
             c.globalCompositeOperation = "source-over";
             c.fillStyle = "#FF69B4";
@@ -5802,14 +5868,14 @@
             const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
             const ox = f * 22,
               oy = topY - 8,
-              pul = 0.85 + 0.15 * Math.sin(TM * 6 + m.id);
+              pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
             c.globalCompositeOperation = "lighter";
             c.fillStyle = rgba(
               el.color === "#6A0DAD" ? "#B040FF" : el.color,
               0.25 * pul,
             );
             c.beginPath();
-            c.arc(ox, oy, 35 + Math.sin(TM * 8) * 5, 0, TAU);
+            c.arc(ox, oy, 24 + Math.sin(TM * 2.5) * 3, 0, TAU);
             c.fill();
             c.globalCompositeOperation = "source-over";
             let coreCol = el.core,
@@ -5887,6 +5953,29 @@
       function drawMage(c, m, o) {
         if (!m || !m.skin) return; // 🆕
         o = o || {};
+        // 🆕 Круг воскрешения для павших союзников
+        if (m.dead && m.revivable && m.reviveLeft > 0) {
+          c.save();
+          c.translate(m.x, m.y);
+          const prog = clamp((m.reviveProgress || 0) / 2.5, 0, 1);
+          c.strokeStyle = "rgba(80,255,120,0.8)";
+          c.lineWidth = 4;
+          c.beginPath();
+          c.arc(0, 2, 50, -Math.PI / 2, -Math.PI / 2 + TAU * prog);
+          c.stroke();
+          // Пульсирующий крестик (доступен для воскрешения)
+          if (prog === 0 && Math.sin(TM * 6) > 0) {
+            c.strokeStyle = "#50FF70";
+            c.lineWidth = 5;
+            c.beginPath();
+            c.moveTo(-10, -10);
+            c.lineTo(10, 10);
+            c.moveTo(10, -10);
+            c.lineTo(-10, 10);
+            c.stroke();
+          }
+          c.restore();
+        }
         const alpha = (m.alpha ?? 1) * (o.alpha === undefined ? 1 : o.alpha); // 🆕
         if (alpha <= 0.01) return;
         const f = m.facing,
@@ -7468,6 +7557,8 @@
         slow: { t: 0, s: 1 },
         vig: 0,
         flashC: "#fff",
+        invert: 0, // 🆕 инверсия цветов (0..1)
+        invertC: "#fff", // 🆕 цвет инверсии (не используется, но на будущее)
       };
       const cam = { x: CX, y: CY, z: 1, sx: 0, sy: 0 };
       const isFoe = (a, b) =>
@@ -7546,6 +7637,8 @@
         o = o || {};
         if (!t || t.dead) return 0;
         if ((t.inv || 0) > 0) return 0;
+
+        if (t.boss) amt *= 0.8;
         if (t.fx.shield > 0) {
           t.fx.shield = 0;
           burst(t.x, t.y - 20, "#60A0FF", 20, 160, 3, 0.5, true);
@@ -7749,6 +7842,12 @@
         }
         t.deathT = 0;
         t.mana = 0;
+        // 🆕 Даем возможность воскреснуть (только для Выживания)
+        if (G.mode === "survival" && t !== G.player) {
+          t.revivable = true;
+          t.reviveLeft = 15;
+          t.reviveProgress = 0;
+        }
         sfx("death");
         burst(t.x, t.y - 22, "#FFFFFF", 30, 260, 3, 0.5, true);
         hitstop(120);
@@ -8018,7 +8117,13 @@
             );
           }
           const stStyle = m.staff ? m.staff.atkStyle : "orb";
-          const stCol = null; // 🆕 больше не фиксируем цвет посоха — берём из стихии
+          const stCol = null;
+          // 🆕 Размер снаряда зависит от количества совпадающих рун
+          let sameRunes = 0;
+          for (let i = 0; i < 4; i++) if (m.ultSlots[i] === m.elem) sameRunes++;
+          let projR = 10; // базовый (уменьшен)
+          if (sameRunes === 3) projR = 14; // заметно больше
+          if (sameRunes === 4) projR = 17; // еще больше
           const spreadRad = 0.16;
           for (let i = 0; i < n; i++)
             spawnProj(
@@ -8033,7 +8138,7 @@
                 trail: m === G.player ? SAVE.fxTrail : "",
                 style: stStyle,
                 col: stCol,
-                r: 12,
+                r: projR, // 🆕 Применяем размер
               },
             );
           elemFx(ex, ey, m.elem, 8, 140);
@@ -8371,32 +8476,138 @@
 
       function ultKey(m) {
         const slots = m.ultSlots || [m.elem, null, null, null];
-        const idx = m.ultActive || 0;
-        const a = slots[idx];
-        if (a == null) {
-          const e = m.elem;
-          return { key: "" + e, a: e, b: e, e, single: true };
-        }
-        // 🆕 Считаем ВСЕ слоты с той же стихией (включая базовый)
-        let sameCount = 0;
+        // 🆕 Ульта всегда следует за выбранной стихией атаки (m.elem)
+        const elem = m.elem;
+
+        // Считаем распределение стихий по слотам
+        const counts = {};
         for (let i = 0; i < 4; i++) {
-          if (slots[i] === a) sameCount++;
-        }
-        // Мега — если 4 одинаковых (базовая + 3 руны). Самый сильный ульт.
-        if (sameCount >= 4) {
-          return { key: a + "-" + a + "-" + a, mega: true, e: a, a, b: a };
-        }
-        // Комбо — ищем ЛЮБОЙ другой слот с другой стихией
-        for (let i = 0; i < 4; i++) {
-          if (i === idx) continue;
-          if (slots[i] != null && slots[i] !== a) {
-            const lo = Math.min(a, slots[i]),
-              hi = Math.max(a, slots[i]);
-            return { key: lo + "-" + hi, a: lo, b: hi, e: a };
+          if (slots[i] != null) {
+            counts[slots[i]] = (counts[slots[i]] || 0) + 1;
           }
         }
-        // Одиночная
-        return { key: "" + a, a, b: a, e: a, single: true };
+
+        const myCount = counts[elem] || 0;
+        const uniqueElems = Object.keys(counts).map(Number);
+        const unique = uniqueElems.length;
+
+        // === Level 4 (MEGA): 4 одинаковых ===
+        if (myCount === 4) {
+          return {
+            key: elem + "-" + elem + "-" + elem,
+            a: elem,
+            b: elem,
+            e: elem,
+            mega: true,
+            level: 4,
+          };
+        }
+
+        // === Одна уникальная стихия в слотах ===
+        if (unique === 1) {
+          if (myCount === 1)
+            return {
+              key: "" + elem,
+              a: elem,
+              b: elem,
+              e: elem,
+              single: true,
+              level: 1,
+            };
+          if (myCount === 2)
+            return {
+              key: elem + "-" + elem,
+              a: elem,
+              b: elem,
+              e: elem,
+              level: 2,
+            };
+          if (myCount === 3)
+            return {
+              key: elem + "-" + elem,
+              a: elem,
+              b: elem,
+              e: elem,
+              level: 3,
+            };
+        }
+
+        // === Две уникальных стихии ===
+        if (unique === 2) {
+          const other = uniqueElems.find((x) => x !== elem);
+          const otherCount = counts[other] || 0;
+
+          // 3+1: выбрана «3» → level 3, выбрана «1» → level 1
+          if (myCount === 3)
+            return {
+              key: elem + "-" + elem,
+              a: elem,
+              b: elem,
+              e: elem,
+              level: 3,
+            };
+          if (myCount === 1 && otherCount === 3)
+            return {
+              key: "" + elem,
+              a: elem,
+              b: elem,
+              e: elem,
+              single: true,
+              level: 1,
+            };
+
+          // 2+2: level 3 комбо
+          if (myCount === 2 && otherCount === 2) {
+            const lo = Math.min(elem, other);
+            const hi = Math.max(elem, other);
+            return { key: lo + "-" + hi, a: lo, b: hi, e: elem, level: 3 };
+          }
+
+          // 2+1: level 2
+          if (myCount === 2)
+            return {
+              key: elem + "-" + elem,
+              a: elem,
+              b: elem,
+              e: elem,
+              level: 2,
+            };
+          if (myCount === 1 && otherCount === 2)
+            return {
+              key: "" + elem,
+              a: elem,
+              b: elem,
+              e: elem,
+              single: true,
+              level: 1,
+            };
+
+          // 1+1 (два пустых): level 2 комбо
+          if (myCount === 1 && otherCount === 1) {
+            const lo = Math.min(elem, other);
+            const hi = Math.max(elem, other);
+            return { key: lo + "-" + hi, a: lo, b: hi, e: elem, level: 2 };
+          }
+        }
+
+        // === 3+ уникальных стихий: 2+1+1, 1+1+1, 1+1+1+1 ===
+        if (myCount >= 2) {
+          return {
+            key: elem + "-" + elem,
+            a: elem,
+            b: elem,
+            e: elem,
+            level: myCount,
+          };
+        }
+        return {
+          key: "" + elem,
+          a: elem,
+          b: elem,
+          e: elem,
+          single: true,
+          level: 1,
+        };
       }
       const ULT_AIM = {
         0: ["self", 150],
@@ -8535,10 +8746,53 @@
         else if (!u.single) ultShake = 10;
         shake(ultShake);
         if (u.mega) {
-          if (!G.online) FX.slow = { t: 1, s: 0.1 };
+          // 🆕 Мега-ульта: каскад из 6 «ударов» с инверсией и тряской.
+          //    Эффект идёт в реальном времени (setTimeout), не привязан
+          //    к игровой симуляции — работает даже в slow-mo и hitstop.
+          if (!G.online) FX.slow = { t: 1.2, s: 0.12 };
           FX.flash = 1;
           FX.flashC = elemColor(u.a);
+          FX.invert = 1;
+          FX.chroma = 10;
+          FX.zoom = -0.2;
+          shake(20);
           announce("MEGA ULT!", elemColor(u.a));
+
+          const colA = elemColor(u.a);
+          const colB = elemColor(u.b);
+          const mMage = m; // для проверки в setTimeout
+
+          // 🆕 Каскад «ударов» (мс, параметры)
+          const pulses = [
+            { t: 0, inv: 1, fl: 1.0, zm: -0.2, col: colA, sh: 20 },
+            { t: 180, inv: 0, fl: 0.6, zm: 0.06, col: colB, sh: 10 },
+            { t: 360, inv: 1, fl: 0.9, zm: -0.15, col: colA, sh: 18 },
+            { t: 540, inv: 0, fl: 0.5, zm: 0.03, col: colB, sh: 8 },
+            { t: 720, inv: 1, fl: 0.7, zm: -0.1, col: colA, sh: 14 },
+            { t: 950, inv: 0, fl: 0.3, zm: 0, col: "#fff", sh: 4 },
+          ];
+          pulses.forEach((p) => {
+            setTimeout(() => {
+              // Игнорируем, если матч закончился / пауза / сменился игрок
+              if (state !== "PLAYING" || !G || G.uiPause) return;
+              FX.invert = p.inv;
+              FX.flash = p.fl;
+              FX.flashC = p.col;
+              FX.zoom = p.zm;
+              FX.chroma = 6;
+              shake(p.sh);
+              // Звук каждого удара — низкий гул + щелчок
+              tone(45 + p.sh, 0.4, "sine", 0.35, 0.6, 0, null, true);
+              tone(90 + p.sh * 2, 0.3, "sawtooth", 0.08, 0.5, 0.02, null, true);
+              noise(0.35, 0.22, 300, "lowpass");
+              vib(p.sh >= 14 ? [30, 20, 60] : [20, 15, 40]);
+            }, p.t);
+          });
+          // Финальная очистка (если игрок вышел из матча)
+          setTimeout(() => {
+            FX.invert = 0;
+            FX.chroma = 0;
+          }, 1200);
         }
         const uMega = u.mega,
           elems = [u.a, u.b];
@@ -8833,7 +9087,7 @@
         }
         for (const rk of Array.from(G.rocks)) {
           if (dist(rk.x, rk.y, x, y) < r + rk.r) {
-            damageRock(rk, dmg * 1.2, o, rk.x, rk.y);
+            damageRock(rk, dmg * 1.2, o);
           }
         }
         return hit;
@@ -8912,7 +9166,10 @@
       }
 
       function ultLevel(u) {
-        if (u.mega) return 3;
+        // 🆕 Если ultKey уже посчитал уровень — используем его (1/2/3/4)
+        if (u.level) return u.level;
+        // Fallback для старых вызовов
+        if (u.mega) return 4;
         if (u.key.includes("-")) return 2;
         return 1;
       }
@@ -9678,6 +9935,9 @@
       }
       function addRune(m, e) {
         if (!m.ultSlots) m.ultSlots = [m.elem, null, null, null];
+        if (!m.lockedSlots) m.lockedSlots = [true, false, false, false];
+        if (!m.autoMode) m.autoMode = "auto";
+        m.lockedSlots[0] = true;
 
         const _commit = (slot) => {
           m.ultSlots[slot] = e;
@@ -9688,54 +9948,63 @@
           if (m === G.player) SAVE.stats.runesCollected++;
         };
 
-        // 1) Свободный слот (1–3). Слот 0 — базовая стихия — НЕ трогаем.
+        // === РЕЖИМ "locked": руна не подбирается (проверка в updatePickups),
+        //     но на всякий случай выходим ===
+        if (m.autoMode === "locked") return;
+
+        // === РЕЖИМ "off": игрок вручную выбирает слот замены ===
+        if (m.autoMode === "off") {
+          // 1) Свободный незаблокированный слот
+          for (let i = 1; i < 4; i++) {
+            if (m.ultSlots[i] == null && !m.lockedSlots[i]) {
+              _commit(i);
+              return;
+            }
+          }
+          // 2) Игрок выбрал слот (replaceIdx)
+          if (
+            m.replaceIdx >= 1 &&
+            m.replaceIdx <= 3 &&
+            !m.lockedSlots[m.replaceIdx]
+          ) {
+            _commit(m.replaceIdx);
+            m.replaceIdx = null; // сброс после замены
+            return;
+          }
+          // 3) Некуда девать — руна остаётся на земле (continue в updatePickups)
+          return;
+        }
+
+        // === РЕЖИМ "auto" (по умолчанию) ===
+        // 1) Свободный незаблокированный слот
         for (let i = 1; i < 4; i++) {
-          if (m.ultSlots[i] == null) {
+          if (m.ultSlots[i] == null && !m.lockedSlots[i]) {
             _commit(i);
             return;
           }
         }
-
-        // 2) Все заняты. Приоритет — собрать 4 одинаковых.
+        // 2) Заменяем незаблокированный слот с наименее частым элементом
         const counts = {};
         for (let i = 0; i < 4; i++) {
           const v = m.ultSlots[i];
           if (v != null) counts[v] = (counts[v] || 0) + 1;
         }
-
-        // Если e уже есть в слотах — заменяем слот 1–3 с ДРУГОЙ стихией
-        if ((counts[e] || 0) >= 1) {
-          for (let i = 1; i < 4; i++) {
-            if (m.ultSlots[i] !== e && m.ultSlots[i] != null) {
-              _commit(i);
-              return;
-            }
+        let bestSlot = -1;
+        let bestCount = Infinity;
+        for (let i = 1; i < 4; i++) {
+          if (m.lockedSlots[i]) continue;
+          const v = m.ultSlots[i];
+          const c = counts[v] || 0;
+          if (c < bestCount) {
+            bestCount = c;
+            bestSlot = i;
           }
         }
-
-        // Иначе — заменяем слот 1 (вторая стихия — первый кандидат)
-        _commit(1);
+        if (bestSlot >= 0) _commit(bestSlot);
       }
       function collect(m, p) {
         const k = p.type,
           info = PK[k];
-        // 🆕 руна Пустоты — только с доступом (скин/посох)
-        if (k === "r4" && m && !m.isMonster) {
-          const hasVoidAccess =
-            !!(m.skin && m.skin.voidElem) || !!(m.staff && m.staff.voidElem);
-          if (!hasVoidAccess) {
-            if (m === G.player) {
-              toast(
-                lang === "ru"
-                  ? "🔒 Нужен скин/посох Пустоты"
-                  : "🔒 Requires Void skin/staff",
-                1400,
-              );
-              sfx("error");
-            }
-            return; // не подбираем
-          }
-        }
         switch (k) {
           case "hp1":
             heal(m, 30);
@@ -9796,26 +10065,57 @@
           }
           for (const m of G.mages) {
             if (m.dead) continue;
-            // 🆕 руна Пустоты не магнитится к магам без доступа
-            if (p.type === "r4" && !m.isMonster) {
-              const hasVoid =
-                !!(m.skin && m.skin.voidElem) ||
-                !!(m.staff && m.staff.voidElem);
-              if (!hasVoid) continue;
-            }
             const d = dist(m.x, m.y, p.x, p.y);
             if (d < 110 && (m === G.player || m.isBot || m.remote)) {
-              // 🆕 Чем ближе к игроку — тем сильнее притяжение
-              const distFactor = 1 - d / 110; // 0 на краю, 1 в упор
-              // 🆕 Чем быстрее маг — тем мощнее «магнит»
-              const spd =
-                m.isBot || m.remote ? 220 : Math.hypot(m.vx || 0, m.vy || 0);
-              const speedFactor = clamp(spd / 220, 0.5, 2);
-              const pull = 90 + 230 * distFactor * speedFactor;
-              p.x += ((m.x - p.x) / d) * pull * dt;
-              p.y += ((m.y - 10 - p.y) / d) * pull * dt;
+              // 🆕 Руна не притягивается, если её нельзя подобрать
+              let canPull = true;
+              if (p.type[0] === "r") {
+                const ls = m.lockedSlots || [true, false, false, false];
+                // Режим "locked" — все 1-3 заблокированы
+                if (m.autoMode === "locked" || (ls[1] && ls[2] && ls[3]))
+                  canPull = false;
+                // Режим "off" — нет свободного и не выбран replaceIdx
+                if (m.autoMode === "off" && !m.isBot) {
+                  let freeSlot = false;
+                  for (let i = 1; i < 4; i++) {
+                    if (m.ultSlots[i] == null && !ls[i]) {
+                      freeSlot = true;
+                      break;
+                    }
+                  }
+                  if (!freeSlot && !(m.replaceIdx >= 1 && m.replaceIdx <= 3))
+                    canPull = false;
+                }
+              }
+              if (canPull) {
+                const distFactor = 1 - d / 110;
+                const spd =
+                  m.isBot || m.remote ? 220 : Math.hypot(m.vx || 0, m.vy || 0);
+                const speedFactor = clamp(spd / 220, 0.5, 2);
+                const pull = 90 + 230 * distFactor * speedFactor;
+                p.x += ((m.x - p.x) / d) * pull * dt;
+                p.y += ((m.y - 10 - p.y) / d) * pull * dt;
+              }
             }
             if (d < 35) {
+              if (p.type[0] === "r") {
+                const ls = m.lockedSlots || [true, false, false, false];
+                // Режим "locked" — не подбираем
+                if (m.autoMode === "locked" || (ls[1] && ls[2] && ls[3]))
+                  continue;
+                // Режим "off" без выбранного слота — не подбираем
+                if (m.autoMode === "off" && !m.isBot) {
+                  let freeSlot = false;
+                  for (let i = 1; i < 4; i++) {
+                    if (m.ultSlots[i] == null && !ls[i]) {
+                      freeSlot = true;
+                      break;
+                    }
+                  }
+                  if (!freeSlot && !(m.replaceIdx >= 1 && m.replaceIdx <= 3))
+                    continue;
+                }
+              }
               collect(m, p);
               G.pickups[i] = G.pickups[G.pickups.length - 1];
               G.pickups.pop();
@@ -9926,6 +10226,33 @@
           mx = Math.cos(a.wander);
           my = Math.sin(a.wander);
         }
+        // 🆕 Уклонение от ультов и зон
+        if (a.dodgeCd <= 0 && m.dashCd <= 0) {
+          let threat = null,
+            threatD = 999;
+          for (const t of G.tele) {
+            const d = dist(m.x, m.y, t.x, t.y);
+            if (d < t.r + 40 && d < threatD) {
+              threat = t;
+              threatD = d;
+            }
+          }
+          for (const z of G.zones) {
+            if (z.style === "global") continue;
+            const d = dist(m.x, m.y, z.x, z.y);
+            if (d < z.r + 40 && d < threatD && z.own !== m) {
+              threat = z;
+              threatD = d;
+            }
+          }
+          if (threat && Math.random() < a.dodgeChance * 1.5) {
+            const ang =
+              Math.atan2(m.y - threat.y, m.x - threat.x) + rnd(-0.4, 0.4);
+            mageDash(m, ang);
+            a.dodgeCd = 0.8;
+          }
+        }
+
         if (a.dodgeCd <= 0) {
           for (const p of PR.active) {
             if (!p.on || !p.own || p.own === m || !isFoe(m, p.own)) continue;
@@ -9973,7 +10300,7 @@
             td < fireRange &&
             m.atkCd <= 0 &&
             a.fireDelay <= 0 &&
-            m.mana >= 10
+            m.mana >= 25
           ) {
             const lead = td / 520,
               predX = tg.x + (tg.vx || 0) * lead * 0.7,
@@ -10392,6 +10719,42 @@
           updateEyes(m, dt);
           return;
         }
+        // 🆕 Поведение при победе (парит, подпрыгивает, пускает искры)
+        if (m.victory && !m.dead) {
+          m.celebT = (m.celebT || 0) + dt;
+          // 🆕 Плавное покачивание, а НЕ накопление вверх
+          m.y -= Math.abs(Math.sin(m.celebT * 5)) * 0.8; // было * 3
+          // 🆕 Кольца света вокруг победителя раз в 0.6 сек
+          m.celebRingT = (m.celebRingT || 0) + dt;
+          if (m.celebRingT > 0.6) {
+            m.celebRingT = 0;
+            G.rings.push({
+              x: m.x,
+              y: m.y - 10,
+              r0: 5,
+              r1: 90,
+              l: 0.7,
+              m: 0.7,
+              c: "#FFD700",
+              w: 4,
+            });
+          }
+          if (Math.random() < 0.2 && G) {
+            pt(
+              m.x + rnd(-20, 20),
+              m.y + rnd(-40, 0),
+              rnd(-10, 10),
+              rnd(-50, -100),
+              0.8,
+              rnd(2, 4),
+              pick(["#FFD700", "#FFFFFF", "#50FF70"]),
+              0,
+              true,
+              0.95,
+            );
+          }
+        }
+
         m.atkCd -= dt;
         m.dashCd -= dt;
         m.castLock -= dt;
@@ -10521,7 +10884,7 @@
         if (mo.dead) return;
         mo.tT -= dt;
         if (mo.tT <= 0 || !mo.tg || mo.tg.dead) {
-          mo.tT = 0.35;
+          mo.tT = 0.5;
           mo.tg = nearestFoe(mo, mo.x, mo.y, 1e9);
         }
         const accel = 1 + 0.05 * Math.floor(G.time / 30);
@@ -10533,10 +10896,18 @@
           dy = 0;
         if (mo.tg) {
           const ax = mo.tg.x - mo.x,
-            ay = mo.tg.y - mo.y,
-            d = Math.hypot(ax, ay) || 1;
+            ay = mo.tg.y - mo.y;
+          const d = Math.hypot(ax, ay) || 1;
           dx = ax / d;
           dy = ay / d;
+
+          // 🆕 Диагональное движение (пытаются обойти/нагнать)
+          if (!mo.boss && d > 100) {
+            const side = Math.sin(TM * 2 + mo.an) > 0 ? 1 : -1;
+            dx += (-ay / d) * 0.4 * side;
+            dy += (ax / d) * 0.4 * side;
+          }
+
           if (mo.boss && d < 220) {
             dx *= 0.1;
             dy *= 0.1;
@@ -10969,7 +11340,36 @@
         for (const o of g.all) GRID.add(o);
         if (g.role !== "client") {
           matchLogic(dt);
-          for (const m of g.mages) updateMage(m, dt);
+          for (const m of g.mages) {
+            updateMage(m, dt);
+            // 🆕 Логика воскрешения союзников
+            if (m.dead && m.revivable && m !== g.player) {
+              m.reviveLeft -= dt;
+              if (m.reviveLeft <= 0) {
+                m.revivable = false; // Время вышло
+              } else {
+                const pl = g.player;
+                if (pl && !pl.dead && dist(pl.x, pl.y, m.x, m.y) < 80) {
+                  m.reviveProgress = (m.reviveProgress || 0) + dt;
+                  if (m.reviveProgress >= 2.5) {
+                    m.dead = false;
+                    m.revivable = false;
+                    m.hp = Math.round(m.maxHp * 0.5);
+                    m.deathT = 0;
+                    m.alpha = 1;
+                    m.inv = 1.5;
+                    announce(
+                      lang === "ru" ? "СОЮЗНИК ВОССТАНОВЛЕН" : "ALLY REVIVED",
+                      "#50FF70",
+                    );
+                    sfx("purchase");
+                  }
+                } else {
+                  m.reviveProgress = 0;
+                }
+              }
+            }
+          }
           for (const mo of g.monsters) updateMonster(mo, dt);
 
           // 🆕 Чистим мёртвых и одновременно ищем босса
@@ -11029,7 +11429,29 @@
         }
         if (G.player && G.player.dead && !G.online && !G.resultShown) {
           G.deadT = (G.deadT || 0) + dt;
-          if (G.deadT > 2.5) {
+          const aliveOthers = G.mages.filter((m) => !m.dead);
+          // 🆕 Если остались 2+ живых бота — даём им 5 сек доиграть
+          if (aliveOthers.length > 1 && G.deadT < 5) return;
+          // 🆕 Если остался один бот — назначаем его победителем и показываем анимацию
+          if (aliveOthers.length === 1 && !G.winner) {
+            G.winner = aliveOthers[0];
+            G.winner.victory = true;
+            burst(
+              G.winner.x,
+              G.winner.y - 20,
+              ["#FFD700", "#FFF"],
+              200,
+              500,
+              4,
+              1.4,
+              true,
+            );
+            G.pillar = { x: G.winner.x, y: G.winner.y, t: 3 };
+            G.over = true;
+            G.overT = 0;
+            return;
+          }
+          if (G.deadT > (aliveOthers.length === 1 ? 3 : 2.5)) {
             if (G.mode === "survival" && !G.reviveUsed && !G.reviveChecked) {
               G.reviveChecked = true;
               state = "REVIVE";
@@ -11219,6 +11641,11 @@
         "ArrowRight",
         "KeyF",
         "Escape",
+        "KeyR",
+        "Digit1",
+        "Digit2",
+        "Digit3",
+        "Digit4", // 🆕
       ];
       const isTyping = () => {
         const a = document.activeElement;
@@ -11275,9 +11702,28 @@
         }
         if (!e.repeat) {
           if (e.code === "Escape") {
-            if (document.activeElement) document.activeElement.blur(); // 🆕
+            if (document.activeElement) document.activeElement.blur();
+
+            // 🆕 Выход из игры через Esc в меню
+            if (
+              state === "MENU" ||
+              state === "SHOP" ||
+              state === "SETTINGS" ||
+              state === "CODEX" ||
+              state === "LB" ||
+              state === "QUESTS" ||
+              state === "TUTORIAL"
+            ) {
+              window._escExit = true; // Флаг для окна
+              $("confirmText").innerHTML =
+                lang === "ru"
+                  ? "Вы уверены, что хотите покинуть Арену?"
+                  : "Are you sure you want to leave the Arena?";
+              showScreen("sc-confirm");
+              return;
+            }
+
             if (state === "PLAYING") {
-              // 🆕 Отмена прицела по Esc
               if (
                 aiming ||
                 B.ult.st === 2 ||
@@ -11295,6 +11741,40 @@
             if (e.code === "Space") btnDown("dash", "key", 0, 0, -2);
             else if (e.code === "KeyQ" || e.code === "KeyE")
               btnDown("ult", "key", 0, 0, -3);
+            // 🆕 Хоткеи смены стихии
+            else if (e.code === "KeyR") {
+              cycleAtkStyle();
+            }
+            // 🆕 Клавиши 1–4 = блокировка/разблокировка слотов рун.
+            //    [1][2][3] — toggle конкретного слота,
+            //    [4] — toggle всех трёх (1–3) разом.
+            else if (e.code.startsWith("Digit")) {
+              const num = +e.code.replace("Digit", "");
+              if (num >= 1 && num <= 4) {
+                const pl = G.player;
+                if (!pl.lockedSlots)
+                  pl.lockedSlots = [true, false, false, false];
+                pl.lockedSlots[0] = true;
+
+                if (num === 4) {
+                  // [4] = AUTO — toggle всех трёх слотов разом
+                  const allLocked =
+                    pl.lockedSlots[1] && pl.lockedSlots[2] && pl.lockedSlots[3];
+                  const newVal = !allLocked;
+                  pl.lockedSlots[1] = newVal;
+                  pl.lockedSlots[2] = newVal;
+                  pl.lockedSlots[3] = newVal;
+                  sfx("click");
+                } else {
+                  // [1][2][3] = toggle конкретного слота
+                  pl.lockedSlots[num] = !pl.lockedSlots[num];
+                  sfx("click");
+                }
+
+                if (G.role === "client")
+                  netSendAct({ k: "lockslot", arr: pl.lockedSlots.slice() });
+              }
+            }
           }
         }
         keys[e.code] = true;
@@ -11676,7 +12156,8 @@
         if (state !== "PLAYING" || !G) return;
         const x = e.clientX,
           y = e.clientY,
-          L = btnLayout();
+          L = btnLayout(),
+          u = UIS;
         if (Math.hypot(x - L.pause.x, y - L.pause.y) < L.pause.r * 1.4) {
           pauseGame();
           return;
@@ -11695,6 +12176,127 @@
         ) {
           cycleAtkStyle();
           return;
+        }
+        // 🆕 Клики по слот-кнопкам и кругам (зависят от autoMode)
+        if (G.player) {
+          const pl = G.player;
+          if (!pl.lockedSlots) pl.lockedSlots = [true, false, false, false];
+          if (!pl.autoMode) pl.autoMode = "auto";
+          pl.lockedSlots[0] = true;
+
+          const slotRy = H - 70 * u;
+          const slotRx = 16 * u;
+          const lockRy = slotRy - 26 * u;
+          const mode = pl.autoMode;
+
+          // 1) Клик по кнопке AUTO (4) — циклически сменить режим
+          {
+            const bx = slotRx + 4 * 38 * u + 16 * u;
+            if (Math.hypot(x - bx, y - lockRy) < 12 * u) {
+              if (mode === "auto") {
+                pl.autoMode = "off";
+                pl.replaceIdx = null;
+              } else if (mode === "off") {
+                pl.autoMode = "locked";
+                pl.lockedSlots[1] = true;
+                pl.lockedSlots[2] = true;
+                pl.lockedSlots[3] = true;
+                pl.replaceIdx = null;
+              } else {
+                pl.autoMode = "auto";
+                pl.lockedSlots[1] = false;
+                pl.lockedSlots[2] = false;
+                pl.lockedSlots[3] = false;
+              }
+              sfx("click");
+              toast(
+                lang === "ru"
+                  ? pl.autoMode === "auto"
+                    ? "🟢 AUTO: автоподбор включён"
+                    : pl.autoMode === "off"
+                      ? "🟠 OFF: выберите слот 1/2/3 для замены"
+                      : "🔒 LOCKED: все слоты заблокированы"
+                  : pl.autoMode === "auto"
+                    ? "🟢 AUTO: auto-pickup enabled"
+                    : pl.autoMode === "off"
+                      ? "🟠 OFF: choose slot 1/2/3 to replace"
+                      : "🔒 LOCKED: all slots locked",
+                1800,
+              );
+              if (G.role === "client")
+                netSendAct({
+                  k: "lockslot",
+                  arr: pl.lockedSlots.slice(),
+                  am: pl.autoMode,
+                  ri: pl.replaceIdx,
+                });
+              return;
+            }
+          }
+
+          // 2) Клик по кнопкам 1 / 2 / 3
+          for (let idx = 1; idx <= 3; idx++) {
+            const bx = slotRx + idx * 38 * u + 16 * u;
+            if (Math.hypot(x - bx, y - lockRy) < 11 * u) {
+              if (mode === "locked") {
+                sfx("error");
+                return; // в режиме locked ничего не делаем
+              }
+              if (mode === "off") {
+                // Выбор слота для замены
+                pl.replaceIdx = pl.replaceIdx === idx ? null : idx;
+                sfx("click");
+              } else {
+                // auto — toggle блокировки
+                pl.lockedSlots[idx] = !pl.lockedSlots[idx];
+                sfx("click");
+              }
+              if (G.role === "client")
+                netSendAct({
+                  k: "lockslot",
+                  arr: pl.lockedSlots.slice(),
+                  am: pl.autoMode,
+                  ri: pl.replaceIdx,
+                });
+              return;
+            }
+          }
+
+          // 3) Клик по самим кругам слотов
+          for (let i = 0; i < 4; i++) {
+            const slotX = slotRx + i * 38 * u + 16 * u;
+            if (Math.hypot(x - slotX, y - slotRy) < 18 * u) {
+              if (i === 0) {
+                sfx("error");
+                toast(
+                  lang === "ru"
+                    ? "Базовый слот всегда заблокирован"
+                    : "Base slot is always locked",
+                  1200,
+                );
+                return;
+              }
+              if (mode === "locked") {
+                sfx("error");
+                return;
+              }
+              if (mode === "off") {
+                pl.replaceIdx = pl.replaceIdx === i ? null : i;
+                sfx("click");
+              } else {
+                pl.lockedSlots[i] = !pl.lockedSlots[i];
+                sfx("click");
+              }
+              if (G.role === "client")
+                netSendAct({
+                  k: "lockslot",
+                  arr: pl.lockedSlots.slice(),
+                  am: pl.autoMode,
+                  ri: pl.replaceIdx,
+                });
+              return;
+            }
+          }
         }
         const n = hitButton(x, y);
         try {
@@ -12282,12 +12884,12 @@
         // Символы внутри (1, 2 или 3 штуки)
         c.fillStyle = "#fff";
         c.strokeStyle = "#000";
-        const symScale = lvl === 1 ? 1 : lvl === 2 ? 0.7 : 0.5;
-        const offsetY = lvl === 1 ? 0 : lvl === 2 ? 0.2 : 0.35;
+        const symScale = lvl === 1 ? 1 : lvl === 2 ? 0.65 : 0.45;
+        const offsetY = lvl === 1 ? 0 : lvl === 2 ? 0.28 : 0.32;
 
         for (let i = 0; i < lvl; i++) {
           c.save();
-          c.translate(0, (i - (lvl - 1) / 2) * offsetY * 1.5);
+          c.translate(0, (i - (lvl - 1) / 2) * offsetY);
           c.scale(symScale, symScale);
 
           if (sym === "heart") {
@@ -12659,6 +13261,8 @@
         FX.hs = 0;
         FX.slow = { t: 0, s: 1 };
         FX.vig = 0;
+        FX.invert = 0; // 🆕
+        FX.chroma = 0; // 🆕
         G = {
           mode: o.mode,
           online: !!o.online,
@@ -13049,6 +13653,8 @@
         MUS.tgt = 0;
         Aud.duck = 1;
         applyVolumes();
+        FX.invert = 0; // 🆕 сброс на случай, если мега-ульта шла
+        FX.chroma = 0; // 🆕
         showScreen("sc-menu");
         initMenuMages();
         updateQuestsBadge();
@@ -14270,7 +14876,7 @@
         const u = UIS * 1.15,
           c = ctx;
         for (const m of G.mages) {
-          if (m.dead && m.alpha < 0.1) continue;
+          if (m.dead && m.alpha < 0.1 && !m.revivable) continue;
           const sp = w2s(m.x, m.y - 52 - m.lev);
           if (sp.x < -80 || sp.x > W + 80 || sp.y < -60 || sp.y > H + 60)
             continue;
@@ -14315,8 +14921,23 @@
             tx += ic + 3 * u;
           }
           txt(c, m.name, tx, y, 13 * u, me ? "#ffe27a" : "#fff", "left", 3);
-          if (!m.dead) drawBuffRow(c, m, x, y - 28 * u, u);
+          if (!m.dead) {
+            drawBuffRow(c, m, x, y - 28 * u, u);
+          } else if (m.revivable && m.reviveLeft > 0) {
+            // 🆕 Обратный отсчет
+            txt(
+              c,
+              Math.ceil(m.reviveLeft) + "s",
+              x,
+              y - 10 * u,
+              14 * u,
+              "#50FF70",
+              "center",
+              3,
+            );
+          }
         }
+
         c.globalAlpha = 1;
         const p = G.player;
         if (p)
@@ -14786,18 +15407,21 @@
             2,
           );
         }
-        // 🆕 Ограничиваем 40 ближайшими монстрами
-        const _pView = G.player || { x: CX, y: CY };
-        const _mons = G.monsters
-          .filter((mo) => !mo.dead)
-          .sort(
-            (a, b) =>
-              (a.x - _pView.x) ** 2 +
-              (a.y - _pView.y) ** 2 -
-              ((b.x - _pView.x) ** 2 + (b.y - _pView.y) ** 2),
-          )
-          .slice(0, 40);
-        for (const mo of _mons) {
+        // 🆕 Кэш ближайших монстров — пересчитываем не чаще 5 раз в секунду
+        if (!G._mmCache || TM - G._mmCacheT > 0.2) {
+          const _pView = G.player || { x: CX, y: CY };
+          G._mmCache = G.monsters
+            .filter((mo) => !mo.dead)
+            .sort(
+              (a, b) =>
+                (a.x - _pView.x) ** 2 +
+                (a.y - _pView.y) ** 2 -
+                ((b.x - _pView.x) ** 2 + (b.y - _pView.y) ** 2),
+            )
+            .slice(0, 40);
+          G._mmCacheT = TM;
+        }
+        for (const mo of G._mmCache) {
           c.fillStyle = mo.boss ? "#ff00ff" : "#ff4040";
           const sz = mo.boss ? 4 : 2;
           c.fillRect(
@@ -14808,7 +15432,22 @@
           );
         }
         for (const m of G.mages) {
-          if (m.dead) continue;
+          if (m.dead) {
+            // 🆕 Крестик для воскрешаемых
+            if (m.revivable && m.reviveLeft > 0) {
+              const mxp = mx + (m.x - CX) * ms;
+              const myp = my + (m.y - CY) * ms;
+              c.strokeStyle = "#50FF70";
+              c.lineWidth = 2;
+              c.beginPath();
+              c.moveTo(mxp - 4, myp - 4);
+              c.lineTo(mxp + 4, myp + 4);
+              c.moveTo(mxp + 4, myp - 4);
+              c.lineTo(mxp - 4, myp + 4);
+              c.stroke();
+            }
+            continue;
+          }
           c.fillStyle =
             m === p ? "#fff" : G.mode === "survival" ? "#50ff70" : "#ff5050";
           c.beginPath();
@@ -14827,11 +15466,111 @@
         c.lineWidth = 2.5;
         c.strokeStyle = "#DAA520";
         c.stroke();
-        const ry = H - 52 * u,
+        const ry = H - 70 * u, // 🆕 приподняли слоты (было H - 52*u)
           rx = 16 * u;
-        // 🆕 4 ячейки ультимейта
-        if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null]; // 🆕
-        // 🆕 все 4 слота одной стихии → мега-индикатор
+        if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null];
+        if (!p.lockedSlots) p.lockedSlots = [true, false, false, false];
+        p.lockedSlots[0] = true;
+
+        // 🆕 Кнопки 1 / 2 / 3 — поведение зависит от autoMode
+        const lockRy = ry - 26 * u;
+        const mode = p.autoMode || "auto";
+        for (let i = 0; i < 3; i++) {
+          const idx = i + 1;
+          const x = rx + idx * 38 * u + 16 * u;
+          const locked = p.lockedSlots[idx];
+          const isReplace = mode === "off" && p.replaceIdx === idx;
+          let bg, br, fg;
+          if (mode === "locked") {
+            bg = "rgba(200,50,50,.95)"; // всё 🔒 — красное
+            br = "#FF8080";
+            fg = "#FFF";
+          } else if (mode === "off") {
+            // Режим выбора: если replaceIdx — жёлтый, иначе тёмный
+            bg = isReplace ? "rgba(255,215,60,.95)" : "rgba(40,20,60,.85)";
+            br = isReplace ? "#FFF6A0" : "rgba(218,165,32,.6)";
+            fg = isReplace ? "#1a0500" : "#ddd";
+          } else {
+            // Режим "auto" — как раньше: красный если заблокирован
+            bg = locked ? "rgba(200,50,50,.95)" : "rgba(40,20,60,.85)";
+            br = locked ? "#FF8080" : "rgba(218,165,32,.6)";
+            fg = locked ? "#FFF" : "#aaa";
+          }
+          c.beginPath();
+          c.arc(x, lockRy, 9 * u, 0, TAU);
+          c.fillStyle = bg;
+          c.fill();
+          c.lineWidth = 1.5;
+          c.strokeStyle = br;
+          c.stroke();
+          c.font = "900 " + 10 * u + "px Arial";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillStyle = fg;
+          c.fillText(String(idx), x, lockRy + 0.5 * u);
+        }
+
+        // 🆕 Кнопка «AUTO» (4) — циклически переключает режим
+        {
+          const x = rx + 4 * 38 * u + 16 * u;
+          let bg, br, fg, label;
+          if (mode === "auto") {
+            bg = "rgba(60,180,90,.95)";
+            br = "#90FF90";
+            fg = "#fff";
+            label = "AUTO";
+          } else if (mode === "off") {
+            bg = "rgba(255,140,40,.95)"; // оранжевый — авто выключено
+            br = "#FFB060";
+            fg = "#fff";
+            label = "OFF";
+          } else {
+            bg = "rgba(200,50,50,.95)"; // красный — заблокировано
+            br = "#FF8080";
+            fg = "#fff";
+            label = "🔒";
+          }
+          c.beginPath();
+          c.arc(x, lockRy, 10 * u, 0, TAU);
+          c.fillStyle = bg;
+          c.fill();
+          c.lineWidth = 2.2;
+          c.strokeStyle = br;
+          c.stroke();
+          c.font = "900 " + (mode === "locked" ? 11 : 7.5) * u + "px Arial";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillStyle = fg;
+          c.fillText(label, x, lockRy + 0.5 * u);
+        }
+
+        // 🆕 Кнопка «AUTO» (4) — toggle всех трёх слотов разом.
+        //    Активна (подсвечена), когда ХОТЯ БЫ ОДИН слот 1–3 свободен
+        //    (автоподбор работает). Неактивна (только обводка), когда все 🔒.
+        {
+          const x = rx + 4 * 38 * u + 16 * u;
+          const allLocked =
+            p.lockedSlots[1] && p.lockedSlots[2] && p.lockedSlots[3];
+          const autoActive = !allLocked;
+          c.beginPath();
+          c.arc(x, lockRy, 10 * u, 0, TAU);
+          c.fillStyle = autoActive
+            ? "rgba(60,180,90,.95)" // активен — зелёная заливка
+            : "rgba(40,20,60,.85)"; // неактивен — тёмная (как у 1/2/3)
+          c.fill();
+          c.lineWidth = autoActive ? 2.2 : 1.5;
+          c.strokeStyle = autoActive
+            ? "#90FF90" // активен — ярко-зелёная обводка
+            : "#FF8080"; // неактивен — красная (как у 🔒 1/2/3)
+          c.stroke();
+          c.font = "900 " + 7.5 * u + "px Arial";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillStyle = autoActive ? "#fff" : "#aaa";
+          c.fillText("AUTO", x, lockRy + 0.5 * u);
+        }
+
+        // 🆕 MEGA-пульсация при 4 одинаковых
         const _allSame =
           p.ultSlots[0] != null &&
           p.ultSlots[1] === p.ultSlots[0] &&
@@ -14844,40 +15583,110 @@
             const x = rx + i * 38 * u + 16 * u;
             c.save();
             c.globalAlpha = pulse;
+            c.fillStyle = rgba(col, 0.25 * pulse);
+            c.beginPath();
+            c.arc(x, ry, 18 * u, 0, TAU);
+            c.fill();
             c.shadowColor = col;
-            c.shadowBlur = 16;
+            c.shadowBlur = 24;
             c.strokeStyle = col;
-            c.lineWidth = 3;
+            c.lineWidth = 4;
             c.beginPath();
             c.arc(x, ry, 18 * u, 0, TAU);
             c.stroke();
             c.restore();
           }
         }
+
+        // 🆕 Сами круги слотов
+        const _mode = p.autoMode || "auto";
         for (let i = 0; i < 4; i++) {
           const x = rx + i * 38 * u + 16 * u;
           const e = p.ultSlots[i];
-          const active = (p.ultActive || 0) === i;
+          const active = e != null && e === p.elem;
+          const locked = i === 0 ? true : p.lockedSlots[i];
+          // 🆕 В режиме "off" — выбранный слот для замены (только ОДИН)
+          const isReplace = _mode === "off" && i > 0 && p.replaceIdx === i;
+
           c.beginPath();
           c.arc(x, ry, 15 * u, 0, TAU);
-          c.fillStyle = active ? "rgba(80,40,120,.9)" : "rgba(20,10,30,.7)";
+          c.fillStyle = isReplace
+            ? "rgba(255,215,60,.85)" // выбранный слот — жёлтая заливка
+            : active
+              ? "rgba(80,40,120,.9)"
+              : "rgba(20,10,30,.7)";
           c.fill();
-          c.lineWidth = active ? 3.5 : 2;
-          c.strokeStyle = active
-            ? "#FFD84A"
-            : e != null
-              ? elemColor(e)
-              : "rgba(218,165,32,.5)";
+
+          c.lineWidth = isReplace ? 4 : active ? 3.5 : 2;
+          c.strokeStyle = isReplace
+            ? "#FFF6A0" // ярко-жёлтая обводка
+            : locked && i > 0
+              ? "#FF6060"
+              : active
+                ? "#FFD84A"
+                : e != null
+                  ? elemColor(e)
+                  : "rgba(218,165,32,.5)";
           c.stroke();
+
+          // 🆕 Пульсирующее внешнее кольцо вокруг выбранного слота
+          if (isReplace) {
+            const puls = 0.5 + 0.5 * Math.sin(TM * 8);
+            c.save();
+            c.globalAlpha = 0.5 * puls;
+            c.strokeStyle = "#FFEE80";
+            c.lineWidth = 2.5 * u;
+            c.beginPath();
+            c.arc(x, ry, 19 * u + puls * 3 * u, 0, TAU);
+            c.stroke();
+            c.restore();
+          }
+
           if (e != null)
             c.drawImage(IC["e" + e], x - 12 * u, ry - 12 * u, 24 * u, 24 * u);
           if (i === 0) {
             c.font = "800 " + 8 * u + "px Arial";
             c.fillStyle = "#FFD84A";
             c.textAlign = "center";
+            c.textBaseline = "middle";
             c.fillText("BASE", x, ry + 24 * u);
           }
         }
+
+        // 🆕 Иконка ульты СПРАВА от 4-го круга, на той же высоте ry,
+        //    чтобы выравнивалась по кругам (не налезала на слоты)
+        const slotRightX = rx + 3 * 38 * u + 16 * u + 15 * u;
+        const iconCx = slotRightX + 14 * u;
+        const iconCy = ry;
+        const iconSize = 20 * u;
+        if (_ui.img) {
+          c.beginPath();
+          c.arc(iconCx, iconCy, iconSize / 2 + 2 * u, 0, TAU);
+          c.fillStyle = "rgba(20,10,30,.85)";
+          c.fill();
+          c.lineWidth = 2 * u;
+          c.strokeStyle =
+            p.ultCharge >= 100 ? "#FFD84A" : "rgba(218,165,32,.55)";
+          c.stroke();
+          c.drawImage(
+            _ui.img,
+            iconCx - iconSize / 2,
+            iconCy - iconSize / 2,
+            iconSize,
+            iconSize,
+          );
+        }
+        // 🆕 Название ульты — справа от иконки, на одной высоте ry
+        const _nmLabel = t("ult") + ": " + ultName(_uk.key);
+        c.font = "800 " + 12 * u + 'px "Segoe UI",Arial';
+        c.textAlign = "left";
+        c.textBaseline = "middle";
+        c.lineJoin = "round";
+        c.lineWidth = 2.5 * u;
+        c.strokeStyle = "#000";
+        c.strokeText(_nmLabel, iconCx + iconSize / 2 + 6 * u, iconCy + 0.5 * u);
+        c.fillStyle = p.ultCharge >= 100 ? "#FFD84A" : "#ccc";
+        c.fillText(_nmLabel, iconCx + iconSize / 2 + 6 * u, iconCy + 0.5 * u);
         if (p.multiStacks > 1) {
           let mx2 = rx + 3 * 38 * u + 16 * u + 40 * u;
           // 🆕 не вылезать за правый край
@@ -14947,20 +15756,6 @@
           c.fillText("ATK", 0, asw.r + 10 * u);
           c.restore();
         }
-        const nm = t("ult") + ": " + ultName(_uk.key);
-        c.font = "800 " + 13 * u + 'px "Segoe UI",Arial';
-        if (_ui.img)
-          c.drawImage(_ui.img, rx, H - 28 * u - 10 * u, 20 * u, 20 * u);
-        txt(
-          c,
-          nm,
-          rx + 24 * u,
-          H - 28 * u,
-          13 * u,
-          p.ultCharge >= 100 ? "#FFD84A" : "#ccc",
-          "left",
-          3,
-        );
         let bxx = rx;
         for (const b of _buffs) {
           const sz = 24 * u,
@@ -15228,6 +16023,38 @@
             4,
           );
         }
+
+        // 🆕 Инверсия цветов (мега-ульта).
+        //    globalCompositeOperation = "difference" с белым = инверсия:
+        //    чёрный → белый, белый → чёрный, красный → голубой и т.д.
+        if (FX.invert > 0) {
+          c.save();
+          c.globalCompositeOperation = "difference";
+          c.fillStyle = `rgba(255,255,255,${clamp(FX.invert, 0, 1)})`;
+          c.fillRect(0, 0, W, H);
+          c.restore();
+        }
+
+        // 🆕 Хроматическая аберрация — красные и синие полосы по краям.
+        //    Имитация «сбитой матрицы» / ударной волны.
+        if (FX.chroma > 0) {
+          const d = FX.chroma * 1.5; // сила
+          c.save();
+          c.globalCompositeOperation = "lighter";
+          // левый край — красный
+          const gL = c.createLinearGradient(0, 0, d * 4, 0);
+          gL.addColorStop(0, "rgba(255,0,64,0.55)");
+          gL.addColorStop(1, "rgba(255,0,64,0)");
+          c.fillStyle = gL;
+          c.fillRect(0, 0, d * 4, H);
+          // правый край — синий
+          const gR = c.createLinearGradient(W, 0, W - d * 4, 0);
+          gR.addColorStop(0, "rgba(0,180,255,0.55)");
+          gR.addColorStop(1, "rgba(0,180,255,0)");
+          c.fillStyle = gR;
+          c.fillRect(W - d * 4, 0, d * 4, H);
+          c.restore();
+        }
       }
 
       function renderGame() {
@@ -15306,7 +16133,7 @@
         m.staff = STAFF_BY_ID[SAVE.staff] || STAFFS[0];
         m.mantle =
           sk.mantle ||
-          (typeof setup !== "undefined" && setup.hex
+          (typeof setup !== "undefined" && setup && setup.hex
             ? setup.hex
             : colorHex(SAVE.color));
         m.elem = 0;
@@ -15459,10 +16286,14 @@
         menuBoltT -= rd;
         if (menuBoltT <= 0) {
           menuBoltT = rnd(0.8, 2.2);
-          const sx =
-            Math.random() < 0.5 ? W * rnd(0.02, 0.3) : W * rnd(0.7, 0.98);
+          const sx = clamp(
+            Math.random() < 0.5 ? W * rnd(0.02, 0.3) : W * rnd(0.7, 0.98),
+            20,
+            W - 20,
+          );
+          const ex = clamp(sx + rnd(-90, 90), 0, W);
           menuBolt = {
-            pts: bolt(sx, 0, sx + rnd(-90, 90), H * 0.5, 9, 28),
+            pts: bolt(sx, 0, ex, H * 0.5, 9, 28),
             l: 0.18,
           };
         }
@@ -15554,6 +16385,21 @@
       function goMenu() {
         const _lm = $("sc-loading-match");
         if (_lm) _lm.classList.remove("show");
+        // 🆕 если был активный матч — корректно выходим
+        if (G && !G.online && (state === "PLAYING" || state === "PAUSED")) {
+          netCleanup();
+          if (bgTimer) {
+            clearTimeout(bgTimer);
+            bgTimer = null;
+          }
+          stopKeepAlive();
+          G = null;
+          stopHum();
+          PP.clear();
+          PR.clear();
+          PT.clear();
+          MUS.tgt = 0;
+        }
         clearInterval(shopTimer);
         state = "MENU";
         showScreen("sc-menu");
@@ -15753,15 +16599,19 @@
 
       function drawStaffPreview(cv, staff) {
         const c = cv.getContext("2d");
-        cv.width = 180;
-        cv.height = 200;
+        if (cv.width !== 180) {
+          cv.width = 180;
+          cv.height = 200;
+        }
         c.clearRect(0, 0, 180, 200);
+
         const g = c.createRadialGradient(90, 120, 10, 90, 120, 90);
         g.addColorStop(0, "rgba(120,70,180,.5)");
         g.addColorStop(1, "rgba(0,0,0,0)");
         c.fillStyle = g;
         c.fillRect(0, 0, 180, 200);
 
+        // 🆕 Анимированный «фейковый маг» — пульсирует и слегка покачивается
         const fakeMage = {
           x: 0,
           y: 0,
@@ -15773,13 +16623,36 @@
           lev: 0,
           staff: staff,
           skin: { id: "" },
+          // 🆕 Анимация: посох слегка покачивается + «дышит»
+          staffAnim: Math.sin(TM * 2) * 0.5 + 0.5,
         };
 
-        c.save();
-        c.translate(90, 110);
-        c.scale(3.2, 3.2);
-        drawStaff(c, fakeMage, 1);
-        c.restore();
+        _previewMode = true;
+        try {
+          c.save();
+          // 🆕 Лёгкое покачивание по вертикали
+          const bob = Math.sin(TM * 1.8) * 2;
+          c.translate(90 - 22 * 2.2, 165 + bob);
+          c.scale(2.2, 2.2);
+          // 🆕 Небольшой наклон от анимации
+          c.rotate(Math.sin(TM * 1.2) * 0.04);
+          drawStaff(c, fakeMage, 1);
+          c.restore();
+
+          // 🆕 Лёгкое свечение под посохом (тень)
+          c.save();
+          c.globalAlpha = 0.25 + 0.1 * Math.sin(TM * 2);
+          const sg = c.createRadialGradient(90, 190, 4, 90, 190, 35);
+          sg.addColorStop(0, "rgba(120,80,200,.6)");
+          sg.addColorStop(1, "rgba(120,80,200,0)");
+          c.fillStyle = sg;
+          c.beginPath();
+          c.ellipse(90, 190, 35, 8, 0, 0, TAU);
+          c.fill();
+          c.restore();
+        } finally {
+          _previewMode = false;
+        }
       }
 
       function drawArenaPreview(cv, th) {
@@ -15841,6 +16714,7 @@
 
       function buildShop() {
         clearInterval(shopTimer);
+        shopTimer = null;
         const tabs = $("shopTabs");
         tabs.innerHTML = "";
         for (const [id, k] of [
@@ -15930,10 +16804,12 @@
               buildShop();
             };
             if (gold)
-              box.appendChild(mkShopBtn("coin", " " + gold, () => buy("gold")));
+              box.appendChild(
+                mkShopBtn("coin", String(gold), () => buy("gold")),
+              );
             if (gems)
               box.appendChild(
-                mkShopBtn("gemIcon", " " + gems, () => buy("gems")),
+                mkShopBtn("gemIcon", String(gems), () => buy("gems")),
               );
           }
           return box;
@@ -16239,11 +17115,11 @@
             c.style.height = "170px";
             c.style.justifyContent = "center";
             c.innerHTML = `
-                                                                     <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
-                                                                       <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
-                                                                     </div>
-                                                                     <div style="opacity:.8;font-size:13px">${it.sub}</div>
-                                                                   `;
+              <div style="font-size:20px;font-weight:900; display:flex; justify-content:center; align-items:center; gap:6px;">
+                <span class="ico-cv" data-ico="${it.icon}"></span> ${it.n}
+              </div>
+              <div style="opacity:.8;font-size:13px">${it.sub}</div>
+            `;
             const b = document.createElement("button");
             b.className = "btn small shop-btn";
             b.style.display = "flex";
@@ -16294,6 +17170,35 @@
             (menuMages[0].staff && menuMages[0].staff.id !== SAVE.staff))
         )
           initMenuMages();
+        // 🆕 Анимировать превью посохов, пока открыта вкладка «Посохи»
+        if (shopTab === "staffs") {
+          document.querySelectorAll(".card > canvas").forEach((cv, i) => {
+            // привязываем staffId, чтобы знать, что рисовать
+            const card = cv.parentElement;
+            const nameEl = card.querySelector("b");
+            if (!nameEl) return;
+            const title = nameEl.textContent;
+            for (const st of STAFFS) {
+              if (st[lang] === title) {
+                cv.dataset.staff = st.id;
+                break;
+              }
+            }
+          });
+          shopTimer = setInterval(() => {
+            if (state !== "SHOP" || shopTab !== "staffs") {
+              clearInterval(shopTimer);
+              shopTimer = null;
+              return;
+            }
+            document
+              .querySelectorAll(".card > canvas[data-staff]")
+              .forEach((cv) => {
+                const staff = STAFF_BY_ID[cv.dataset.staff];
+                if (staff) drawStaffPreview(cv, staff);
+              });
+          }, 50);
+        }
       }
 
       function buildCodex() {
@@ -16303,7 +17208,7 @@
         const EMO_E = ["🔥", "❄️", "⚡", "💨", "🌑"];
         let secE = "";
         for (const e of ELEMS) {
-          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><span style="font-size:20px;width:26px;text-align:center">${EMO_E[e.id]}</span><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
+          secE += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e.id)}"><canvas data-elem="${e.id}" width="64" height="64" style="width:40px;height:40px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(e.id)};font-size:13px">${e[lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEM_BUFF[lang][e.id]}</div></div></div>`;
         }
         h += sec("⚗️ " + t("codexElems"), secE);
         let secC = "";
@@ -16311,14 +17216,14 @@
           for (let b = a; b < 5; b++) {
             const k = a + "-" + b,
               desc = lang === "ru" ? ULT_DESC[k] : "";
-            secC += `<div style="padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(b)}"><b style="color:${elemColor(b)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[a][lang]} + ${ELEMS[b][lang]}${desc ? " — " + desc : ""}</div></div>`;
+            secC += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(b)}"><canvas data-combo="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(b)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[a][lang]} + ${ELEMS[b][lang]}${desc ? " — " + desc : ""}</div></div></div>`;
           }
         h += sec("✨ " + t("codexCombos"), secC);
         let secM = "";
         for (let e = 0; e < 5; e++) {
           const k = e + "-" + e + "-" + e,
             desc = lang === "ru" ? ULT_DESC[k] : "";
-          secM += `<div style="padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e)}"><b style="color:${elemColor(e)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[e][lang]} ×3${desc ? " — " + desc : ""}</div></div>`;
+          secM += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${elemColor(e)}"><canvas data-mega="${e}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${elemColor(e)};font-size:13px">${ULTS[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${ELEMS[e][lang]} ×3${desc ? " — " + desc : ""}</div></div></div>`;
         }
         h += sec("💥 " + t("codexMega"), secM);
         const itemInfo = {
@@ -16363,7 +17268,7 @@
         for (const k of PK_KEYS) {
           const info = itemInfo[k];
           if (!info) continue;
-          secP += `<div style="padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${PK[k].col}"><b style="color:${PK[k].col};font-size:13px">${info.e} ${PK[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${info[lang]}</div></div>`;
+          secP += `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin:4px 0;border-left:3px solid ${PK[k].col}"><canvas data-item="${k}" width="64" height="64" style="width:32px;height:32px;flex-shrink:0"></canvas><div style="flex:1"><b style="color:${PK[k].col};font-size:13px">${PK[k][lang]}</b><div style="opacity:.75;font-size:11px;margin-top:2px">${info[lang]}</div></div></div>`;
         }
         h += sec("🎁 " + (lang === "ru" ? "ПРЕДМЕТЫ" : "ITEMS"), secP);
         let secF = "";
@@ -16530,6 +17435,24 @@
           drawMage(c, mm, { noShadow: false });
           c.restore();
         });
+        document.querySelectorAll("canvas[data-elem]").forEach((cv) => {
+          const id = +cv.dataset.elem;
+          cv.getContext("2d").drawImage(IC["e" + id], 0, 0, 64, 64);
+        });
+        document.querySelectorAll("canvas[data-combo]").forEach((cv) => {
+          const k = cv.dataset.combo;
+          if (IC["c" + k])
+            cv.getContext("2d").drawImage(IC["c" + k], 0, 0, 64, 64);
+        });
+        document.querySelectorAll("canvas[data-mega]").forEach((cv) => {
+          const id = +cv.dataset.mega;
+          if (IC["m" + id])
+            cv.getContext("2d").drawImage(IC["m" + id], 0, 0, 64, 64);
+        });
+        document.querySelectorAll("canvas[data-item]").forEach((cv) => {
+          const tkey = cv.dataset.item;
+          if (IC[tkey]) cv.getContext("2d").drawImage(IC[tkey], 0, 0, 64, 64);
+        });
       }
 
       function buildTutorial() {
@@ -16548,8 +17471,8 @@
           "🔥",
           isRu ? "РУНЫ И УЛЬТА" : "RUNES & ULT",
           isRu
-            ? `Руны стихий: 🔥❄️⚡💨🌑<br><br>🔹 1 руна → простая ульта<br>🔹 2 руны → комбо-ульта<br>🔹 4 одинаковые → МЕГА-УЛЬТА (самый сильный)<br><br>🟣 Руна выстрела → +1 снаряд (до 15)<br>🟢 Базовая стихия (слот BASE) не меняется от рун`
-            : `Element runes: 🔥❄️⚡💨🌑<br><br>🔹 1 rune → simple ult<br>🔹 2 runes → combo ult<br>🔹 4 same → MEGA ULT (strongest)<br><br>🟣 Shot rune → +1 projectile (max 15)<br>🟢 Base element (BASE slot) is not changed by runes`,
+            ? `Руны стихий: 🔥❄️⚡💨🌑<br><br>🔹 1 руна → простая ульта<br>🔹 2 руны → комбо-ульта<br>🔹 4 одинаковые → МЕГА-УЛЬТА (самый сильный)<br><br>🟣 Руна выстрела → +1 снаряд (до 15)<br>🟢 Базовая стихия (слот BASE) не меняется от рун<br><br>🔒 <b>Блокировка слотов:</b> нажмите на круг слота внизу слева или клавиши <b>[1][2][3]</b> — слот заблокируется (🔒). Заблокированный слот никогда не заменяется руной. Клавиша <b>[4]</b> — заблокировать/разблокировать все три слота разом. Слот BASE заблокирован навсегда.<br><br>⌨️ <b>Хоткеи:</b> [R] — сменить стихию, [1][2][3] — блокировка слотов, [4] — все слоты.<br>💥 Чем больше одинаковых рун, тем крупнее и мощнее ваши снаряды!`
+            : `Element runes: 🔥❄️⚡💨🌑<br><br>🔹 1 rune → simple ult<br>🔹 2 runes → combo ult<br>🔹 4 same → MEGA ULT (strongest)<br><br>🟣 Shot rune → +1 projectile (max 15)<br>🟢 Base element (BASE slot) is not changed by runes<br><br>🗑️ <b>Rune Replace:</b> Click a rune slot (bottom left) to mark it red. The next rune picked up replaces it. Click again to unmark.<br><br>⌨️ <b>Hotkeys:</b> [R] — cycle element, [1][2][3][4] — select element from slot.<br>💥 More same runes = bigger and stronger projectiles!`,
         );
         h += sect(
           "🧟",
@@ -16628,9 +17551,11 @@
             if (entries && entries.entries && entries.entries.length) {
               let myUid = null;
               try {
-                myUid = player.getUniqueID
-                  ? player.getUniqueID()
-                  : player.uniqueID || null;
+                if (typeof player !== "undefined" && player) {
+                  myUid = player.getUniqueID
+                    ? player.getUniqueID()
+                    : player.uniqueID || null;
+                }
               } catch (e) {}
               let yh =
                 '<div style="text-align:center;color:#ffd23a;font-weight:900;margin:14px 0 8px;font-size:14px">🌐 YANDEX TOP</div>';
@@ -17131,13 +18056,27 @@
             break;
           }
           case "confirmYes": {
-            const fr = G && G.pendingQuit;
             $("sc-confirm").classList.remove("show");
+            if (window._escExit) {
+              window._escExit = false;
+              // В Yandex Games выйти из игры нельзя — просто остаёмся в меню
+              toast(lang === "ru" ? "Вы в меню" : "You are in menu");
+              state = "MENU";
+              showScreen("sc-menu");
+              return;
+            }
+            const fr = G && G.pendingQuit;
             quitToMenu(fr);
             break;
           }
           case "confirmNo": {
             $("sc-confirm").classList.remove("show");
+            // 🆕 Отмена выхода из игры
+            if (window._escExit) {
+              window._escExit = false;
+              showScreen("sc-menu"); // Возвращаемся в меню
+              return;
+            }
             if (G && G.uiPause) {
               if (!G.online) state = "PAUSED";
               showScreen("sc-pause");
@@ -17217,12 +18156,28 @@
           case "giveUp":
             endMatch(false);
             break;
+
+          case "back": {
+            // Если это настройки из паузы/результата — вернуть в игру
+            if (G && G.uiPause) {
+              if (G.resultShown) {
+                state = "RESULT";
+                showScreen("sc-result");
+              } else if (!G.online) {
+                state = "PAUSED";
+                showScreen("sc-pause");
+              } else {
+                showScreen(null);
+                canvas.focus();
+              }
+              break;
+            }
+            // Иначе — в главное меню
+            goMenu();
+            break;
+          }
         }
       }
-      document.addEventListener("click", (e) => {
-        const b = e.target.closest("[data-act]");
-        if (b) act(b.dataset.act);
-      });
       let _lastHover = null;
       document.addEventListener("pointerover", (e) => {
         const b = e.target.closest && e.target.closest(".btn");
@@ -17235,6 +18190,12 @@
       document.addEventListener("pointerout", (e) => {
         const b = e.target.closest && e.target.closest(".btn");
         if (b && _lastHover === b) _lastHover = null;
+      });
+
+      // 🆕 Обработчик кликов по кнопкам с data-act
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-act]");
+        if (b) act(b.dataset.act);
       });
 
       /* NETWORK */
@@ -17528,6 +18489,11 @@
           m.netLastIn = performance.now(); // 🆕
           if (Array.isArray(d.acts)) {
             for (const a of d.acts.slice(0, 6)) {
+              // 🆕 Синхронизация lockedSlots от клиента
+              if (a.k === "lockslot" && Array.isArray(a.arr)) {
+                m.lockedSlots = [true, !!a.arr[1], !!a.arr[2], !!a.arr[3]];
+                continue;
+              }
               if (a.k === "usel" && m.ultSlots) {
                 // 🆕 переключение ульты
                 if (
@@ -18589,9 +19555,7 @@
           if (G.player) {
             const p = G.player;
             MUS.tgt =
-              G.epicT > 0 ||
-              p.hp < p.maxHp * 0.25 ||
-              G.monsters.some((m) => m.boss && !m.dead)
+              G.epicT > 0 || p.hp < p.maxHp * 0.25 || (G.boss && !G.boss.dead)
                 ? 1
                 : 0.55;
           }
@@ -18910,10 +19874,6 @@
         await delay(50);
 
         // 🆕 строим арену с показом прогресса
-        setProg(30, "boot3");
-        await buildIcons((p) => setProg(30 + p * 45)); // 30 → 75
-        setProg(78, "boot4");
-        await delay(60); // 🆕 пусть браузер отрисует 78%
         drawTopbarIconsOnce();
         ensureArena("lava");
         setProg(88, "boot4");
@@ -18950,7 +19910,6 @@
           }
         }, 600);
       }
-      // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
       // 🆕 При закрытии вкладки — синхронно сохраняем в localStorage
       window.addEventListener("beforeunload", () => {
         try {

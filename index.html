@@ -5416,12 +5416,12 @@
         const px = f * 22,
           py = -2;
 
-        const attackAnim = Math.max(m.swing, m.staffAnim * 1.5);
+        const attackAnim = Math.max(m.swing, (m.staffAnim || 0) * 1.5);
         const sw = Math.sin(attackAnim * Math.PI) * 1.9 * f;
         c.save();
         c.translate(px, py);
 
-        c.rotate(sw - f * 0.04 + (m.staffAnim || 0) * f * 0.3);
+        c.rotate(sw - f * 0.04);
         c.translate(-px, -py);
         c.lineCap = "round";
         c.lineJoin = "round";
@@ -7579,6 +7579,7 @@
         if (!G.online) FX.hs = Math.max(FX.hs, ms);
       }
       function later(t, fn) {
+        if (!G) return; // 🆕 защита от вызова после конца матча
         G.timers.push({ t, fn });
       }
       function announce(txt, col) {
@@ -8673,6 +8674,7 @@
           x: ax,
           y: ay,
           mega: !!u.mega,
+          e: u.e,
         });
         later(u.mega ? 0.6 : 0.35, () => {
           if (!G || !m || m.dead) return;
@@ -8749,7 +8751,7 @@
           // 🆕 Мега-ульта: каскад из 6 «ударов» с инверсией и тряской.
           //    Эффект идёт в реальном времени (setTimeout), не привязан
           //    к игровой симуляции — работает даже в slow-mo и hitstop.
-          if (!G.online) FX.slow = { t: 1.2, s: 0.12 };
+          if (!G.online) FX.slow = { t: 3.0, s: 0.12 };
           FX.flash = 1;
           FX.flashC = elemColor(u.a);
           FX.invert = 1;
@@ -8765,11 +8767,14 @@
           // 🆕 Каскад «ударов» (мс, параметры)
           const pulses = [
             { t: 0, inv: 1, fl: 1.0, zm: -0.2, col: colA, sh: 20 },
-            { t: 180, inv: 0, fl: 0.6, zm: 0.06, col: colB, sh: 10 },
-            { t: 360, inv: 1, fl: 0.9, zm: -0.15, col: colA, sh: 18 },
-            { t: 540, inv: 0, fl: 0.5, zm: 0.03, col: colB, sh: 8 },
-            { t: 720, inv: 1, fl: 0.7, zm: -0.1, col: colA, sh: 14 },
-            { t: 950, inv: 0, fl: 0.3, zm: 0, col: "#fff", sh: 4 },
+            { t: 250, inv: 0, fl: 0.6, zm: 0.06, col: colB, sh: 10 },
+            { t: 500, inv: 1, fl: 0.9, zm: -0.15, col: colA, sh: 18 },
+            { t: 750, inv: 0, fl: 0.5, zm: 0.03, col: colB, sh: 8 },
+            { t: 1000, inv: 1, fl: 0.7, zm: -0.1, col: colA, sh: 14 },
+            { t: 1300, inv: 0, fl: 0.3, zm: 0, col: "#fff", sh: 4 },
+            { t: 1600, inv: 1, fl: 0.5, zm: -0.08, col: colA, sh: 10 },
+            { t: 2000, inv: 0, fl: 0.2, zm: 0, col: colB, sh: 3 },
+            { t: 2500, inv: 1, fl: 0.15, zm: 0, col: "#fff", sh: 1 },
           ];
           pulses.forEach((p) => {
             setTimeout(() => {
@@ -8792,7 +8797,7 @@
           setTimeout(() => {
             FX.invert = 0;
             FX.chroma = 0;
-          }, 1200);
+          }, 3000);
         }
         const uMega = u.mega,
           elems = [u.a, u.b];
@@ -9943,8 +9948,14 @@
           m.ultSlots[slot] = e;
           m.runes.push(e);
           if (m.runes.length > 3) m.runes.shift();
-          m.elem = e;
-          m.baseElem = e;
+          // 🆕 Не переключаем стихию атаки, если руна уже есть в слотах
+          //    в количестве >= текущего. Игрок сам жмёт R (cycleAtkStyle).
+          const sameCount = m.ultSlots.filter((v) => v === e).length;
+          if (sameCount >= 3) {
+            m.elem = e;
+            m.baseElem = e;
+            m.ultSlots[0] = e;
+          }
           if (m === G.player) SAVE.stats.runesCollected++;
         };
 
@@ -9983,12 +9994,21 @@
             return;
           }
         }
-        // 2) Заменяем незаблокированный слот с наименее частым элементом
+        // 2) Считаем распределение стихий
         const counts = {};
         for (let i = 0; i < 4; i++) {
           const v = m.ultSlots[i];
           if (v != null) counts[v] = (counts[v] || 0) + 1;
         }
+        const newCount = (counts[e] || 0) + 1;
+        const hasPair = Object.values(counts).some((c) => c >= 2);
+        const createsTriple = newCount >= 3;
+        // 🆕 Если уже есть пара, а новая руна не даёт тройку/четвёрку —
+        //    НЕ заменяем слот (руна останется на земле)
+        if (hasPair && !createsTriple && Object.keys(counts).length >= 2) {
+          return;
+        }
+        // 3) Заменяем незаблокированный слот с наименее частым элементом
         let bestSlot = -1;
         let bestCount = Infinity;
         for (let i = 1; i < 4; i++) {
@@ -10084,6 +10104,24 @@
                     }
                   }
                   if (!freeSlot && !(m.replaceIdx >= 1 && m.replaceIdx <= 3))
+                    canPull = false;
+                }
+                // 🆕 В режиме "auto": если есть пара, а руна не даёт тройку —
+                //    не притягиваем (руна останется на земле)
+                if (m.autoMode === "auto") {
+                  const e = +p.type[1];
+                  const counts = {};
+                  for (let i = 0; i < 4; i++) {
+                    const v = m.ultSlots[i];
+                    if (v != null) counts[v] = (counts[v] || 0) + 1;
+                  }
+                  const newCount = (counts[e] || 0) + 1;
+                  const hasPair = Object.values(counts).some((c) => c >= 2);
+                  if (
+                    hasPair &&
+                    newCount < 3 &&
+                    Object.keys(counts).length >= 2
+                  )
                     canPull = false;
                 }
               }
@@ -11580,11 +11618,13 @@
         if (ARENA.ok && Math.abs(ARENA.S - Q.arenaScale) > 0.1) {
           const th = (G && G.theme) || "lava";
           ARENA.ok = false;
-          try {
-            buildArena(th);
-          } catch (e) {
-            ARENA.ok = false;
-          }
+          setTimeout(() => {
+            try {
+              buildArena(th);
+            } catch (e) {
+              ARENA.ok = false;
+            }
+          }, 0);
         }
       }
       window.addEventListener("resize", resize);
@@ -11977,6 +12017,8 @@
         if (idx < 0) idx = 0;
         p.elem = allowed[(idx + 1) % allowed.length];
         p.baseElem = p.elem;
+        // 🆕 синхронизируем базовый слот, чтобы ultKey считал корректно
+        if (p.ultSlots) p.ultSlots[0] = p.elem;
         p._atkSwitchCd = 0.5; // 0.5с блокировки
         sfx("pickup");
         G.events.push({ k: "atkstyle", id: p.id, e: p.elem });
@@ -12243,7 +12285,7 @@
                 return; // в режиме locked ничего не делаем
               }
               if (mode === "off") {
-                // Выбор слота для замены
+                // 🆕 Выбор ровно одного слота (повторный клик снимает выбор)
                 pl.replaceIdx = pl.replaceIdx === idx ? null : idx;
                 sfx("click");
               } else {
@@ -12281,6 +12323,7 @@
                 return;
               }
               if (mode === "off") {
+                // 🆕 Только один слот может быть выбран для замены
                 pl.replaceIdx = pl.replaceIdx === i ? null : i;
                 sfx("click");
               } else {
@@ -14707,6 +14750,31 @@
           vy0 = cam.y - hh,
           vy1 = cam.y + hh;
         drawArenaLayers(ctx, vx0, vy0, vx1, vy1, th);
+
+        // 🆕 Зона воскрешения союзников (постоянная подсветка)
+        for (const m of G.mages) {
+          if (m === G.player) continue;
+          if (!m.dead || !m.revivable || !(m.reviveLeft > 0)) continue;
+          const pulse = 0.6 + 0.4 * Math.sin(TM * 6);
+          ctx.save();
+          ctx.globalCompositeOperation = "lighter";
+          const _g = ctx.createRadialGradient(m.x, m.y, 20, m.x, m.y, 80);
+          _g.addColorStop(0, `rgba(80,255,120,${0.25 * pulse})`);
+          _g.addColorStop(1, "rgba(80,255,120,0)");
+          ctx.fillStyle = _g;
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, 80, 0, TAU);
+          ctx.fill();
+          ctx.strokeStyle = `rgba(80,255,120,${0.8 * pulse})`;
+          ctx.lineWidth = 3;
+          ctx.setLineDash([8, 6]);
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, 80, 0, TAU);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+
         if (G.mode !== "survival" && G.safeR < R_ARENA - 1) {
           ctx.fillStyle =
             "rgba(255,40,0," + (0.16 + 0.07 * Math.sin(TM * 4)) + ")";
@@ -15128,9 +15196,11 @@
           deathT: p.deathT || 0,
           alpha: 1,
           lev: 0,
-          aura: 0,
-          swing: p.swing, // 🆕 анимация замаха
-          staffAnim: p.staffAnim, // 🆕 анимация посоха при выстреле
+          aura: p.aura,
+          auraElem: p.auraElem,
+          swing: p.swing,
+          staffAnim: p.staffAnim,
+          emoT: Object.assign({}, p.emoT),
           fx: Object.assign({}, p.fx, {
             shield: 0,
             freeze: 0,
@@ -15433,10 +15503,20 @@
         }
         for (const m of G.mages) {
           if (m.dead) {
-            // 🆕 Крестик для воскрешаемых
+            // 🆕 Зона воскрешения + крестик
             if (m.revivable && m.reviveLeft > 0) {
               const mxp = mx + (m.x - CX) * ms;
               const myp = my + (m.y - CY) * ms;
+              const _pulse = 0.6 + 0.4 * Math.sin(TM * 6);
+              // подсветка зоны
+              c.fillStyle = `rgba(80,255,120,${0.2 * _pulse})`;
+              c.beginPath();
+              c.arc(mxp, myp, Math.max(6, 80 * ms), 0, TAU);
+              c.fill();
+              c.strokeStyle = `rgba(80,255,120,${0.9 * _pulse})`;
+              c.lineWidth = 1.5;
+              c.stroke();
+              // крестик
               c.strokeStyle = "#50FF70";
               c.lineWidth = 2;
               c.beginPath();
@@ -15605,8 +15685,12 @@
           const e = p.ultSlots[i];
           const active = e != null && e === p.elem;
           const locked = i === 0 ? true : p.lockedSlots[i];
-          // 🆕 В режиме "off" — выбранный слот для замены (только ОДИН)
           const isReplace = _mode === "off" && i > 0 && p.replaceIdx === i;
+          // 🆕 В режиме "off" невыбранные слоты приглушаем
+          const dimmed =
+            _mode === "off" && i > 0 && p.replaceIdx !== null && !isReplace;
+          c.save();
+          if (dimmed) c.globalAlpha = 0.45;
 
           c.beginPath();
           c.arc(x, ry, 15 * u, 0, TAU);
@@ -15650,6 +15734,7 @@
             c.textAlign = "center";
             c.textBaseline = "middle";
             c.fillText("BASE", x, ry + 24 * u);
+            c.restore();
           }
         }
 
@@ -16032,6 +16117,47 @@
           c.globalCompositeOperation = "difference";
           c.fillStyle = `rgba(255,255,255,${clamp(FX.invert, 0, 1)})`;
           c.fillRect(0, 0, W, H);
+          c.restore();
+
+          // 🆕 VHS-полосы
+          c.save();
+          c.globalCompositeOperation = "overlay";
+          for (let i = 0; i < 8; i++) {
+            const y = (TM * 400 + i * 137) % H;
+            c.fillStyle = `rgba(255,255,255,${0.05 * FX.invert})`;
+            c.fillRect(0, y, W, 3 + Math.sin(TM * 20 + i) * 2);
+          }
+          c.restore();
+
+          // 🆕 Радиальные лучи из центра
+          const _cx = W / 2,
+            _cy = H / 2;
+          c.save();
+          c.globalCompositeOperation = "lighter";
+          for (let i = 0; i < 12; i++) {
+            const a = (i / 12) * TAU + TM * 0.5;
+            const gg = c.createLinearGradient(
+              _cx,
+              _cy,
+              _cx + Math.cos(a) * W,
+              _cy + Math.sin(a) * H,
+            );
+            gg.addColorStop(0, `rgba(255,255,255,${0.08 * FX.invert})`);
+            gg.addColorStop(1, "rgba(255,255,255,0)");
+            c.fillStyle = gg;
+            c.beginPath();
+            c.moveTo(_cx, _cy);
+            c.lineTo(
+              _cx + Math.cos(a - 0.02) * W,
+              _cy + Math.sin(a - 0.02) * H,
+            );
+            c.lineTo(
+              _cx + Math.cos(a + 0.02) * W,
+              _cy + Math.sin(a + 0.02) * H,
+            );
+            c.closePath();
+            c.fill();
+          }
           c.restore();
         }
 
@@ -16449,9 +16575,53 @@
           if (!SAVE.skins.includes(sk.id) && sk.id !== "base") continue;
           const d = document.createElement("div");
           d.className = "chip" + (setup.skinId === sk.id ? " sel" : "");
-          d.textContent = sk[lang];
-          d.style.fontSize = "13px";
-          d.style.padding = "6px 10px";
+          d.style.fontSize = "11px";
+          d.style.padding = "4px 6px";
+          d.style.display = "flex";
+          d.style.flexDirection = "column";
+          d.style.alignItems = "center";
+          d.style.gap = "2px";
+          d.style.width = "64px";
+
+          // 🆕 Голова скина
+          const cv = document.createElement("canvas");
+          cv.width = 48;
+          cv.height = 48;
+          cv.style.width = "48px";
+          cv.style.height = "48px";
+          cv.style.borderRadius = "50%";
+          cv.style.background = "rgba(0,0,0,.35)";
+          const cc = cv.getContext("2d");
+          const tmpMage = new Mage({
+            mantle: sk.mantle || colorHex(SAVE.color),
+            skin: sk.id,
+            staff: SAVE.staff,
+          });
+          tmpMage.x = 0;
+          tmpMage.y = 0;
+          tmpMage.facing = 1;
+          tmpMage.resetVerlet();
+          tmpMage.ey.a = 0.95;
+          _previewMode = true;
+          try {
+            for (let i = 0; i < 3; i++) updateVisual(tmpMage, 0.016);
+          } finally {
+            _previewMode = false;
+          }
+          cc.save();
+          cc.translate(24, 44);
+          cc.scale(1.3, 1.3);
+          drawMage(cc, tmpMage, { noShadow: true });
+          cc.restore();
+
+          d.appendChild(cv);
+          const lbl = document.createElement("span");
+          lbl.textContent = sk[lang];
+          lbl.style.fontSize = "10px";
+          lbl.style.textAlign = "center";
+          lbl.style.lineHeight = "1.1";
+          d.appendChild(lbl);
+
           d.onclick = () => {
             setup.skinId = sk.id;
             SAVE.skin = sk.id;
@@ -16474,20 +16644,56 @@
           !!(curSkin && curSkin.voidElem) || !!(curStaff && curStaff.voidElem);
 
         for (const c of MAGE_COLORS) {
-          const d = document.createElement("div");
-          // 🆕 "shadow" требует доступа к void
           const needVoid = c.id === "shadow";
           const isLocked = needVoid && !canVoid;
+          const d = document.createElement("div");
           d.className =
             "sw" +
             (setup.colorId === c.id ? " sel" : "") +
             (isLocked ? " locked" : "");
-          d.style.background = c.hex;
+          d.style.background = "transparent";
+          d.style.border = "none";
+          d.style.width = "64px";
+          d.style.height = "64px";
+          d.style.position = "relative";
+          d.style.padding = "0";
           d.title = isLocked
             ? lang === "ru"
               ? "Нужен скин/посох Пустоты"
               : "Requires Void skin/staff"
             : "";
+
+          // 🆕 Голова мага в цвете c.hex
+          const cv = document.createElement("canvas");
+          cv.width = 64;
+          cv.height = 64;
+          cv.style.width = "100%";
+          cv.style.height = "100%";
+          cv.style.borderRadius = "50%";
+          const cc = cv.getContext("2d");
+          const tmpMage = new Mage({
+            mantle: c.hex,
+            skin: setup.skinId,
+            staff: SAVE.staff,
+          });
+          tmpMage.x = 0;
+          tmpMage.y = 0;
+          tmpMage.facing = 1;
+          tmpMage.resetVerlet();
+          tmpMage.ey.a = 0.95;
+          _previewMode = true;
+          try {
+            for (let i = 0; i < 3; i++) updateVisual(tmpMage, 0.016);
+          } finally {
+            _previewMode = false;
+          }
+          cc.save();
+          cc.translate(32, 58);
+          cc.scale(1.6, 1.6);
+          drawMage(cc, tmpMage, { noShadow: true });
+          cc.restore();
+
+          d.appendChild(cv);
           if (isLocked) {
             d.style.opacity = "0.35";
             d.style.pointerEvents = "none";
@@ -16623,19 +16829,15 @@
           lev: 0,
           staff: staff,
           skin: { id: "" },
-          // 🆕 Анимация: посох слегка покачивается + «дышит»
-          staffAnim: Math.sin(TM * 2) * 0.5 + 0.5,
+          staffAnim: 0,
         };
 
         _previewMode = true;
         try {
           c.save();
-          // 🆕 Лёгкое покачивание по вертикали
           const bob = Math.sin(TM * 1.8) * 2;
           c.translate(90 - 22 * 2.2, 165 + bob);
           c.scale(2.2, 2.2);
-          // 🆕 Небольшой наклон от анимации
-          c.rotate(Math.sin(TM * 1.2) * 0.04);
           drawStaff(c, fakeMage, 1);
           c.restore();
 
@@ -17552,9 +17754,10 @@
               let myUid = null;
               try {
                 if (typeof player !== "undefined" && player) {
-                  myUid = player.getUniqueID
+                  const _uid = player.getUniqueID
                     ? player.getUniqueID()
                     : player.uniqueID || null;
+                  myUid = _uid && _uid.then ? await _uid : _uid;
                 }
               } catch (e) {}
               let yh =
@@ -18129,9 +18332,16 @@
               persist();
               $("sc-noenergy").classList.remove("show");
               toast("+3 ⚡");
-              // 🆕 Авто-старт, если игрок пришёл из setup
-              if (setup && setup.mode && SAVE.energy >= 1) {
-                setTimeout(() => startFromSetup(), 250);
+              // 🆕 Авто-старт, если игрок пришёл из setup (и всё ещё в меню)
+              if (
+                setup &&
+                setup.mode &&
+                SAVE.energy >= 1 &&
+                (state === "MENU" || state === "ONLINE")
+              ) {
+                setTimeout(() => {
+                  if (state === "MENU" || state === "ONLINE") startFromSetup();
+                }, 250);
               }
             });
             break;
@@ -18924,7 +19134,11 @@
           if (m !== G.player) m.facing = p.facing;
           m.elem = p.element;
           m.runes = p.runes || [];
-          if (p.ultSlots) m.ultSlots = p.ultSlots.slice();
+          if (p.ultSlots) {
+            m.ultSlots = p.ultSlots.slice();
+            // 🆕 базовый слот всегда = текущая стихия атаки
+            m.ultSlots[0] = m.elem;
+          }
           if (typeof p.ultActive === "number") m.ultActive = p.ultActive;
           m.ultCharge = p.ultCharge;
           m.aura = p.aura;
@@ -19171,7 +19385,7 @@
               const _u = {
                 a: parts[0],
                 b: parts[parts.length > 1 ? 1 : 0],
-                e: parts[0], // ✅ как у хоста в ultKey
+                e: ev.e !== undefined ? ev.e : parts[0], // 🆕
                 mega: !!ev.mega,
                 key: ev.key,
               };
@@ -19199,6 +19413,7 @@
                 });
               }
               later(_u.mega ? 0.6 : 0.35, () => {
+                if (!G) return;
                 let splashR = 200;
                 if (ev.key === "3-3-3") splashR = 260;
                 if (ev.key === "4-4-4") splashR = 220;
@@ -19382,6 +19597,7 @@
             p.trailPts.push({ x: p.x, y: p.y });
             if (p.trailPts.length > 8) p.trailPts.shift();
           }
+          const _el = ELEMS[p.e] || ELEMS[0]; // 🆕 защита от невалидного p.e
           pt(
             p.x,
             p.y,
@@ -19389,7 +19605,7 @@
             rnd(-15, 15),
             0.35,
             rnd(2.5, 5),
-            pick([ELEMS[p.e].color, ELEMS[p.e].core]),
+            pick([_el.color, _el.core]),
             0,
             true,
             0.95,
