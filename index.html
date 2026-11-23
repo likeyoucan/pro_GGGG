@@ -8704,10 +8704,8 @@
         else if (!u.single) ultShake = 10;
         shake(ultShake);
         if (u.mega) {
-          // 🆕 Мега-ульта: каскад из 6 «ударов» с инверсией и тряской.
-          //    Эффект идёт в реальном времени (setTimeout), не привязан
-          //    к игровой симуляции — работает даже в slow-mo и hitstop.
-          if (!G.online) FX.slow = { t: 3.0, s: 0.12 };
+          // 🆕 Сократили замедление с 3с до 1.5с
+          if (!G.online) FX.slow = { t: 1.5, s: 0.12 };
           FX.flash = 1;
           FX.flashC = elemColor(u.a);
           FX.invert = 1;
@@ -8718,21 +8716,19 @@
 
           const colA = elemColor(u.a);
           const colB = elemColor(u.b);
-          const mMage = m; // для проверки в setTimeout
 
-          // 🆕 Каскад «ударов» (мс, параметры)
+          // 🆕 Каскад ужат по времени (максимум 1000 мс вместо 2500 мс)
           const pulses = [
             { t: 0, inv: 1, fl: 1.0, zm: -0.2, col: colA, sh: 20 },
-            { t: 250, inv: 0, fl: 0.6, zm: 0.06, col: colB, sh: 10 },
-            { t: 500, inv: 1, fl: 0.8, zm: -0.15, col: colA, sh: 15 },
-            { t: 800, inv: 0, fl: 0.4, zm: 0.03, col: colB, sh: 6 },
-            { t: 1100, inv: 1, fl: 0.5, zm: -0.05, col: colA, sh: 8 },
-            { t: 1500, inv: 0, fl: 0.2, zm: 0, col: "#fff", sh: 2 }, // 🆕 мягче
-            { t: 1900, inv: 1, fl: 0.1, zm: 0, col: "#fff", sh: 1 }, // 🆕
+            { t: 150, inv: 0, fl: 0.6, zm: 0.06, col: colB, sh: 10 },
+            { t: 300, inv: 1, fl: 0.8, zm: -0.15, col: colA, sh: 15 },
+            { t: 450, inv: 0, fl: 0.4, zm: 0.03, col: colB, sh: 6 },
+            { t: 600, inv: 1, fl: 0.5, zm: -0.05, col: colA, sh: 8 },
+            { t: 800, inv: 0, fl: 0.2, zm: 0, col: "#fff", sh: 2 },
+            { t: 1000, inv: 1, fl: 0.1, zm: 0, col: "#fff", sh: 1 },
           ];
           pulses.forEach((p) => {
             setTimeout(() => {
-              // Игнорируем, если матч закончился / пауза / сменился игрок
               if (state !== "PLAYING" || !G || G.uiPause) return;
               FX.invert = p.inv;
               FX.flash = p.fl;
@@ -8740,18 +8736,18 @@
               FX.zoom = p.zm;
               FX.chroma = 6;
               shake(p.sh);
-              // Звук каждого удара — низкий гул + щелчок
               tone(45 + p.sh, 0.4, "sine", 0.35, 0.6, 0, null, true);
               tone(90 + p.sh * 2, 0.3, "sawtooth", 0.08, 0.5, 0.02, null, true);
               noise(0.35, 0.22, 300, "lowpass");
               vib(p.sh >= 14 ? [30, 20, 60] : [20, 15, 40]);
             }, p.t);
           });
-          // Финальная очистка (если игрок вышел из матча)
+
+          // 🆕 Быстрая очистка (1200 мс вместо 3000 мс)
           setTimeout(() => {
             FX.invert = 0;
             FX.chroma = 0;
-          }, 2200);
+          }, 1200);
         }
         const uMega = u.mega,
           elems = [u.a, u.b];
@@ -9955,26 +9951,18 @@
         }
 
         // === РЕЖИМ "manual": игрок выбирает ровно один слот для замены (или ни одного) ===
+        // === РЕЖИМ "manual": игрок выбирает ровно один слот для замены ===
         if (m.autoMode === "manual") {
-          // 1) если replaceIdx выбран — кладём туда
           if (
             m.replaceIdx >= 1 &&
             m.replaceIdx <= 3 &&
             !m.lockedSlots[m.replaceIdx]
           ) {
             _commit(m.replaceIdx);
-            // replaceIdx НЕ сбрасываем — игрок сам снимет выбор повторным кликом
-            return;
+            return true;
           }
-          // 2) иначе ищем свободный слот
-          for (let i = 1; i < 4; i++) {
-            if (m.ultSlots[i] == null && !m.lockedSlots[i]) {
-              _commit(i);
-              return;
-            }
-          }
-          // 3) все слоты заняты и replaceIdx не выбран — руна остаётся на земле
-          return;
+          // 🆕 Если слот не выбран, руна НЕ подбирается, даже если есть свободные
+          return false;
         }
       }
       function collect(m, p) {
@@ -10055,16 +10043,10 @@
                 if (ls[1] && ls[2] && ls[3]) {
                   canPull = false; // все слоты 1-3 заблокированы
                 } else if (m.autoMode === "manual" && !m.isBot) {
-                  // 🆕 manual: нужен выбранный слот или свободный
-                  let freeSlot = false;
-                  for (let i = 1; i < 4; i++) {
-                    if (m.ultSlots[i] == null && !ls[i]) {
-                      freeSlot = true;
-                      break;
-                    }
-                  }
-                  if (!freeSlot && !(m.replaceIdx >= 1 && m.replaceIdx <= 3))
+                  // 🆕 В ручном режиме руна не притягивается, пока не выбран слот
+                  if (!(m.replaceIdx >= 1 && m.replaceIdx <= 3)) {
                     canPull = false;
+                  }
                 } else if (m.autoMode === "auto") {
                   const e = +p.type[1];
                   const counts = {};
@@ -11659,19 +11641,18 @@
       let _blCache = null,
         _blKey = ""; // 🆕
       function btnLayout() {
-        const key = W + "|" + H + "|" + UIS; // 🆕
+        const key = W + "|" + H + "|" + UIS;
         if (_blKey === key && _blCache) return _blCache;
         _blKey = key;
         const u = UIS;
-        const low = H < 560; // 🆕 компактный режим
-        // 🆕 отступ снизу, чтобы кнопки не налезали на слоты (слоты ry = H - 110*u)
-        const baseY = H - 80 * u;
-        const cancelY = low ? H - 200 * u : H - 230 * u;
+        const low = H < 560;
+        const cancelY = low ? H - 200 * u : H - 240 * u;
+
         return (_blCache = {
-          attack: { x: W - 100 * u, y: H - 90 * u, r: 45 * u }, // 🆕 сдвинуто вниз
-          ult: { x: W - 62 * u, y: H - 190 * u, r: 42 * u }, // 🆕
-          atkSwitch: { x: W - 230 * u, y: H - 160 * u, r: 30 * u }, // 🆕
-          dash: { x: W - 200 * u, y: H - 40 * u, r: 33 * u }, // 🆕
+          attack: { x: W - 100 * u, y: H - 80 * u, r: 45 * u }, // Главная атака
+          dash: { x: W - 190 * u, y: H - 45 * u, r: 33 * u }, // Рывок слева от атаки
+          ult: { x: W - 55 * u, y: H - 185 * u, r: 42 * u }, // Ульта над атакой
+          atkSwitch: { x: W - 180 * u, y: H - 145 * u, r: 28 * u }, // Смена стихии слева от ульты
           pause: { x: W - 30 * u, y: 30 * u, r: 22 * u },
           cancel: { x: W - 160 * u, y: cancelY, r: low ? 24 * u : 28 * u },
         });
@@ -15488,7 +15469,7 @@
         c.strokeStyle = "#DAA520";
         c.stroke();
         // 🆕 Слоты подняты выше, чтобы не пересекаться с кнопками attack/dash/ult
-        const ry = H - 120 * u, // 🆕 подняли слоты выше
+        const ry = H - 130 * u, // 🆕 Подняли слоты выше
           rx = 16 * u;
         if (!p.ultSlots) p.ultSlots = [p.elem, null, null, null];
         if (!p.lockedSlots) p.lockedSlots = [true, false, false, false];
@@ -15667,17 +15648,18 @@
             iconSize,
           );
         }
-        // 🆕 Текст ульты по центру над слотами, чтобы не накладывался
-        const _nmLabel = t("ult") + ": " + ultName(_uk.key);
-        c.font = "900 " + 14 * u + 'px "Segoe UI",Arial';
+        // 🆕 Название ульты прямо над кнопкой
+        const ultBtn = L.ult;
+        c.font = "900 " + 11 * u + 'px "Segoe UI",Arial';
         c.textAlign = "center";
-        c.textBaseline = "middle";
+        c.textBaseline = "bottom";
         c.lineJoin = "round";
         c.lineWidth = 3 * u;
         c.strokeStyle = "#000";
-        c.strokeText(_nmLabel, W / 2, H - 160 * u);
+        const _nmLabel = ultName(_uk.key);
+        c.strokeText(_nmLabel, ultBtn.x, ultBtn.y - ultBtn.r - 6 * u);
         c.fillStyle = p.ultCharge >= 100 ? "#FFD84A" : "#ccc";
-        c.fillText(_nmLabel, W / 2, H - 160 * u);
+        c.fillText(_nmLabel, ultBtn.x, ultBtn.y - ultBtn.r - 6 * u);
         if (p.multiStacks > 1) {
           let mx2 = rx + 3 * 38 * u + 16 * u + 40 * u;
           // 🆕 не вылезать за правый край
@@ -16514,6 +16496,18 @@
           } finally {
             _previewMode = false;
           }
+
+          // 🆕 Мгновенно выставляем цвет глаз, чтобы не было эффекта "стоп-кадра"
+          const targetEye = eyeTarget(tmpMage);
+          tmpMage.ey.r = targetEye.r;
+          tmpMage.ey.g = targetEye.g;
+          tmpMage.ey.b = targetEye.b;
+          tmpMage.ey.a = targetEye.a;
+          tmpMage.ey.glow = targetEye.glow;
+          tmpMage.ey.sy = targetEye.sy;
+          tmpMage.ey.shape = targetEye.shape;
+          tmpMage.ey.nm = targetEye.nm;
+
           // 🆕 Точная копия логики HUD-аватара (по центру)
           cc.save();
           cc.beginPath();
@@ -16587,8 +16581,6 @@
             "sw" +
             (setup.colorId === c.id ? " sel" : "") +
             (isLocked ? " locked" : "");
-
-          // ... (стили d остаются прежними) ...
           d.style.background = "transparent";
           d.style.border = "none";
           d.style.width = "64px";
@@ -16628,7 +16620,18 @@
             _previewMode = false;
           }
 
-          // 🆕 Центрируем голову в круге
+          // 🆕 Мгновенно выставляем цвет глаз, чтобы не было эффекта "стоп-кадра"
+          const targetEye = eyeTarget(tmpMage);
+          tmpMage.ey.r = targetEye.r;
+          tmpMage.ey.g = targetEye.g;
+          tmpMage.ey.b = targetEye.b;
+          tmpMage.ey.a = targetEye.a;
+          tmpMage.ey.glow = targetEye.glow;
+          tmpMage.ey.sy = targetEye.sy;
+          tmpMage.ey.shape = targetEye.shape;
+          tmpMage.ey.nm = targetEye.nm;
+
+          // 🆕 Центрируем
           cc.save();
           cc.beginPath();
           cc.arc(32, 32, 32, 0, TAU);
