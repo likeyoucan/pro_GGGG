@@ -3122,10 +3122,15 @@
             hasC = () => NET.players.some((p) => p.conn && p.conn.open);
           while (acc >= FIXED_DT && steps < MX) {
             if (state !== "PLAYING" || !G) break;
-            simStep(FIXED_DT);
+            try {
+              simStep(FIXED_DT);
+            } catch (e) {
+              console.error("[bgLoop simStep]", e);
+              break;
+            }
             acc -= FIXED_DT;
             steps++;
-            if (steps % 4 === 0) {
+            if (steps % 4 === 0 && G) {
               if (hasC()) hostSendState();
               else G.events.length = 0;
               NET.stT = 0;
@@ -4574,10 +4579,11 @@
           this.mana = 100;
           this.r = 14;
           this.facing = 1;
-          this.elem = 0;
-          this.baseElem = 0;
+          this.elem = o.elem !== undefined ? o.elem : 0;
+          this.baseElem = this.elem;
           this.runes = [];
-          this.ultSlots = [0, null, null, null]; // 4 ячейки: [0] = базовый elem
+          // 🆕 базовый слот всегда = текущая стихия
+          this.ultSlots = [this.elem, null, null, null];
           this.ultActive = 0;
           // 🆕 Два режима: "auto" (с блокировкой слотов) | "manual" (выбор одного слота)
           this.autoMode = "auto";
@@ -4720,7 +4726,7 @@
       function eyeTarget(m) {
         const sk = hexRGB(m.skin.eye || "#FFFFFF"),
           em = m.emoT,
-          el = ELEMS[m.aura > 0 ? m.auraElem : m.elem],
+          el = ELEMS[m.aura > 0 ? m.auraElem : m.elem] || ELEMS[0],
           ec = hexRGB(el.color === "#6A0DAD" ? "#C060FF" : el.color);
         const T = {
           nm: "idle",
@@ -5262,7 +5268,7 @@
       }
 
       function drawAuraBack(c, m) {
-        const el = ELEMS[m.auraElem],
+        const el = ELEMS[m.auraElem] || ELEMS[0],
           k = clamp(m.aura / 1.5, 0, 1),
           pul = 0.7 + 0.3 * Math.sin(TM * 8);
         const g = c.createRadialGradient(0, -22, 4, 0, -22, 36);
@@ -5864,7 +5870,7 @@
             c.stroke();
           },
           () => {
-            const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem];
+            const el = ELEMS[m.aura > 0 ? m.auraElem : m.elem] || ELEMS[0];
             const ox = f * 22,
               oy = topY - 8,
               pul = 0.85 + 0.15 * Math.sin(TM * 2 + m.id);
@@ -8119,7 +8125,9 @@
           const stStyle = m.staff ? m.staff.atkStyle : "orb";
           const stCol = null;
           // 🆕 Размер снаряда зависит от количества совпадающих рун
-          let sameRunes = 0;
+             let sameRunes = 0;
+          // 🆕 синхронизируем базовый слот перед подсчётом
+          if (m.ultSlots && m.ultSlots[0] !== m.elem) m.ultSlots[0] = m.elem;
           for (let i = 0; i < 4; i++) if (m.ultSlots[i] === m.elem) sameRunes++;
           let projR = 10; // базовый (уменьшен)
           if (sameRunes === 3) projR = 14; // заметно больше
@@ -8219,7 +8227,16 @@
             }
           }
         }
-        burst(p.x, p.y, [col, "#fff", ELEMS[e].core], 22, 300, 4.5, 0.5, true);
+        burst(
+          p.x,
+          p.y,
+          [col, "#fff", (ELEMS[e] || ELEMS[0]).core], // 🆕 защита
+          22,
+          300,
+          4.5,
+          0.5,
+          true,
+        );
         G.rings.push({
           x: p.x,
           y: p.y,
@@ -8281,10 +8298,11 @@
 
           // Always spawn base element trail
           if (Q.pmul >= 0.4) {
+            const _el = ELEMS[p.e] || ELEMS[0]; // 🆕 защита
             const col =
               p.e === 4
                 ? pick(["#6A0DAD", "#D070FF"])
-                : pick([ELEMS[p.e].color, ELEMS[p.e].core]);
+                : pick([_el.color, _el.core]);
             pt(
               p.x,
               p.y,
@@ -8523,11 +8541,13 @@
               level: 2,
             };
           if (myCount === 3)
+            // 🆕 3 одинаковых = усиленная одиночная, а не комбо
             return {
-              key: elem + "-" + elem,
+              key: "" + elem,
               a: elem,
               b: elem,
               e: elem,
+              single: true,
               level: 3,
             };
         }
@@ -9187,8 +9207,11 @@
 
         // 🆕 Модификаторы по уровню ульты
         const lvl = ultLevel(u);
-        const rMul = 1 + (lvl - 1) * 0.35; // 1.0 / 1.35 / 1.7
-        const dmgMul = 1 + (lvl - 1) * 0.5; // 1.0 / 1.5 / 2.0
+        // 🆕 модификаторы только для одиночных и мега, не для комбо
+        const isCombo =
+          u.key.includes("-") && !u.mega && u.key.split("-").length === 2;
+        const rMul = isCombo ? 1 : 1 + (lvl - 1) * 0.35;
+        const dmgMul = isCombo ? 1 : 1 + (lvl - 1) * 0.5;
 
         // 🆕 Локальные обёртки — автоматически масштабируют радиус и урон
         const aoeM = (o, x, y, r, dmg, opt) =>
